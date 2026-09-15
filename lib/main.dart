@@ -7,6 +7,8 @@ import 'core/constants/supabase_constants.dart';
 import 'features/auth/auth_repository.dart';
 import 'features/auth/login_screen.dart';
 import 'features/decks/deck_list_screen.dart';
+import 'features/stats/dashboard_repository.dart';
+import 'features/stats/dashboard_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,31 +38,74 @@ class MyApp extends ConsumerWidget {
         ),
         useMaterial3: true,
       ),
-     home: authState.when(
-  data: (data) {
-    if (data.session != null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('TCG Tracker'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.logout),
-              onPressed: () => ref.read(authRepositoryProvider).signOut(),
-            )
-          ],
+      home: authState.when(
+        data: (data) {
+          if (data.session != null) {
+            return const MainNavigationHost();
+          }
+          return const LoginScreen();
+        },
+        loading: () => const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
         ),
-        body: const DeckListScreen(),
-      );
-    }
-    return const LoginScreen();
-  },
-  loading: () => const Scaffold(
-    body: Center(child: CircularProgressIndicator()),
-  ),
-  error: (error, _) => Scaffold(
-    body: Center(child: Text('Fehler: $error')),
-  ),
-),
+        error: (error, _) => Scaffold(
+          body: Center(child: Text('Fehler: $error')),
+        ),
+      ),
+    );
+  }
+}
+
+class MainNavigationHost extends ConsumerStatefulWidget {
+  const MainNavigationHost({super.key});
+
+  @override
+  ConsumerState<MainNavigationHost> createState() => _MainNavigationHostState();
+}
+
+class _MainNavigationHostState extends ConsumerState<MainNavigationHost> {
+  int _currentIndex = 0;
+
+  final List<Widget> _screens = const [
+    DashboardScreen(),
+    DeckListScreen(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(_currentIndex == 0 ? 'Dashboard' : 'Meine Decks'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Abmelden',
+            onPressed: () => ref.read(authRepositoryProvider).signOut(),
+          ),
+        ],
+      ),
+      body: _screens[_currentIndex],
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _currentIndex,
+        onDestinationSelected: (index) {
+          setState(() => _currentIndex = index);
+          if (index == 0) {
+            ref.invalidate(dashboardDataProvider);
+          }
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard),
+            label: 'Dashboard',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.style_outlined),
+            selectedIcon: Icon(Icons.style),
+            label: 'Decks',
+          ),
+        ],
+      ),
     );
   }
 }
