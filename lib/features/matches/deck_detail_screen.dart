@@ -148,53 +148,113 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
               ),
               const Divider(height: 12),
 
-              // Gefilterte Liste
+              // Gefilterte Liste mit Swipe-to-Delete & Edit
               Expanded(
                 child: filteredMatches.isEmpty
-                  ? const Center(child: Text('Keine Matches für diesen Filter gefunden.'))
-                  : ListView.builder(
-                      itemCount: filteredMatches.length,
-                      itemBuilder: (context, index) {
-                        final match = filteredMatches[index];
-                        final isWin = match.result == 'win';
-                        final isLoss = match.result == 'loss';
+                    ? const Center(child: Text('Keine Matches für diesen Filter gefunden.'))
+                    : ListView.builder(
+                        itemCount: filteredMatches.length,
+                        itemBuilder: (context, index) {
+                          final match = filteredMatches[index];
+                          final isWin = match.result == 'win';
+                          final isLoss = match.result == 'loss';
 
-                        return ListTile(
-                          leading: Icon(
-                            isWin ? Icons.check_circle : (isLoss ? Icons.cancel : Icons.pause_circle),
-                            color: isWin ? Colors.green : (isLoss ? Colors.red : Colors.grey),
-                            size: 32,
-                          ),
-                          title: Text('vs. ${match.opponentDeck}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${match.matchFormat.toUpperCase()} • ${match.turnOrder == 'first' ? '1st' : '2nd'}${match.score != null ? ' • (${match.score})' : ''}',
-                              ),
-                              if (match.tags.isNotEmpty)
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 4),
-                                  child: Wrap(
-                                    spacing: 4,
-                                    children: match.tags
-                                        .map((t) => Chip(
-                                              label: Text(t, style: const TextStyle(fontSize: 10)),
-                                              visualDensity: VisualDensity.compact,
-                                              padding: EdgeInsets.zero,
-                                            ))
-                                        .toList(),
+                          return Dismissible(
+                            key: Key(match.id),
+                            direction: DismissDirection.endToStart,
+                            background: Container(
+                              color: Colors.red,
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.symmetric(horizontal: 20),
+                              child: const Icon(Icons.delete, color: Colors.white),
+                            ),
+                            confirmDismiss: (direction) async {
+                              return await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                  title: const Text('Match löschen?'),
+                                  content: Text(
+                                    'Möchtest du das Spiel gegen ${match.opponentDeck} wirklich löschen?',
                                   ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(ctx).pop(false),
+                                      child: const Text('Abbrechen'),
+                                    ),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                      onPressed: () => Navigator.of(ctx).pop(true),
+                                      child: const Text('Löschen'),
+                                    ),
+                                  ],
                                 ),
-                            ],
-                          ),
-                          trailing: Text(
-                            '${match.createdAt.day}.${match.createdAt.month}.${match.createdAt.year}',
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
-                          ),
-                        );
-                      },
-                    ),
+                              );
+                            },
+                            onDismissed: (direction) async {
+                              await ref.read(matchRepositoryProvider).deleteMatch(match.id);
+                              ref.invalidate(deckMatchesProvider(widget.deck.id));
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Match gelöscht.')),
+                                );
+                              }
+                            },
+                            child: ListTile(
+                              leading: Icon(
+                                isWin ? Icons.check_circle : (isLoss ? Icons.cancel : Icons.pause_circle),
+                                color: isWin ? Colors.green : (isLoss ? Colors.red : Colors.grey),
+                                size: 32,
+                              ),
+                              title: Text('vs. ${match.opponentDeck}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    '${match.matchFormat.toUpperCase()} • ${match.turnOrder == 'first' ? '1st' : '2nd'}${match.score != null ? ' • (${match.score})' : ''}',
+                                  ),
+                                  if (match.tags.isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 4),
+                                      child: Wrap(
+                                        spacing: 4,
+                                        children: match.tags
+                                            .map((t) => Chip(
+                                                  label: Text(t, style: const TextStyle(fontSize: 10)),
+                                                  visualDensity: VisualDensity.compact,
+                                                  padding: EdgeInsets.zero,
+                                                ))
+                                            .toList(),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              trailing: IconButton(
+                                icon: const Icon(Icons.edit_outlined, size: 20),
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (_) => AddMatchDialog(
+                                      deckId: widget.deck.id,
+                                      gameId: widget.deck.gameId,
+                                      match: match,
+                                    ),
+                                  );
+                                },
+                              ),
+                              onTap: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => AddMatchDialog(
+                                    deckId: widget.deck.id,
+                                    gameId: widget.deck.gameId,
+                                    match: match,
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      ),
               ),
             ],
           );

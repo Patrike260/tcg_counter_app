@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'match_model.dart';
 import 'match_repository.dart';
 
 class AddMatchDialog extends ConsumerStatefulWidget {
   final String deckId;
   final String gameId;
+  final MatchRecord? match; // null = neu, nicht-null = bearbeiten
 
   const AddMatchDialog({
     super.key,
     required this.deckId,
     required this.gameId,
+    this.match,
   });
 
   @override
@@ -17,14 +20,14 @@ class AddMatchDialog extends ConsumerStatefulWidget {
 }
 
 class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
-  final _opponentDeckController = TextEditingController();
-  final _scoreController = TextEditingController();
-  final _notesController = TextEditingController();
+  late final TextEditingController _opponentDeckController;
+  late final TextEditingController _scoreController;
+  late final TextEditingController _notesController;
 
-  String _result = 'win';
-  String _format = 'bo1';
-  String _turnOrder = 'first';
-  final List<String> _selectedTags = [];
+  late String _result;
+  late String _format;
+  late String _turnOrder;
+  late List<String> _selectedTags;
   bool _isLoading = false;
 
   final List<String> _availableTags = const [
@@ -34,6 +37,19 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
     'Testing',
     'Online',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    final m = widget.match;
+    _opponentDeckController = TextEditingController(text: m?.opponentDeck ?? '');
+    _scoreController = TextEditingController(text: m?.score ?? '');
+    _notesController = TextEditingController(text: m?.notes ?? '');
+    _result = m?.result ?? 'win';
+    _format = m?.matchFormat ?? 'bo1';
+    _turnOrder = m?.turnOrder ?? 'first';
+    _selectedTags = List<String>.from(m?.tags ?? []);
+  }
 
   @override
   void dispose() {
@@ -55,16 +71,31 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
     setState(() => _isLoading = true);
 
     try {
-      await ref.read(matchRepositoryProvider).addMatch(
-            deckId: widget.deckId,
-            opponentDeck: opponentDeck,
-            result: _result,
-            matchFormat: _format,
-            score: _scoreController.text.trim().isEmpty ? null : _scoreController.text.trim(),
-            turnOrder: _turnOrder,
-            tags: _selectedTags,
-            notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
-          );
+      final repo = ref.read(matchRepositoryProvider);
+
+      if (widget.match != null) {
+        await repo.updateMatch(
+          matchId: widget.match!.id,
+          opponentDeck: opponentDeck,
+          result: _result,
+          matchFormat: _format,
+          score: _scoreController.text.trim().isEmpty ? null : _scoreController.text.trim(),
+          turnOrder: _turnOrder,
+          tags: _selectedTags,
+          notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+        );
+      } else {
+        await repo.addMatch(
+          deckId: widget.deckId,
+          opponentDeck: opponentDeck,
+          result: _result,
+          matchFormat: _format,
+          score: _scoreController.text.trim().isEmpty ? null : _scoreController.text.trim(),
+          turnOrder: _turnOrder,
+          tags: _selectedTags,
+          notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+        );
+      }
 
       ref.invalidate(deckMatchesProvider(widget.deckId));
       ref.invalidate(archetypesProvider(widget.gameId));
@@ -84,9 +115,10 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
   @override
   Widget build(BuildContext context) {
     final archetypesAsync = ref.watch(archetypesProvider(widget.gameId));
+    final isEditing = widget.match != null;
 
     return AlertDialog(
-      title: const Text('Match eintragen'),
+      title: Text(isEditing ? 'Match bearbeiten' : 'Match eintragen'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -104,6 +136,7 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
             const SizedBox(height: 16),
             archetypesAsync.when(
               data: (archetypes) => Autocomplete<String>(
+                initialValue: TextEditingValue(text: _opponentDeckController.text),
                 optionsBuilder: (textEditingValue) {
                   if (textEditingValue.text.isEmpty) return const Iterable<String>.empty();
                   return archetypes.where((option) =>
@@ -216,7 +249,7 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Speichern'),
+              : Text(isEditing ? 'Aktualisieren' : 'Speichern'),
         ),
       ],
     );

@@ -72,4 +72,30 @@ class MatchRepository {
       'notes': notes,
     });
   }
+  // Match aktualisieren
+  Future<void> updateMatch({
+    required String matchId,
+    required String opponentDeck,
+    required String result,
+    required String matchFormat,
+    String? score,
+    String? turnOrder,
+    List<String> tags = const [],
+    String? notes,
+  }) async {
+    await _client.from('matches').update({
+      'opponent_deck': opponentDeck,
+      'result': result,
+      'match_format': matchFormat,
+      'score': score,
+      'turn_order': turnOrder,
+      'tags': tags,
+      'notes': notes,
+    }).eq('id', matchId);
+  }
+
+  // Match löschen
+  Future<void> deleteMatch(String matchId) async {
+    await _client.from('matches').delete().eq('id', matchId);
+  }
 }
