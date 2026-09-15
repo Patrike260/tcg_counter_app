@@ -21,10 +21,19 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
   final _scoreController = TextEditingController();
   final _notesController = TextEditingController();
 
-  String _result = 'win'; // 'win', 'loss', 'draw'
-  String _format = 'bo1'; // 'bo1', 'bo3'
-  String _turnOrder = 'first'; // 'first', 'second'
+  String _result = 'win';
+  String _format = 'bo1';
+  String _turnOrder = 'first';
+  final List<String> _selectedTags = [];
   bool _isLoading = false;
+
+  final List<String> _availableTags = const [
+    'Local',
+    'Regional',
+    'Casual',
+    'Testing',
+    'Online',
+  ];
 
   @override
   void dispose() {
@@ -53,10 +62,10 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
             matchFormat: _format,
             score: _scoreController.text.trim().isEmpty ? null : _scoreController.text.trim(),
             turnOrder: _turnOrder,
+            tags: _selectedTags,
             notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
           );
 
-      // Aktualisiert die Match-Liste und die Archetypen-Vorschläge
       ref.invalidate(deckMatchesProvider(widget.deckId));
       ref.invalidate(archetypesProvider(widget.gameId));
 
@@ -83,7 +92,6 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Ergebnis-Auswahl
             SegmentedButton<String>(
               segments: const [
                 ButtonSegment(value: 'win', label: Text('Sieg'), icon: Icon(Icons.check, color: Colors.green)),
@@ -94,8 +102,6 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
               onSelectionChanged: (set) => setState(() => _result = set.first),
             ),
             const SizedBox(height: 16),
-
-            // Gegnerisches Deck mit Auto-Suggest
             archetypesAsync.when(
               data: (archetypes) => Autocomplete<String>(
                 optionsBuilder: (textEditingValue) {
@@ -105,7 +111,6 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
                 },
                 onSelected: (selection) => _opponentDeckController.text = selection,
                 fieldViewBuilder: (context, controller, focusNode, onFieldSubmitted) {
-                  // Synchronisieren des Controllers
                   controller.addListener(() {
                     _opponentDeckController.text = controller.text;
                   });
@@ -129,8 +134,6 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
               ),
             ),
             const SizedBox(height: 16),
-
-            // Format & Zugreihenfolge nebeneinander
             Row(
               children: [
                 Expanded(
@@ -159,8 +162,28 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
               ],
             ),
             const SizedBox(height: 16),
-
-            // Score & Notizen
+            const Text('Event-Tags', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              children: _availableTags.map((tag) {
+                final isSelected = _selectedTags.contains(tag);
+                return FilterChip(
+                  label: Text(tag),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    setState(() {
+                      if (selected) {
+                        _selectedTags.add(tag);
+                      } else {
+                        _selectedTags.remove(tag);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 16),
             TextField(
               controller: _scoreController,
               decoration: const InputDecoration(
