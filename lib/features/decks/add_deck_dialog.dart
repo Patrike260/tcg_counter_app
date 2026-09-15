@@ -4,17 +4,27 @@ import 'deck_model.dart';
 import 'deck_repository.dart';
 
 class AddDeckDialog extends ConsumerStatefulWidget {
-  const AddDeckDialog({super.key});
+  final Deck? deck; // null = neu, nicht-null = bearbeiten
+
+  const AddDeckDialog({super.key, this.deck});
 
   @override
   ConsumerState<AddDeckDialog> createState() => _AddDeckDialogState();
 }
 
 class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
-  final _nameController = TextEditingController();
-  final _notesController = TextEditingController();
+  late final TextEditingController _nameController;
+  late final TextEditingController _notesController;
   String? _selectedGameId;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.deck?.name ?? '');
+    _notesController = TextEditingController(text: widget.deck?.notes ?? '');
+    _selectedGameId = widget.deck?.gameId;
+  }
 
   @override
   void dispose() {
@@ -25,9 +35,9 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
 
   Future<void> _submit() async {
     final name = _nameController.text.trim();
-    if (name.isEmpty || _selectedGameId == null) {
+    if (name.isEmpty || (_selectedGameId == null && widget.deck == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bitte ein Spiel wählen und einen Decknamen eingeben.')),
+        const SnackBar(content: Text('Bitte alle Pflichtfelder ausfüllen.')),
       );
       return;
     }
@@ -35,13 +45,22 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
     setState(() => _isLoading = true);
 
     try {
-      await ref.read(deckRepositoryProvider).createDeck(
-            gameId: _selectedGameId!,
-            name: name,
-            notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
-          );
+      final repo = ref.read(deckRepositoryProvider);
 
-      // Deck-Liste aktualisieren
+      if (widget.deck != null) {
+        await repo.updateDeck(
+          deckId: widget.deck!.id,
+          name: name,
+          notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+        );
+      } else {
+        await repo.createDeck(
+          gameId: _selectedGameId!,
+          name: name,
+          notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+        );
+      }
+
       ref.invalidate(userDecksProvider);
 
       if (mounted) Navigator.of(context).pop();
@@ -59,30 +78,37 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
   @override
   Widget build(BuildContext context) {
     final gamesAsync = ref.watch(gamesListProvider);
+    final isEditing = widget.deck != null;
 
     return AlertDialog(
-      title: const Text('Neues Deck anlegen'),
+      title: Text(isEditing ? 'Deck bearbeiten' : 'Neues Deck anlegen'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            gamesAsync.when(
-              data: (games) => DropdownButtonFormField<String>(
-                value: _selectedGameId,
-                decoration: const InputDecoration(labelText: 'Kartenspiel'),
-                items: games
-                    .map((g) => DropdownMenuItem(value: g.id, child: Text(g.name)))
-                    .toList(),
-                onChanged: (val) => setState(() => _selectedGameId = val),
+            if (!isEditing)
+              gamesAsync.when(
+                data: (games) => DropdownButtonFormField<String>(
+                  value: _selectedGameId,
+                  decoration: const InputDecoration(labelText: 'Kartenspiel'),
+                  items: games
+                      .map((g) => DropdownMenuItem(value: g.id, child: Text(g.name)))
+                      .toList(),
+                  onChanged: (val) => setState(() => _selectedGameId = val),
+                ),
+                loading: () => const LinearProgressIndicator(),
+                error: (err, _) => Text('Fehler beim Laden: $err'),
+              )
+            else
+              Text(
+                'Spiel: ${widget.deck!.gameName ?? "Unbekannt"}',
+                style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
               ),
-              loading: () => const LinearProgressIndicator(),
-              error: (err, _) => Text('Fehler beim Laden: $err'),
-            ),
             const SizedBox(height: 16),
             TextField(
               controller: _nameController,
               decoration: const InputDecoration(
-                labelText: 'Deck-Name (z. B. Charizard ex)',
+                labelText: 'Deck-Name',
                 border: OutlineInputBorder(),
               ),
             ),
@@ -111,7 +137,7 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : const Text('Speichern'),
+              : Text(isEditing ? 'Aktualisieren' : 'Speichern'),
         ),
       ],
     );

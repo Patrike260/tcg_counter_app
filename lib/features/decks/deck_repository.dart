@@ -7,13 +7,13 @@ final deckRepositoryProvider = Provider<DeckRepository>((ref) {
   return DeckRepository(supabase);
 });
 
-// Stream/Future für alle Spiele (MTG, Pokémon, Gundam etc.)
+// Verfügbare Kartenspiele
 final gamesListProvider = FutureProvider<List<Game>>((ref) async {
   final repo = ref.watch(deckRepositoryProvider);
   return repo.fetchGames();
 });
 
-// Stream/Future für die Decks des aktuellen Nutzers
+// Aktive Decks des Nutzers
 final userDecksProvider = FutureProvider<List<Deck>>((ref) async {
   final repo = ref.watch(deckRepositoryProvider);
   return repo.fetchUserDecks();
@@ -24,24 +24,27 @@ class DeckRepository {
 
   DeckRepository(this._client);
 
-  // Verfügbare Kartenspiele abrufen
+  // Kartenspiele abrufen
   Future<List<Game>> fetchGames() async {
     final response = await _client.from('games').select('id, name').order('name');
     return (response as List).map((json) => Game.fromJson(json)).toList();
   }
 
-  // Decks des Nutzers abrufen inkl. Spielname
-  Future<List<Deck>> fetchUserDecks() async {
-    final response = await _client
+  // Decks des Nutzers abrufen (Standard: nur aktive)
+  Future<List<Deck>> fetchUserDecks({bool activeOnly = true}) async {
+    var query = _client
         .from('decks')
-        .select('id, user_id, game_id, name, notes, is_active, games(name)')
-        .eq('is_active', true)
-        .order('created_at', ascending: false);
+        .select('id, user_id, game_id, name, notes, is_active, games(name)');
 
+    if (activeOnly) {
+      query = query.eq('is_active', true);
+    }
+
+    final response = await query.order('created_at', ascending: false);
     return (response as List).map((json) => Deck.fromJson(json)).toList();
   }
 
-  // Neues Deck anlegen
+  // Neues Deck erstellen
   Future<void> createDeck({
     required String gameId,
     required String name,
@@ -57,5 +60,29 @@ class DeckRepository {
       'notes': notes,
       'is_active': true,
     });
+  }
+
+  // Deck aktualisieren (Name & Notizen)
+  Future<void> updateDeck({
+    required String deckId,
+    required String name,
+    String? notes,
+  }) async {
+    await _client.from('decks').update({
+      'name': name,
+      'notes': notes,
+    }).eq('id', deckId);
+  }
+
+  // Deck archivieren (inaktiv schalten)
+  Future<void> archiveDeck(String deckId) async {
+    await _client.from('decks').update({
+      'is_active': false,
+    }).eq('id', deckId);
+  }
+
+  // Deck endgültig löschen (kaskadiert zu Matches durch Foreign Key)
+  Future<void> deleteDeck(String deckId) async {
+    await _client.from('decks').delete().eq('id', deckId);
   }
 }
