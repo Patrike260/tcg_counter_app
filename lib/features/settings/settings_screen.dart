@@ -10,6 +10,7 @@ import 'app_preferences_service.dart';
 import 'archetype_management_screen.dart';
 import 'backup_service.dart';
 import 'tag_management_screen.dart';
+import 'game_management_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -315,8 +316,22 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ],
                 ),
               ),
+			  const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.sports_esports_outlined, color: Colors.tealAccent),
+                      title: const Text('Kartenspiele (TCGs) verwalten'),
+                      subtitle: const Text('Spiele hinzufügen oder umbenennen'),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const GameManagementScreen(),
+                          ),
+                        );
+                      },
+                    ),
+					
               const SizedBox(height: 24),
-
+			  
               // KONTO & INFO
               const Text(
                 'KONTO & INFO',
