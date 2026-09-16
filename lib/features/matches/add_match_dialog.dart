@@ -29,6 +29,7 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
   late String _turnOrder;
   late List<String> _selectedTags;
   bool _isLoading = false;
+  bool _showAdvanced = false; // Steuert das Ein-/Ausklappen
 
   final List<String> _availableTags = const [
     'Local',
@@ -49,6 +50,17 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
     _format = m?.matchFormat ?? 'bo1';
     _turnOrder = m?.turnOrder ?? 'first';
     _selectedTags = List<String>.from(m?.tags ?? []);
+
+    // Falls beim Bearbeiten bereits optionale Daten vorhanden sind, direkt aufklappen
+    if (m != null) {
+      final hasAdvancedData = (m.score != null && m.score!.isNotEmpty) ||
+          (m.notes != null && m.notes!.isNotEmpty) ||
+          m.tags.isNotEmpty ||
+          m.matchFormat != 'bo1';
+      if (hasAdvancedData) {
+        _showAdvanced = true;
+      }
+    }
   }
 
   @override
@@ -124,6 +136,7 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // 1. Ergebnis-Auswahl (Immer sichtbar)
             SegmentedButton<String>(
               segments: const [
                 ButtonSegment(value: 'win', label: Text('Sieg'), icon: Icon(Icons.check, color: Colors.green)),
@@ -134,6 +147,8 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
               onSelectionChanged: (set) => setState(() => _result = set.first),
             ),
             const SizedBox(height: 16),
+
+            // 2. Gegnerisches Deck mit Auto-Suggest (Immer sichtbar)
             archetypesAsync.when(
               data: (archetypes) => Autocomplete<String>(
                 initialValue: TextEditingValue(text: _opponentDeckController.text),
@@ -166,73 +181,91 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _format,
-                    decoration: const InputDecoration(labelText: 'Format', border: OutlineInputBorder()),
-                    items: const [
-                      DropdownMenuItem(value: 'bo1', child: Text('Best of 1')),
-                      DropdownMenuItem(value: 'bo3', child: Text('Best of 3')),
-                    ],
-                    onChanged: (val) => setState(() => _format = val!),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    value: _turnOrder,
-                    decoration: const InputDecoration(labelText: 'Reihenfolge', border: OutlineInputBorder()),
-                    items: const [
-                      DropdownMenuItem(value: 'first', child: Text('1st (Beginn)')),
-                      DropdownMenuItem(value: 'second', child: Text('2nd (Zweiter)')),
-                    ],
-                    onChanged: (val) => setState(() => _turnOrder = val!),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Text('Event-Tags', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 8,
-              children: _availableTags.map((tag) {
-                final isSelected = _selectedTags.contains(tag);
-                return FilterChip(
-                  label: Text(tag),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    setState(() {
-                      if (selected) {
-                        _selectedTags.add(tag);
-                      } else {
-                        _selectedTags.remove(tag);
-                      }
-                    });
-                  },
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _scoreController,
-              decoration: const InputDecoration(
-                labelText: 'Score (optional, z. B. 2-1)',
-                border: OutlineInputBorder(),
+            const SizedBox(height: 12),
+
+            // 3. Button zum Umschalten von "Erweitert"
+            TextButton.icon(
+              style: TextButton.styleFrom(
+                alignment: Alignment.centerLeft,
+                padding: EdgeInsets.zero,
               ),
+              onPressed: () {
+                setState(() => _showAdvanced = !_showAdvanced);
+              },
+              icon: Icon(_showAdvanced ? Icons.expand_less : Icons.expand_more),
+              label: Text(_showAdvanced ? 'Optionen einklappen' : 'Erweiterte Optionen anzeigen'),
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notizen (optional)',
-                border: OutlineInputBorder(),
+
+            // 4. Eingeklappter Bereich (Format, Reihenfolge, Tags, Score, Notizen)
+            if (_showAdvanced) ...[
+              const Divider(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _format,
+                      decoration: const InputDecoration(labelText: 'Format', border: OutlineInputBorder()),
+                      items: const [
+                        DropdownMenuItem(value: 'bo1', child: Text('Best of 1')),
+                        DropdownMenuItem(value: 'bo3', child: Text('Best of 3')),
+                      ],
+                      onChanged: (val) => setState(() => _format = val!),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: _turnOrder,
+                      decoration: const InputDecoration(labelText: 'Reihenfolge', border: OutlineInputBorder()),
+                      items: const [
+                        DropdownMenuItem(value: 'first', child: Text('1st (Beginn)')),
+                        DropdownMenuItem(value: 'second', child: Text('2nd (Zweiter)')),
+                      ],
+                      onChanged: (val) => setState(() => _turnOrder = val!),
+                    ),
+                  ),
+                ],
               ),
-              maxLines: 2,
-            ),
+              const SizedBox(height: 16),
+              const Text('Event-Tags', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                children: _availableTags.map((tag) {
+                  final isSelected = _selectedTags.contains(tag);
+                  return FilterChip(
+                    label: Text(tag),
+                    selected: isSelected,
+                    onSelected: (selected) {
+                      setState(() {
+                        if (selected) {
+                          _selectedTags.add(tag);
+                        } else {
+                          _selectedTags.remove(tag);
+                        }
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _scoreController,
+                decoration: const InputDecoration(
+                  labelText: 'Score (optional, z. B. 2-1)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _notesController,
+                decoration: const InputDecoration(
+                  labelText: 'Notizen (optional)',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 2,
+              ),
+            ],
           ],
         ),
       ),
