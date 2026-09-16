@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../decks/deck_model.dart';
+import '../settings/app_preferences_service.dart';
 import '../stats/deck_stats_screen.dart';
 import 'add_match_dialog.dart';
 import 'match_model.dart';
@@ -17,13 +18,12 @@ class DeckDetailScreen extends ConsumerStatefulWidget {
 
 class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
   String _selectedFormat = 'all'; // 'all', 'bo1', 'bo3'
-  String? _selectedTag; // null = alle Tags
-
-  final List<String> _tags = const ['Local', 'Regional', 'Casual', 'Testing', 'Online'];
+  String? _selectedTag; // null = kein Tag-Filter
 
   @override
   Widget build(BuildContext context) {
     final matchesAsync = ref.watch(deckMatchesProvider(widget.deck.id));
+    final allAvailableTags = ref.watch(appPreferencesProvider).allAvailableTags;
 
     return Scaffold(
       appBar: AppBar(
@@ -53,8 +53,8 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
         ],
       ),
       body: matchesAsync.when(
-        data: (allMatches) {
-          if (allMatches.isEmpty) {
+        data: (matches) {
+          if (matches.isEmpty) {
             return const Center(
               child: Text(
                 'Noch keine Matches für dieses Deck erfasst.\nKlicke unten auf +, um ein Match hinzuzufügen!',
@@ -64,19 +64,19 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
           }
 
           // Filter anwenden
-          final filteredMatches = allMatches.where((m) {
-            final matchesFormat = _selectedFormat == 'all' || m.matchFormat == _selectedFormat;
-            final matchesTag = _selectedTag == null || m.tags.contains(_selectedTag);
-            return matchesFormat && matchesTag;
+          final filteredMatches = matches.where((m) {
+            final matchFormat = _selectedFormat == 'all' || m.matchFormat == _selectedFormat;
+            final matchTag = _selectedTag == null || m.tags.contains(_selectedTag);
+            return matchFormat && matchTag;
           }).toList();
 
-          final wins = filteredMatches.where((m) => m.result == 'win').length;
-          final total = filteredMatches.length;
+          final wins = matches.where((m) => m.result == 'win').length;
+          final total = matches.length;
           final winRate = total > 0 ? (wins / total * 100).toStringAsFixed(1) : '0';
 
           return Column(
             children: [
-              // Schnelle Statistik für den aktiven Filter
+              // Schnelle Statistik-Leiste
               Card(
                 margin: const EdgeInsets.all(12),
                 child: Padding(
@@ -116,22 +116,22 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
                     ChoiceChip(
                       label: const Text('Alle Formate'),
                       selected: _selectedFormat == 'all',
-                      onSelected: (_) => setState(() => _selectedFormat = 'all'),
+                      onSelected: (val) => setState(() => _selectedFormat = 'all'),
                     ),
                     const SizedBox(width: 6),
                     ChoiceChip(
                       label: const Text('BO1'),
                       selected: _selectedFormat == 'bo1',
-                      onSelected: (_) => setState(() => _selectedFormat = 'bo1'),
+                      onSelected: (val) => setState(() => _selectedFormat = 'bo1'),
                     ),
                     const SizedBox(width: 6),
                     ChoiceChip(
                       label: const Text('BO3'),
                       selected: _selectedFormat == 'bo3',
-                      onSelected: (_) => setState(() => _selectedFormat = 'bo3'),
+                      onSelected: (val) => setState(() => _selectedFormat = 'bo3'),
                     ),
-                    const VerticalDivider(width: 20, thickness: 1),
-                    ..._tags.map((tag) => Padding(
+                    const VerticalDivider(width: 16, thickness: 1),
+                    ...allAvailableTags.map((tag) => Padding(
                           padding: const EdgeInsets.only(right: 6),
                           child: FilterChip(
                             label: Text(tag),
@@ -146,9 +146,8 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
                   ],
                 ),
               ),
-              const Divider(height: 12),
 
-              // Gefilterte Liste mit Swipe-to-Delete & Edit
+              // Match-Liste mit Swipe-to-Delete & Edit
               Expanded(
                 child: filteredMatches.isEmpty
                     ? const Center(child: Text('Keine Matches für diesen Filter gefunden.'))
@@ -173,9 +172,7 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
                                 context: context,
                                 builder: (ctx) => AlertDialog(
                                   title: const Text('Match löschen?'),
-                                  content: Text(
-                                    'Möchtest du das Spiel gegen ${match.opponentDeck} wirklich löschen?',
-                                  ),
+                                  content: Text('Möchtest du das Spiel gegen ${match.opponentDeck} wirklich löschen?'),
                                   actions: [
                                     TextButton(
                                       onPressed: () => Navigator.of(ctx).pop(false),
@@ -193,7 +190,7 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
                             onDismissed: (direction) async {
                               await ref.read(matchRepositoryProvider).deleteMatch(match.id);
                               ref.invalidate(deckMatchesProvider(widget.deck.id));
-                              if (mounted) {
+                              if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('Match gelöscht.')),
                                 );

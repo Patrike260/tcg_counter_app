@@ -1,11 +1,15 @@
 import 'dart:convert';
-import 'dart:typed_data'; 
+import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/supabase_constants.dart';
 import '../auth/auth_repository.dart';
+import '../decks/deck_repository.dart';
+import 'app_preferences_service.dart';
+import 'archetype_management_screen.dart';
 import 'backup_service.dart';
+import 'tag_management_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -64,8 +68,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _restoreJson() async {
-    // In file_picker v13+ wird pickFiles direkt auf der Klasse aufgerufen
-    // und gibt eine List<PlatformFile>? zurück
     final files = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['json'],
@@ -136,6 +138,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final user = supabase.auth.currentUser;
+    final prefs = ref.watch(appPreferencesProvider);
+    final gamesAsync = ref.watch(gamesListProvider);
 
     return Scaffold(
       body: Stack(
@@ -157,7 +161,116 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               ),
               const SizedBox(height: 24),
 
-              // Daten & Backup
+              // STANDARDEINSTELLUNGEN
+              const Text(
+                'STANDARDEINSTELLUNGEN (VORAUSWAHL)',
+                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+              ),
+              const SizedBox(height: 8),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Column(
+                    children: [
+                      // Standard-TCG
+                      gamesAsync.when(
+                        data: (games) => DropdownButtonFormField<String?>(
+                          value: games.any((g) => g.id == prefs.defaultGameId)
+                              ? prefs.defaultGameId
+                              : null,
+                          decoration: const InputDecoration(
+                            labelText: 'Standard-Kartenspiel',
+                            helperText: 'Wird beim Anlegen neuer Decks vorausgewählt',
+                          ),
+                          items: [
+                            const DropdownMenuItem(
+                              value: null,
+                              child: Text('Keines (Immer manuell wählen)'),
+                            ),
+                            ...games.map((g) => DropdownMenuItem(
+                                  value: g.id,
+                                  child: Text(g.name),
+                                )),
+                          ],
+                          onChanged: (val) {
+                            ref.read(appPreferencesProvider.notifier).setDefaultGameId(val);
+                          },
+                        ),
+                        loading: () => const LinearProgressIndicator(),
+                        error: (_, __) => const SizedBox.shrink(),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Standard-Format
+                      DropdownButtonFormField<String>(
+                        value: prefs.defaultFormat,
+                        decoration: const InputDecoration(
+                          labelText: 'Standard Match-Format',
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: 'bo1', child: Text('Best of 1 (BO1)')),
+                          DropdownMenuItem(value: 'bo3', child: Text('Best of 3 (BO3)')),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) {
+                            ref.read(appPreferencesProvider.notifier).setDefaultFormat(val);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Standard-Zugreihenfolge
+                      DropdownButtonFormField<String>(
+                        value: prefs.defaultTurnOrder,
+                        decoration: const InputDecoration(
+                          labelText: 'Standard Zugreihenfolge',
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: 'none', child: Text('Keine Vorgabe (Optional)')),
+                          DropdownMenuItem(value: 'first', child: Text('1st (Immer Beginn)')),
+                          DropdownMenuItem(value: 'second', child: Text('2nd (Immer Zweiter)')),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) {
+                            ref.read(appPreferencesProvider.notifier).setDefaultTurnOrder(val);
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      const Divider(),
+
+                      // Switch: Zuletzt genutzte Tags merken
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('Zuletzt gewählte Tags merken'),
+                        subtitle: const Text('Setzt die Tags des letzten Matches automatisch ein'),
+                        value: prefs.rememberLastTags,
+                        onChanged: (val) {
+                          ref.read(appPreferencesProvider.notifier).setRememberLastTags(val);
+                        },
+                      ),
+
+                      // Button: Tags verwalten
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.label_outlined, color: Colors.deepPurpleAccent),
+                        title: const Text('Event-Tags verwalten'),
+                        subtitle: const Text('Eigene Tags für Turniere oder Cups erstellen'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const TagManagementScreen()),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // DATEN & BACKUP
               const Text(
                 'DATEN & BACKUP',
                 style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
@@ -186,12 +299,25 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       subtitle: const Text('JSON-Sicherungsdatei einlesen'),
                       onTap: _isProcessing ? null : _restoreJson,
                     ),
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(Icons.category_outlined, color: Colors.purpleAccent),
+                      title: const Text('Gegner-Archetypen verwalten'),
+                      subtitle: const Text('Gespeicherte Vorschläge umbenennen oder bereinigen'),
+                      onTap: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ArchetypeManagementScreen(),
+                          ),
+                        );
+                      },
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
 
-              // Konto & Info
+              // KONTO & INFO
               const Text(
                 'KONTO & INFO',
                 style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),

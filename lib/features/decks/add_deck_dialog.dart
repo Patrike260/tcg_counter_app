@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'deck_model.dart';
 import 'deck_repository.dart';
+import '../settings/app_preferences_service.dart';
 
 class AddDeckDialog extends ConsumerStatefulWidget {
   final Deck? deck; // null = neu, nicht-null = bearbeiten
@@ -23,7 +24,8 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
     super.initState();
     _nameController = TextEditingController(text: widget.deck?.name ?? '');
     _notesController = TextEditingController(text: widget.deck?.notes ?? '');
-    _selectedGameId = widget.deck?.gameId;
+    final defaultPrefs = ref.read(appPreferencesProvider);
+	_selectedGameId = widget.deck?.gameId ?? defaultPrefs.defaultGameId;
   }
 
   @override
