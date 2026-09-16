@@ -11,96 +11,189 @@ enum AppThemePreset {
   riftbound,
   digimon,
   fleshAndBlood,
+  dragonBallCell,
+  cyberpunkNeonOverdrive,
+  paperManga,
+  vaporwave80s,
 }
 
-class FranchiseThemePalette {
+class AppThemeSwatch {
+  final Brightness brightness;
   final Color primaryColor;
   final Color secondaryColor;
+  final Color tertiaryColor;
   final Color scaffoldBackgroundColor;
   final Color surfaceColor;
+  final Color textColor;
+  final Color? cardBorderColor;
 
-  const FranchiseThemePalette({
+  const AppThemeSwatch({
+    required this.brightness,
     required this.primaryColor,
     required this.secondaryColor,
+    required this.tertiaryColor,
     required this.scaffoldBackgroundColor,
     required this.surfaceColor,
+    required this.textColor,
+    this.cardBorderColor,
   });
 
+  bool get isLight => brightness == Brightness.light;
+
   Color get cardColor => surfaceColor;
+
+  List<Color> get previewAccents {
+    final accents = <Color>[primaryColor, secondaryColor];
+    if (tertiaryColor != primaryColor && tertiaryColor != secondaryColor) {
+      accents.add(tertiaryColor);
+    }
+    return accents;
+  }
 }
 
 extension AppThemePresetX on AppThemePreset {
-  FranchiseThemePalette get palette {
+  AppThemeSwatch get palette {
     switch (this) {
       case AppThemePreset.onePiece:
-        return const FranchiseThemePalette(
-          primaryColor: Color(0xFFE53935),
-          secondaryColor: Color(0xFFFFC107),
-          scaffoldBackgroundColor: Color(0xFF0C1420),
-          surfaceColor: Color(0xFF162536),
+        return const AppThemeSwatch(
+          brightness: Brightness.light,
+          primaryColor: Color(0xFFD32F2F),
+          secondaryColor: Color(0xFFF9A825),
+          tertiaryColor: Color(0xFF1565C0),
+          scaffoldBackgroundColor: Color(0xFFF4EBD9),
+          surfaceColor: Color(0xFFFFFFF8),
+          textColor: Color(0xFF1C1C1E),
         );
       case AppThemePreset.gundam:
-        return const FranchiseThemePalette(
-          primaryColor: Color(0xFF00BCD4),
-          secondaryColor: Color(0xFFE53935),
-          scaffoldBackgroundColor: Color(0xFF12151D),
-          surfaceColor: Color(0xFF1B2230),
+        return const AppThemeSwatch(
+          brightness: Brightness.light,
+          primaryColor: Color(0xFF00838F),
+          secondaryColor: Color(0xFFC62828),
+          tertiaryColor: Color(0xFF37474F),
+          scaffoldBackgroundColor: Color(0xFFE8ECEF),
+          surfaceColor: Color(0xFFFFFFFF),
+          textColor: Color(0xFF1C1C1E),
         );
       case AppThemePreset.dragonBall:
-        return const FranchiseThemePalette(
-          primaryColor: Color(0xFFFF6D00),
-          secondaryColor: Color(0xFF2979FF),
-          scaffoldBackgroundColor: Color(0xFF0D1322),
-          surfaceColor: Color(0xFF151F36),
+        return const AppThemeSwatch(
+          brightness: Brightness.light,
+          primaryColor: Color(0xFFEF6C00),
+          secondaryColor: Color(0xFF1565C0),
+          tertiaryColor: Color(0xFFFFC107),
+          scaffoldBackgroundColor: Color(0xFFFFF4E5),
+          surfaceColor: Color(0xFFFFFFFF),
+          textColor: Color(0xFF1C1C1E),
         );
       case AppThemePreset.magic:
-        return const FranchiseThemePalette(
-          primaryColor: Color(0xFF7C4DFF),
+        return const AppThemeSwatch(
+          brightness: Brightness.dark,
+          primaryColor: Color(0xFFB388FF),
           secondaryColor: Color(0xFFFFC107),
+          tertiaryColor: Color(0xFF80CBC4),
           scaffoldBackgroundColor: Color(0xFF151324),
           surfaceColor: Color(0xFF221C38),
+          textColor: Color(0xFFF3EEFF),
         );
       case AppThemePreset.cyberpunk:
-        return const FranchiseThemePalette(
+        return const AppThemeSwatch(
+          brightness: Brightness.dark,
           primaryColor: Color(0xFF00E5FF),
           secondaryColor: Color(0xFFFF007F),
+          tertiaryColor: Color(0xFFE040FB),
           scaffoldBackgroundColor: Color(0xFF050508),
           surfaceColor: Color(0xFF12121A),
+          textColor: Color(0xFFE8FBFF),
         );
       case AppThemePreset.weissSchwarz:
-        return const FranchiseThemePalette(
-          primaryColor: Color(0xFFECEFF1),
-          secondaryColor: Color(0xFFE91E63),
-          scaffoldBackgroundColor: Color(0xFF18122B),
-          surfaceColor: Color(0xFF261E40),
+        return const AppThemeSwatch(
+          brightness: Brightness.light,
+          primaryColor: Color(0xFFC2185B),
+          secondaryColor: Color(0xFF455A64),
+          tertiaryColor: Color(0xFF7E57C2),
+          scaffoldBackgroundColor: Color(0xFFF5F7FB),
+          surfaceColor: Color(0xFFFFFFFF),
+          textColor: Color(0xFF1C1C1E),
         );
       case AppThemePreset.yugioh:
-        return const FranchiseThemePalette(
+        return const AppThemeSwatch(
+          brightness: Brightness.dark,
           primaryColor: Color(0xFFFFC107),
-          secondaryColor: Color(0xFF8E24AA),
+          secondaryColor: Color(0xFFCE93D8),
+          tertiaryColor: Color(0xFFFF8A65),
           scaffoldBackgroundColor: Color(0xFF141118),
           surfaceColor: Color(0xFF221C28),
+          textColor: Color(0xFFFFF8E7),
         );
       case AppThemePreset.riftbound:
-        return const FranchiseThemePalette(
-          primaryColor: Color(0xFF3D5AFE),
+        return const AppThemeSwatch(
+          brightness: Brightness.dark,
+          primaryColor: Color(0xFF8C9EFF),
           secondaryColor: Color(0xFF00E5FF),
+          tertiaryColor: Color(0xFF69F0AE),
           scaffoldBackgroundColor: Color(0xFF0A0E1A),
           surfaceColor: Color(0xFF121A2E),
+          textColor: Color(0xFFE8EEFF),
         );
       case AppThemePreset.digimon:
-        return const FranchiseThemePalette(
-          primaryColor: Color(0xFF2979FF),
-          secondaryColor: Color(0xFFFF9100),
-          scaffoldBackgroundColor: Color(0xFF0B1528),
-          surfaceColor: Color(0xFF13233F),
+        return const AppThemeSwatch(
+          brightness: Brightness.light,
+          primaryColor: Color(0xFF1565C0),
+          secondaryColor: Color(0xFFEF6C00),
+          tertiaryColor: Color(0xFF00897B),
+          scaffoldBackgroundColor: Color(0xFFEAF3FF),
+          surfaceColor: Color(0xFFFFFFFF),
+          textColor: Color(0xFF1C1C1E),
         );
       case AppThemePreset.fleshAndBlood:
-        return const FranchiseThemePalette(
-          primaryColor: Color(0xFFB71C1C),
+        return const AppThemeSwatch(
+          brightness: Brightness.dark,
+          primaryColor: Color(0xFFE53935),
           secondaryColor: Color(0xFFD7CCC8),
+          tertiaryColor: Color(0xFFFF8A80),
           scaffoldBackgroundColor: Color(0xFF141010),
           surfaceColor: Color(0xFF221818),
+          textColor: Color(0xFFF5EDED),
+        );
+      case AppThemePreset.dragonBallCell:
+        return const AppThemeSwatch(
+          brightness: Brightness.dark,
+          primaryColor: Color(0xFF00E676),
+          secondaryColor: Color(0xFFAA00FF),
+          tertiaryColor: Color(0xFF76FF03),
+          scaffoldBackgroundColor: Color(0xFF09130D),
+          surfaceColor: Color(0xFF132418),
+          textColor: Color(0xFFE8FFE9),
+        );
+      case AppThemePreset.cyberpunkNeonOverdrive:
+        return const AppThemeSwatch(
+          brightness: Brightness.dark,
+          primaryColor: Color(0xFFFF007F),
+          secondaryColor: Color(0xFFFFE600),
+          tertiaryColor: Color(0xFF00E5FF),
+          scaffoldBackgroundColor: Color(0xFF0C0614),
+          surfaceColor: Color(0xFF1A0F26),
+          textColor: Color(0xFFFFF3FA),
+        );
+      case AppThemePreset.paperManga:
+        return const AppThemeSwatch(
+          brightness: Brightness.light,
+          primaryColor: Color(0xFF1A1A1A),
+          secondaryColor: Color(0xFFD32F2F),
+          tertiaryColor: Color(0xFF2A2A2A),
+          scaffoldBackgroundColor: Color(0xFFF7EEDD),
+          surfaceColor: Color(0xFFFFFFFF),
+          textColor: Color(0xFF1A1A1A),
+          cardBorderColor: Color(0xFF2A2A2A),
+        );
+      case AppThemePreset.vaporwave80s:
+        return const AppThemeSwatch(
+          brightness: Brightness.dark,
+          primaryColor: Color(0xFFFF71CE),
+          secondaryColor: Color(0xFF01CDFE),
+          tertiaryColor: Color(0xFFB967FF),
+          scaffoldBackgroundColor: Color(0xFF0B0E23),
+          surfaceColor: Color(0xFF1A1636),
+          textColor: Color(0xFFFFE6F8),
         );
     }
   }
@@ -128,6 +221,14 @@ String getThemeTitle(AppThemePreset preset) {
       return 'Digimon';
     case AppThemePreset.fleshAndBlood:
       return 'Flesh and Blood';
+    case AppThemePreset.dragonBallCell:
+      return 'Dragon Ball: Perfect Cell';
+    case AppThemePreset.cyberpunkNeonOverdrive:
+      return 'Cyberpunk: Neon Overdrive';
+    case AppThemePreset.paperManga:
+      return 'Paper Manga (Light)';
+    case AppThemePreset.vaporwave80s:
+      return 'Miami Vaporwave';
   }
 }
 
@@ -146,42 +247,77 @@ Color _onColor(Color color) {
 
 ThemeData buildAppTheme(AppThemePreset preset) {
   final palette = preset.palette;
+  final isLight = palette.brightness == Brightness.light;
+  final isPaperManga = preset == AppThemePreset.paperManga;
   final primary = palette.primaryColor;
   final secondary = palette.secondaryColor;
+  final tertiary = palette.tertiaryColor;
   final scaffoldBackground = palette.scaffoldBackgroundColor;
   final surface = palette.surfaceColor;
+  final textColor = palette.textColor;
   final onPrimary = _onColor(primary);
   final onSecondary = _onColor(secondary);
-  final onSurface = Color.lerp(Colors.white, primary, 0.08)!;
+  final onTertiary = _onColor(tertiary);
+  final mutedText = textColor.withValues(alpha: isLight ? 0.64 : 0.72);
+  final iconColor = isPaperManga ? textColor : primary;
 
-  final scheme = ColorScheme.dark(
-    primary: primary,
-    onPrimary: onPrimary,
-    secondary: secondary,
-    onSecondary: onSecondary,
-    surface: surface,
-    onSurface: onSurface,
-    error: const Color(0xFFFF5252),
-    onError: Colors.white,
-  );
+  final colorScheme = isLight
+      ? ColorScheme.light(
+          primary: primary,
+          onPrimary: onPrimary,
+          secondary: secondary,
+          onSecondary: onSecondary,
+          tertiary: tertiary,
+          onTertiary: onTertiary,
+          surface: surface,
+          onSurface: textColor,
+          error: const Color(0xFFC62828),
+          onError: Colors.white,
+        )
+      : ColorScheme.dark(
+          primary: primary,
+          onPrimary: onPrimary,
+          secondary: secondary,
+          onSecondary: onSecondary,
+          tertiary: tertiary,
+          onTertiary: onTertiary,
+          surface: surface,
+          onSurface: textColor,
+          error: const Color(0xFFFF5252),
+          onError: Colors.white,
+        );
+
+  final cardBorder = palette.cardBorderColor != null
+      ? BorderSide(color: palette.cardBorderColor!, width: isPaperManga ? 1.4 : 1)
+      : (isLight
+          ? BorderSide(color: Colors.black.withValues(alpha: 0.08))
+          : BorderSide.none);
 
   final cardShape = RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(16),
+    borderRadius: BorderRadius.circular(isPaperManga ? 8 : 16),
+    side: cardBorder,
+  );
+
+  final textTheme = (isLight ? ThemeData.light() : ThemeData.dark()).textTheme.apply(
+    bodyColor: textColor,
+    displayColor: textColor,
   );
 
   return ThemeData(
     useMaterial3: true,
-    brightness: Brightness.dark,
-    colorScheme: scheme,
+    brightness: palette.brightness,
+    colorScheme: colorScheme,
+    textTheme: textTheme,
     applyElevationOverlayColor: false,
     scaffoldBackgroundColor: scaffoldBackground,
     canvasColor: scaffoldBackground,
     cardColor: surface,
-    dividerColor: onSurface.withValues(alpha: 0.12),
+    dividerColor: textColor.withValues(alpha: 0.12),
+    iconTheme: IconThemeData(color: isPaperManga ? textColor : textColor.withValues(alpha: 0.86)),
     cardTheme: CardThemeData(
       color: surface,
-      elevation: 2,
-      shadowColor: Colors.black54,
+      elevation: isPaperManga ? 0 : (isLight ? 1 : 2),
+      shadowColor: Colors.black.withValues(alpha: isLight ? 0.12 : 0.45),
       surfaceTintColor: Colors.transparent,
       shape: cardShape,
     ),
@@ -200,50 +336,70 @@ ThemeData buildAppTheme(AppThemePreset preset) {
     ),
     appBarTheme: AppBarTheme(
       backgroundColor: scaffoldBackground,
-      foregroundColor: onSurface,
+      foregroundColor: textColor,
       elevation: 0,
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
-      iconTheme: IconThemeData(color: primary),
-      actionsIconTheme: IconThemeData(color: primary),
+      iconTheme: IconThemeData(color: iconColor),
+      actionsIconTheme: IconThemeData(color: iconColor),
       titleTextStyle: TextStyle(
-        color: onSurface,
+        color: textColor,
         fontSize: 20,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
       ),
     ),
     navigationBarTheme: NavigationBarThemeData(
       backgroundColor: surface,
-      indicatorColor: primary.withValues(alpha: 0.28),
+      indicatorColor: primary.withValues(alpha: isPaperManga ? 0.12 : 0.22),
       surfaceTintColor: Colors.transparent,
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
         final selected = states.contains(WidgetState.selected);
         return TextStyle(
-          color: selected ? primary : onSurface.withValues(alpha: 0.7),
-          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+          color: selected ? (isPaperManga ? textColor : primary) : mutedText,
+          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
           fontSize: 12,
         );
       }),
       iconTheme: WidgetStateProperty.resolveWith((states) {
         final selected = states.contains(WidgetState.selected);
         return IconThemeData(
-          color: selected ? primary : onSurface.withValues(alpha: 0.75),
+          color: selected ? (isPaperManga ? textColor : primary) : mutedText,
         );
       }),
     ),
+    listTileTheme: ListTileThemeData(
+      iconColor: isPaperManga ? textColor : primary,
+      textColor: textColor,
+    ),
+    chipTheme: ChipThemeData(
+      backgroundColor: isLight
+          ? Colors.black.withValues(alpha: 0.04)
+          : Colors.white.withValues(alpha: 0.08),
+      selectedColor: primary.withValues(alpha: 0.18),
+      labelStyle: TextStyle(color: textColor),
+      side: BorderSide(
+        color: isPaperManga ? textColor : primary.withValues(alpha: 0.28),
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: isLight ? Colors.white : surface,
+      hintStyle: TextStyle(color: mutedText),
+      labelStyle: TextStyle(color: mutedText),
+    ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
-      backgroundColor: primary,
-      foregroundColor: onPrimary,
+      backgroundColor: isPaperManga ? textColor : primary,
+      foregroundColor: isPaperManga ? Colors.white : onPrimary,
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: primary,
-        foregroundColor: onPrimary,
+        backgroundColor: isPaperManga ? textColor : primary,
+        foregroundColor: isPaperManga ? Colors.white : onPrimary,
       ),
     ),
     snackBarTheme: SnackBarThemeData(
-      backgroundColor: surface,
-      contentTextStyle: TextStyle(color: onSurface),
+      backgroundColor: isLight ? const Color(0xFF2C2C2E) : surface,
+      contentTextStyle: TextStyle(color: isLight ? Colors.white : textColor),
     ),
   );
 }

@@ -21,7 +21,7 @@ class ThemeSelectionScreen extends ConsumerWidget {
           crossAxisCount: 2,
           mainAxisSpacing: 12,
           crossAxisSpacing: 12,
-          childAspectRatio: 0.92,
+          childAspectRatio: 0.86,
         ),
         itemBuilder: (context, index) {
           final preset = AppThemePreset.values[index];
@@ -53,6 +53,7 @@ class _ThemePresetTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = preset.palette;
     final title = getThemeTitle(preset);
+    final isLight = palette.isLight;
 
     return Material(
       color: Colors.transparent,
@@ -66,7 +67,7 @@ class _ThemePresetTile extends StatelessWidget {
             border: Border.all(
               color: isSelected
                   ? palette.primaryColor
-                  : palette.primaryColor.withValues(alpha: 0.28),
+                  : palette.primaryColor.withValues(alpha: 0.35),
               width: isSelected ? 2.4 : 1,
             ),
           ),
@@ -82,20 +83,34 @@ class _ThemePresetTile extends StatelessWidget {
                         title,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: palette.textColor,
                           fontWeight: FontWeight.w700,
                           fontSize: 13.5,
                         ),
                       ),
                     ),
                     if (isSelected)
-                      Icon(
-                        Icons.check_circle,
-                        color: palette.primaryColor,
-                        size: 20,
-                      ),
+                      Icon(Icons.check_circle, color: palette.primaryColor, size: 20),
                   ],
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: palette.primaryColor.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: palette.primaryColor.withValues(alpha: 0.45)),
+                  ),
+                  child: Text(
+                    isLight ? '[HELL]' : '[DUNKEL]',
+                    style: TextStyle(
+                      color: palette.primaryColor,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 10),
                 Expanded(
@@ -106,7 +121,7 @@ class _ThemePresetTile extends StatelessWidget {
                       color: palette.scaffoldBackgroundColor,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.06),
+                        color: palette.textColor.withValues(alpha: 0.12),
                       ),
                     ),
                     child: Align(
@@ -115,28 +130,37 @@ class _ThemePresetTile extends StatelessWidget {
                         width: double.infinity,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
-                          vertical: 12,
+                          vertical: 10,
                         ),
                         decoration: BoxDecoration(
                           color: palette.surfaceColor,
                           borderRadius: BorderRadius.circular(12),
-                          boxShadow: const [
+                          border: palette.cardBorderColor != null
+                              ? Border.all(color: palette.cardBorderColor!, width: 1.3)
+                              : (isLight
+                                  ? Border.all(color: Colors.black.withValues(alpha: 0.08))
+                                  : null),
+                          boxShadow: [
                             BoxShadow(
-                              color: Colors.black45,
+                              color: Colors.black.withValues(alpha: isLight ? 0.08 : 0.35),
                               blurRadius: 6,
-                              offset: Offset(0, 2),
+                              offset: const Offset(0, 2),
                             ),
                           ],
                         ),
                         child: Row(
                           children: [
-                            _ColorDot(color: palette.primaryColor),
-                            const SizedBox(width: 8),
-                            _ColorDot(color: palette.secondaryColor),
-                            const SizedBox(width: 8),
-                            _ColorDot(
-                              color: palette.scaffoldBackgroundColor,
-                              outlined: true,
+                            for (var i = 0; i < palette.previewAccents.length; i++) ...[
+                              if (i > 0) const SizedBox(width: 8),
+                              _AccentDot(color: palette.previewAccents[i]),
+                            ],
+                            const Spacer(),
+                            Text(
+                              'Aa',
+                              style: TextStyle(
+                                color: palette.textColor,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
                           ],
                         ),
@@ -153,11 +177,10 @@ class _ThemePresetTile extends StatelessWidget {
   }
 }
 
-class _ColorDot extends StatelessWidget {
+class _AccentDot extends StatelessWidget {
   final Color color;
-  final bool outlined;
 
-  const _ColorDot({required this.color, this.outlined = false});
+  const _AccentDot({required this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -167,10 +190,7 @@ class _ColorDot extends StatelessWidget {
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
-        border: Border.all(
-          color: outlined ? Colors.white54 : Colors.black26,
-          width: 1.2,
-        ),
+        border: Border.all(color: Colors.black26, width: 1.2),
       ),
     );
   }
