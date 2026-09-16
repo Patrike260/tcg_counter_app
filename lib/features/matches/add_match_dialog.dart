@@ -9,12 +9,18 @@ class AddMatchDialog extends ConsumerStatefulWidget {
   final String deckId;
   final String gameId;
   final MatchRecord? match; // null = neu, nicht-null = bearbeiten
+  final String? suggestedResult;
+  final String? suggestedScore;
+  final String? suggestedNotes;
 
   const AddMatchDialog({
     super.key,
     required this.deckId,
     required this.gameId,
     this.match,
+    this.suggestedResult,
+    this.suggestedScore,
+    this.suggestedNotes,
   });
 
   @override
@@ -39,9 +45,13 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
     final defaultPrefs = ref.read(appPreferencesProvider);
 
     _opponentDeckController = TextEditingController(text: m?.opponentDeck ?? '');
-    _scoreController = TextEditingController(text: m?.score ?? '');
-    _notesController = TextEditingController(text: m?.notes ?? '');
-    _result = m?.result ?? 'win';
+    _scoreController = TextEditingController(
+      text: m?.score ?? widget.suggestedScore ?? '',
+    );
+    _notesController = TextEditingController(
+      text: m?.notes ?? widget.suggestedNotes ?? '',
+    );
+    _result = m?.result ?? widget.suggestedResult ?? 'win';
     _format = m?.matchFormat ?? defaultPrefs.defaultFormat;
     _turnOrder = m?.turnOrder ??
         (defaultPrefs.defaultTurnOrder == 'none' ? 'first' : defaultPrefs.defaultTurnOrder);

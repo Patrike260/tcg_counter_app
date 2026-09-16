@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../tools/tool_preset_model.dart';
 
 const _copyWithUnset = Object();
 
@@ -20,6 +21,7 @@ class AppPreferencesState {
   final List<String> lastUsedTags;
   final List<String> customTags;
   final List<String> hiddenGameIds;
+  final List<ToolPreset> toolPresets;
 
   // Die unveränderlichen Standard-Tags
   static const List<String> defaultBaseTags = [
@@ -38,12 +40,26 @@ class AppPreferencesState {
     this.lastUsedTags = const [],
     this.customTags = const [],
     this.hiddenGameIds = const [],
+    this.toolPresets = ToolPreset.defaults,
   });
 
   // Liefert alle verfügbaren Tags (Standard + Eigene ohne Duplikate)
   List<String> get allAvailableTags {
     final combined = <String>{...defaultBaseTags, ...customTags};
     return combined.toList();
+  }
+
+  String get defaultFormatLabel => defaultFormat.toUpperCase();
+
+  String get defaultTurnOrderLabel {
+    switch (defaultTurnOrder) {
+      case 'first':
+        return '1st';
+      case 'second':
+        return '2nd';
+      default:
+        return 'Zug frei';
+    }
   }
 
   bool isGameHidden(String gameId) => hiddenGameIds.contains(gameId);
@@ -65,6 +81,7 @@ class AppPreferencesState {
     List<String>? lastUsedTags,
     List<String>? customTags,
     List<String>? hiddenGameIds,
+    List<ToolPreset>? toolPresets,
   }) {
     return AppPreferencesState(
       defaultFormat: defaultFormat ?? this.defaultFormat,
@@ -76,6 +93,7 @@ class AppPreferencesState {
       lastUsedTags: lastUsedTags ?? this.lastUsedTags,
       customTags: customTags ?? this.customTags,
       hiddenGameIds: hiddenGameIds ?? this.hiddenGameIds,
+      toolPresets: toolPresets ?? this.toolPresets,
     );
   }
 }
@@ -88,6 +106,7 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
   static const _keyLastUsedTags = 'pref_last_used_tags';
   static const _keyCustomTags = 'pref_custom_tags';
   static const _keyHiddenGameIds = 'pref_hidden_game_ids';
+  static const _keyToolPresets = 'pref_tool_presets';
 
   @override
   AppPreferencesState build() {
@@ -100,6 +119,7 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
       lastUsedTags: prefs.getStringList(_keyLastUsedTags) ?? const [],
       customTags: prefs.getStringList(_keyCustomTags) ?? const [],
       hiddenGameIds: prefs.getStringList(_keyHiddenGameIds) ?? const [],
+      toolPresets: ToolPreset.decodeList(prefs.getStringList(_keyToolPresets)),
     );
   }
 
@@ -184,5 +204,34 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
       defaultGameId: hideDefault ? null : _copyWithUnset,
     );
     return true;
+  }
+
+  Future<void> _persistToolPresets(List<ToolPreset> presets) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setStringList(_keyToolPresets, ToolPreset.encodeList(presets));
+    state = state.copyWith(toolPresets: presets);
+  }
+
+  Future<void> addToolPreset(ToolPreset preset) async {
+    await _persistToolPresets([...state.toolPresets, preset]);
+  }
+
+  Future<void> updateToolPreset(ToolPreset preset) async {
+    final updated = state.toolPresets
+        .map((item) => item.id == preset.id ? preset : item)
+        .toList();
+    await _persistToolPresets(updated);
+  }
+
+  Future<bool> deleteToolPreset(String id) async {
+    if (state.toolPresets.length <= 1) return false;
+    final updated = state.toolPresets.where((item) => item.id != id).toList();
+    if (updated.isEmpty) return false;
+    await _persistToolPresets(updated);
+    return true;
+  }
+
+  Future<void> resetToDefaultPresets() async {
+    await _persistToolPresets(List<ToolPreset>.from(ToolPreset.defaults));
   }
 }

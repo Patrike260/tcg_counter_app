@@ -7,12 +7,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'features/settings/app_preferences_service.dart';
 
 import 'core/constants/supabase_constants.dart';
+import 'core/widgets/dice_coin_dialog.dart';
 import 'features/auth/auth_repository.dart';
 import 'features/auth/login_screen.dart';
 import 'features/decks/deck_list_screen.dart';
-import 'features/settings/settings_screen.dart'; // <-- Neu
+import 'features/settings/settings_screen.dart';
 import 'features/stats/dashboard_repository.dart';
 import 'features/stats/dashboard_screen.dart';
+import 'features/tools/tools_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -97,12 +99,14 @@ class _MainNavigationHostState extends ConsumerState<MainNavigationHost> {
   final List<Widget> _screens = const [
     DashboardScreen(),
     DeckListScreen(),
-    SettingsScreen(), // <-- Neu
+    ToolsScreen(),
+    SettingsScreen(),
   ];
 
   final List<String> _titles = const [
     'Dashboard',
     'Meine Decks',
+    'Tools',
     'Einstellungen',
   ];
 
@@ -111,8 +115,23 @@ class _MainNavigationHostState extends ConsumerState<MainNavigationHost> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_titles[_currentIndex]),
+        actions: [
+          IconButton(
+            tooltip: 'Münze & Würfel',
+            icon: const Icon(Icons.casino_outlined),
+            onPressed: () {
+              showDialog(
+                context: context,
+                builder: (_) => const DiceCoinDialog(),
+              );
+            },
+          ),
+        ],
       ),
-      body: _screens[_currentIndex],
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _screens,
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
         onDestinationSelected: (index) {
@@ -131,6 +150,11 @@ class _MainNavigationHostState extends ConsumerState<MainNavigationHost> {
             icon: Icon(Icons.style_outlined),
             selectedIcon: Icon(Icons.style),
             label: 'Decks',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.calculate_outlined),
+            selectedIcon: Icon(Icons.calculate),
+            label: 'Tools',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),

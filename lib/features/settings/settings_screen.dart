@@ -4,15 +4,16 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/supabase_constants.dart';
-import '../../core/widgets/game_logo.dart';
 import '../auth/auth_repository.dart';
 import '../decks/deck_repository.dart';
 import 'app_preferences_service.dart';
 import 'archetype_management_screen.dart';
 import 'backup_service.dart';
-import 'tag_management_screen.dart';
 import 'game_management_screen.dart';
 import 'game_visibility_screen.dart';
+import 'match_preferences_screen.dart';
+import 'tag_management_screen.dart';
+import 'tool_presets_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -138,11 +139,30 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     }
   }
 
+  void _open(Widget screen) {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = supabase.auth.currentUser;
     final prefs = ref.watch(appPreferencesProvider);
     final gamesAsync = ref.watch(gamesListProvider);
+
+    final gameName = gamesAsync.maybeWhen(
+      data: (games) {
+        for (final game in games) {
+          if (game.id == prefs.resolvedDefaultGameId) return game.name;
+        }
+        return null;
+      },
+      orElse: () => null,
+    );
+    final summary = [
+      gameName ?? 'Kein TCG',
+      prefs.defaultFormatLabel,
+      prefs.defaultTurnOrderLabel,
+    ].join(' • ');
 
     return Scaffold(
       body: Stack(
@@ -150,8 +170,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // Benutzer-Info Card
               Card(
+                clipBehavior: Clip.antiAlias,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 child: ListTile(
                   leading: const CircleAvatar(child: Icon(Icons.person)),
                   title: Text(user?.email ?? 'Kein Nutzer eingeloggt'),
@@ -163,225 +184,117 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-
-              // STANDARDEINSTELLUNGEN
               const Text(
-                'STANDARDEINSTELLUNGEN (VORAUSWAHL)',
+                'EINSTELLUNGEN',
                 style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
               ),
               const SizedBox(height: 8),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Column(
-                    children: [
-                      // Standard-TCG
-                      gamesAsync.when(
-                        data: (games) {
-                          final visibleGames =
-                              games.where((g) => prefs.isGameVisible(g.id)).toList();
-                          final selectedId = visibleGames.any((g) => g.id == prefs.resolvedDefaultGameId)
-                              ? prefs.resolvedDefaultGameId
-                              : null;
-                          return DropdownButtonFormField<String?>(
-                            value: selectedId,
-                            decoration: const InputDecoration(
-                              labelText: 'Standard-Kartenspiel',
-                              helperText: 'Wird beim Anlegen neuer Decks vorausgewählt',
-                            ),
-                            items: [
-                              const DropdownMenuItem(
-                                value: null,
-                                child: Text('Keines (Immer manuell wählen)'),
-                              ),
-                              ...visibleGames.map((g) => DropdownMenuItem(
-                                    value: g.id,
-                                    child: Row(
-                                      children: [
-                                        GameLogo(gameName: g.name, size: 20),
-                                        const SizedBox(width: 8),
-                                        Text(g.name),
-                                      ],
-                                    ),
-                                  )),
-                            ],
-                            onChanged: (val) {
-                              ref.read(appPreferencesProvider.notifier).setDefaultGameId(val);
-                            },
-                          );
-                        },
-                        loading: () => const LinearProgressIndicator(),
-                        error: (_, _) => const SizedBox.shrink(),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Standard-Format
-                      DropdownButtonFormField<String>(
-                        value: prefs.defaultFormat,
-                        decoration: const InputDecoration(
-                          labelText: 'Standard Match-Format',
-                        ),
-                        items: const [
-                          DropdownMenuItem(value: 'bo1', child: Text('Best of 1 (BO1)')),
-                          DropdownMenuItem(value: 'bo3', child: Text('Best of 3 (BO3)')),
-                        ],
-                        onChanged: (val) {
-                          if (val != null) {
-                            ref.read(appPreferencesProvider.notifier).setDefaultFormat(val);
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Standard-Zugreihenfolge
-                      DropdownButtonFormField<String>(
-                        value: prefs.defaultTurnOrder,
-                        decoration: const InputDecoration(
-                          labelText: 'Standard Zugreihenfolge',
-                        ),
-                        items: const [
-                          DropdownMenuItem(value: 'none', child: Text('Keine Vorgabe (Optional)')),
-                          DropdownMenuItem(value: 'first', child: Text('1st (Immer Beginn)')),
-                          DropdownMenuItem(value: 'second', child: Text('2nd (Immer Zweiter)')),
-                        ],
-                        onChanged: (val) {
-                          if (val != null) {
-                            ref.read(appPreferencesProvider.notifier).setDefaultTurnOrder(val);
-                          }
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      const Divider(),
-
-                      // Switch: Zuletzt genutzte Tags merken
-                      SwitchListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: const Text('Zuletzt gewählte Tags merken'),
-                        subtitle: const Text('Setzt die Tags des letzten Matches automatisch ein'),
-                        value: prefs.rememberLastTags,
-                        onChanged: (val) {
-                          ref.read(appPreferencesProvider.notifier).setRememberLastTags(val);
-                        },
-                      ),
-
-                      // Button: Tags verwalten
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.label_outlined, color: Colors.deepPurpleAccent),
-                        title: const Text('Event-Tags verwalten'),
-                        subtitle: const Text('Eigene Tags für Turniere oder Cups erstellen'),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const TagManagementScreen()),
-                          );
-                        },
-                      ),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.visibility_outlined, color: Colors.tealAccent),
-                        title: const Text('Sichtbare TCGs anpassen'),
-                        subtitle: const Text('Unerwünschte Kartenspiele in Dropdowns ausblenden'),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const GameVisibilityScreen()),
-                          );
-                        },
-                      ),
-                    ],
+              _SettingsGroup(
+                children: [
+                  _SettingsNavTile(
+                    icon: Icons.tune_outlined,
+                    iconColor: Colors.deepPurpleAccent,
+                    title: 'Match- & Standardeinstellungen',
+                    subtitle: summary,
+                    onTap: () => _open(const MatchPreferencesScreen()),
                   ),
-                ),
+                  _SettingsNavTile(
+                    icon: Icons.visibility_outlined,
+                    iconColor: Colors.tealAccent,
+                    title: 'Sichtbare TCGs anpassen',
+                    subtitle: 'Unerwünschte Kartenspiele in Dropdowns ausblenden',
+                    onTap: () => _open(const GameVisibilityScreen()),
+                  ),
+                  _SettingsNavTile(
+                    icon: Icons.sports_esports_outlined,
+                    iconColor: Colors.lightBlueAccent,
+                    title: 'Kartenspiele (TCGs) verwalten',
+                    subtitle: 'Spiele hinzufügen oder umbenennen',
+                    onTap: () => _open(const GameManagementScreen()),
+                  ),
+                  _SettingsNavTile(
+                    icon: Icons.calculate_outlined,
+                    iconColor: Colors.amber,
+                    title: 'Tool-Presets verwalten',
+                    subtitle: 'Life Counter, Spieleranzahl und Timer anpassen',
+                    onTap: () => _open(const ToolPresetsScreen()),
+                  ),
+                  _SettingsNavTile(
+                    icon: Icons.category_outlined,
+                    iconColor: Colors.purpleAccent,
+                    title: 'Gegner-Archetypen verwalten',
+                    subtitle: 'Gespeicherte Vorschläge umbenennen oder bereinigen',
+                    onTap: () => _open(const ArchetypeManagementScreen()),
+                  ),
+                  _SettingsNavTile(
+                    icon: Icons.label_outlined,
+                    iconColor: const Color(0xFFCE93D8),
+                    title: 'Event-Tags verwalten',
+                    subtitle: 'Eigene Tags für Turniere oder Cups erstellen',
+                    onTap: () => _open(const TagManagementScreen()),
+                    showDivider: false,
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
-
-              // DATEN & BACKUP
               const Text(
                 'DATEN & BACKUP',
                 style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
               ),
               const SizedBox(height: 8),
-              Card(
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading: const Icon(Icons.table_chart_outlined, color: Colors.greenAccent),
-                      title: const Text('Matches als CSV exportieren'),
-                      subtitle: const Text('Ideal für Excel oder Tabellenkalkulation'),
-                      onTap: _isProcessing ? null : _exportCsv,
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.file_download_outlined, color: Colors.blueAccent),
-                      title: const Text('Vollständiges Backup sichern (JSON)'),
-                      subtitle: const Text('Sichert alle Decks & Match-Historien'),
-                      onTap: _isProcessing ? null : _exportJson,
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.file_upload_outlined, color: Colors.orangeAccent),
-                      title: const Text('Backup wiederherstellen'),
-                      subtitle: const Text('JSON-Sicherungsdatei einlesen'),
-                      onTap: _isProcessing ? null : _restoreJson,
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.category_outlined, color: Colors.purpleAccent),
-                      title: const Text('Gegner-Archetypen verwalten'),
-                      subtitle: const Text('Gespeicherte Vorschläge umbenennen oder bereinigen'),
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const ArchetypeManagementScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.sports_esports_outlined, color: Colors.tealAccent),
-                      title: const Text('Kartenspiele (TCGs) verwalten'),
-                      subtitle: const Text('Spiele hinzufügen oder umbenennen'),
-                      onTap: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => const GameManagementScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
+              _SettingsGroup(
+                children: [
+                  _SettingsNavTile(
+                    icon: Icons.table_chart_outlined,
+                    iconColor: Colors.greenAccent,
+                    title: 'Matches als CSV exportieren',
+                    subtitle: 'Ideal für Excel oder Tabellenkalkulation',
+                    onTap: _isProcessing ? null : _exportCsv,
+                  ),
+                  _SettingsNavTile(
+                    icon: Icons.file_download_outlined,
+                    iconColor: Colors.blueAccent,
+                    title: 'Vollständiges Backup sichern (JSON)',
+                    subtitle: 'Sichert alle Decks & Match-Historien',
+                    onTap: _isProcessing ? null : _exportJson,
+                  ),
+                  _SettingsNavTile(
+                    icon: Icons.file_upload_outlined,
+                    iconColor: Colors.orangeAccent,
+                    title: 'Backup wiederherstellen',
+                    subtitle: 'JSON-Sicherungsdatei einlesen',
+                    onTap: _isProcessing ? null : _restoreJson,
+                    showDivider: false,
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
-
-              // KONTO & INFO
               const Text(
                 'KONTO & INFO',
                 style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
               ),
               const SizedBox(height: 8),
-              Card(
-                child: Column(
-                  children: [
-                    const ListTile(
-                      leading: Icon(Icons.info_outline),
-                      title: Text('Version'),
-                      trailing: Text('1.0.0 (Web/PWA)'),
-                    ),
-                    const Divider(height: 1),
-                    ListTile(
-                      leading: const Icon(Icons.logout, color: Colors.redAccent),
-                      title: const Text(
-                        'Abmelden',
-                        style: TextStyle(color: Colors.redAccent),
-                      ),
-                      onTap: () => ref.read(authRepositoryProvider).signOut(),
-                    ),
-                  ],
-                ),
+              _SettingsGroup(
+                children: [
+                  const _SettingsNavTile(
+                    icon: Icons.info_outline,
+                    iconColor: Colors.white70,
+                    title: 'Version',
+                    subtitle: 'Web / PWA',
+                    trailing: Text('1.0.0'),
+                    showDivider: true,
+                  ),
+                  _SettingsNavTile(
+                    icon: Icons.logout,
+                    iconColor: Colors.redAccent,
+                    title: 'Abmelden',
+                    subtitle: 'Sitzung beenden',
+                    titleColor: Colors.redAccent,
+                    showChevron: false,
+                    showDivider: false,
+                    onTap: () => ref.read(authRepositoryProvider).signOut(),
+                  ),
+                ],
               ),
             ],
           ),
@@ -392,6 +305,73 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
         ],
       ),
+    );
+  }
+}
+
+class _SettingsGroup extends StatelessWidget {
+  final List<Widget> children;
+
+  const _SettingsGroup({required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Column(children: children),
+    );
+  }
+}
+
+class _SettingsNavTile extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String subtitle;
+  final VoidCallback? onTap;
+  final Widget? trailing;
+  final Color? titleColor;
+  final bool showChevron;
+  final bool showDivider;
+
+  const _SettingsNavTile({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.subtitle,
+    this.onTap,
+    this.trailing,
+    this.titleColor,
+    this.showChevron = true,
+    this.showDivider = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ListTile(
+          onTap: onTap,
+          leading: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: iconColor),
+          ),
+          title: Text(
+            title,
+            style: TextStyle(fontWeight: FontWeight.w600, color: titleColor),
+          ),
+          subtitle: Text(subtitle),
+          trailing: trailing ??
+              (showChevron ? const Icon(Icons.chevron_right) : null),
+        ),
+        if (showDivider) const Divider(height: 1, indent: 72),
+      ],
     );
   }
 }
