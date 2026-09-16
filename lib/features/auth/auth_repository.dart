@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/constants/supabase_constants.dart';
 
@@ -40,6 +42,38 @@ class AuthRepository {
       email: email,
       password: password,
     );
+  }
+
+  // Google Sign-In (Plattform-übergreifend für Web & Android)
+  Future<void> signInWithGoogle({required String webClientId}) async {
+    if (kIsWeb) {
+      // Im Browser mit fester Weiterleitungsadresse
+      await _client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: 'http://localhost:5000',
+      );
+    } else {
+      // Auf Android über natives Google Sign-In via ID-Token
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        serverClientId: webClientId,
+      );
+      final googleUser = await googleSignIn.signIn();
+      if (googleUser == null) return; // Abgebrochen
+
+      final googleAuth = await googleUser.authentication;
+      final idToken = googleAuth.idToken;
+      final accessToken = googleAuth.accessToken;
+
+      if (idToken == null) {
+        throw Exception('Kein ID-Token von Google erhalten.');
+      }
+
+      await _client.auth.signInWithIdToken(
+        provider: OAuthProvider.google,
+        idToken: idToken,
+        accessToken: accessToken,
+      );
+    }
   }
 
   // Abmelden
