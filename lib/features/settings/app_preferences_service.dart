@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/theme/app_theme_presets.dart';
 import '../tools/tool_preset_model.dart';
 
 const _copyWithUnset = Object();
@@ -24,6 +25,7 @@ class AppPreferencesState {
   final List<ToolPreset> toolPresets;
   final String dashboardTimeRange;
   final String? dashboardGameId;
+  final AppThemePreset themePreset;
 
   // Die unveränderlichen Standard-Tags
   static const List<String> defaultBaseTags = [
@@ -45,6 +47,7 @@ class AppPreferencesState {
     this.toolPresets = ToolPreset.defaults,
     this.dashboardTimeRange = 'month',
     this.dashboardGameId,
+    this.themePreset = AppThemePreset.onePiece,
   });
 
   // Liefert alle verfügbaren Tags (Standard + Eigene ohne Duplikate)
@@ -95,6 +98,7 @@ class AppPreferencesState {
     List<ToolPreset>? toolPresets,
     String? dashboardTimeRange,
     Object? dashboardGameId = _copyWithUnset,
+    AppThemePreset? themePreset,
   }) {
     return AppPreferencesState(
       defaultFormat: defaultFormat ?? this.defaultFormat,
@@ -111,6 +115,7 @@ class AppPreferencesState {
       dashboardGameId: identical(dashboardGameId, _copyWithUnset)
           ? this.dashboardGameId
           : dashboardGameId as String?,
+      themePreset: themePreset ?? this.themePreset,
     );
   }
 }
@@ -126,6 +131,8 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
   static const _keyToolPresets = 'pref_tool_presets';
   static const _keyDashboardTimeRange = 'pref_dashboard_time_range';
   static const _keyDashboardGameId = 'pref_dashboard_game_id';
+  static const _keyThemePreset = 'pref_app_theme_preset';
+  static const _legacyKeyThemePreset = 'pref_selected_theme_preset';
 
   @override
   AppPreferencesState build() {
@@ -141,6 +148,9 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
       toolPresets: ToolPreset.decodeList(prefs.getStringList(_keyToolPresets)),
       dashboardTimeRange: prefs.getString(_keyDashboardTimeRange) ?? 'month',
       dashboardGameId: prefs.getString(_keyDashboardGameId),
+      themePreset: parseAppThemePreset(
+        prefs.getString(_keyThemePreset) ?? prefs.getString(_legacyKeyThemePreset),
+      ),
     );
   }
 
@@ -236,6 +246,12 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
     final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setString(_keyDashboardTimeRange, timeRange);
     state = state.copyWith(dashboardTimeRange: timeRange);
+  }
+
+  Future<void> setThemePreset(AppThemePreset preset) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setString(_keyThemePreset, preset.name);
+    state = state.copyWith(themePreset: preset);
   }
 
   Future<void> setDashboardGameId(String? gameId) async {

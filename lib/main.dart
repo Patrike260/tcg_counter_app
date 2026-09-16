@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'features/settings/app_preferences_service.dart';
 
 import 'core/constants/supabase_constants.dart';
+import 'core/theme/app_theme_presets.dart';
 import 'core/widgets/dice_coin_dialog.dart';
 import 'features/auth/auth_repository.dart';
 import 'features/auth/login_screen.dart';
@@ -60,15 +61,11 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authStateProvider);
 
+    final themePreset = ref.watch(appPreferencesProvider).themePreset;
+
     return MaterialApp(
       title: 'TCG Counter App',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
+      theme: buildAppTheme(themePreset),
       home: authState.when(
         data: (data) {
           if (data.session != null) {

@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/supabase_constants.dart';
+import '../../core/theme/app_theme_presets.dart';
 import '../auth/auth_repository.dart';
 import '../decks/deck_repository.dart';
 import 'app_preferences_service.dart';
@@ -13,6 +14,7 @@ import 'game_management_screen.dart';
 import 'game_visibility_screen.dart';
 import 'match_preferences_screen.dart';
 import 'tag_management_screen.dart';
+import 'theme_selection_screen.dart';
 import 'tool_presets_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -182,6 +184,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         : '',
                   ),
                 ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'ERSCHEINUNGSBILD',
+                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+              ),
+              const SizedBox(height: 8),
+              _SettingsGroup(
+                children: [
+                  _SettingsNavTile(
+                    icon: Icons.palette_outlined,
+                    iconColor: Theme.of(context).colorScheme.primary,
+                    title: 'Farbschema & Design-Presets',
+                    subtitle: getThemeTitle(prefs.themePreset),
+                    onTap: () => _open(const ThemeSelectionScreen()),
+                    showDivider: false,
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
               const Text(
