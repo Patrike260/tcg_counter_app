@@ -11,6 +11,7 @@ import 'core/widgets/dice_coin_dialog.dart';
 import 'features/auth/auth_repository.dart';
 import 'features/auth/login_screen.dart';
 import 'features/decks/deck_list_screen.dart';
+import 'features/settings/match_preferences_screen.dart';
 import 'features/settings/settings_screen.dart';
 import 'features/stats/dashboard_repository.dart';
 import 'features/stats/dashboard_screen.dart';
@@ -116,6 +117,18 @@ class _MainNavigationHostState extends ConsumerState<MainNavigationHost> {
       appBar: AppBar(
         title: Text(_titles[_currentIndex]),
         actions: [
+          if (_currentIndex == 0) ...[
+            IconButton(
+              tooltip: 'Dashboard-Filter',
+              icon: const Icon(Icons.tune_outlined),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const MatchPreferencesScreen()),
+                );
+              },
+            ),
+            const SizedBox(width: 12),
+          ],
           IconButton(
             tooltip: 'Münze & Würfel',
             icon: const Icon(Icons.casino_outlined),

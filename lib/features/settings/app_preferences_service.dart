@@ -22,6 +22,8 @@ class AppPreferencesState {
   final List<String> customTags;
   final List<String> hiddenGameIds;
   final List<ToolPreset> toolPresets;
+  final String dashboardTimeRange;
+  final String? dashboardGameId;
 
   // Die unveränderlichen Standard-Tags
   static const List<String> defaultBaseTags = [
@@ -41,6 +43,8 @@ class AppPreferencesState {
     this.customTags = const [],
     this.hiddenGameIds = const [],
     this.toolPresets = ToolPreset.defaults,
+    this.dashboardTimeRange = 'month',
+    this.dashboardGameId,
   });
 
   // Liefert alle verfügbaren Tags (Standard + Eigene ohne Duplikate)
@@ -73,6 +77,13 @@ class AppPreferencesState {
     return id;
   }
 
+  /// Dashboard-Fokus, oder null (alle sichtbaren TCGs) wenn keines / ausgeblendet.
+  String? get resolvedDashboardGameId {
+    final id = dashboardGameId;
+    if (id == null || isGameHidden(id)) return null;
+    return id;
+  }
+
   AppPreferencesState copyWith({
     String? defaultFormat,
     String? defaultTurnOrder,
@@ -82,6 +93,8 @@ class AppPreferencesState {
     List<String>? customTags,
     List<String>? hiddenGameIds,
     List<ToolPreset>? toolPresets,
+    String? dashboardTimeRange,
+    Object? dashboardGameId = _copyWithUnset,
   }) {
     return AppPreferencesState(
       defaultFormat: defaultFormat ?? this.defaultFormat,
@@ -94,6 +107,10 @@ class AppPreferencesState {
       customTags: customTags ?? this.customTags,
       hiddenGameIds: hiddenGameIds ?? this.hiddenGameIds,
       toolPresets: toolPresets ?? this.toolPresets,
+      dashboardTimeRange: dashboardTimeRange ?? this.dashboardTimeRange,
+      dashboardGameId: identical(dashboardGameId, _copyWithUnset)
+          ? this.dashboardGameId
+          : dashboardGameId as String?,
     );
   }
 }
@@ -107,6 +124,8 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
   static const _keyCustomTags = 'pref_custom_tags';
   static const _keyHiddenGameIds = 'pref_hidden_game_ids';
   static const _keyToolPresets = 'pref_tool_presets';
+  static const _keyDashboardTimeRange = 'pref_dashboard_time_range';
+  static const _keyDashboardGameId = 'pref_dashboard_game_id';
 
   @override
   AppPreferencesState build() {
@@ -120,6 +139,8 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
       customTags: prefs.getStringList(_keyCustomTags) ?? const [],
       hiddenGameIds: prefs.getStringList(_keyHiddenGameIds) ?? const [],
       toolPresets: ToolPreset.decodeList(prefs.getStringList(_keyToolPresets)),
+      dashboardTimeRange: prefs.getString(_keyDashboardTimeRange) ?? 'month',
+      dashboardGameId: prefs.getString(_keyDashboardGameId),
     );
   }
 
@@ -195,15 +216,37 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
     await prefs.setStringList(_keyHiddenGameIds, hidden);
 
     final hideDefault = !isVisible && state.defaultGameId == gameId;
+    final hideDashboard = !isVisible && state.dashboardGameId == gameId;
     if (hideDefault) {
       await prefs.remove(_keyGameId);
+    }
+    if (hideDashboard) {
+      await prefs.remove(_keyDashboardGameId);
     }
 
     state = state.copyWith(
       hiddenGameIds: hidden,
       defaultGameId: hideDefault ? null : _copyWithUnset,
+      dashboardGameId: hideDashboard ? null : _copyWithUnset,
     );
     return true;
+  }
+
+  Future<void> setDashboardTimeRange(String timeRange) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setString(_keyDashboardTimeRange, timeRange);
+    state = state.copyWith(dashboardTimeRange: timeRange);
+  }
+
+  Future<void> setDashboardGameId(String? gameId) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    if (gameId == null || state.isGameHidden(gameId)) {
+      await prefs.remove(_keyDashboardGameId);
+      state = state.copyWith(dashboardGameId: null);
+      return;
+    }
+    await prefs.setString(_keyDashboardGameId, gameId);
+    state = state.copyWith(dashboardGameId: gameId);
   }
 
   Future<void> _persistToolPresets(List<ToolPreset> presets) async {

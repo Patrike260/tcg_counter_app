@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/widgets/game_logo.dart';
 import '../decks/deck_model.dart';
 import '../decks/deck_repository.dart';
+import '../stats/dashboard_repository.dart';
 import 'app_preferences_service.dart';
 
 class MatchPreferencesScreen extends ConsumerWidget {
@@ -125,6 +126,79 @@ class MatchPreferencesScreen extends ConsumerWidget {
               ),
             ),
           ),
+          const SizedBox(height: 24),
+          const Text(
+            'DASHBOARD-FILTER & NEMESIS',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+          ),
+          const SizedBox(height: 8),
+          Card(
+            clipBehavior: Clip.antiAlias,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: gamesAsync.when(
+              data: (games) {
+                final visibleGames =
+                    games.where((game) => prefs.isGameVisible(game.id)).toList();
+                final dashboardGame = visibleGames
+                    .where((game) => game.id == prefs.resolvedDashboardGameId)
+                    .firstOrNull;
+                final selectedRange =
+                    DashboardTimeRange.fromStorage(prefs.dashboardTimeRange);
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const ListTile(
+                      title: Text('Zeitraum für Statistiken'),
+                      subtitle: Text('Wirkt auf Winrate, Nemesis und TCG-Performance'),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: DashboardTimeRange.values.map((range) {
+                          return ChoiceChip(
+                            label: Text(range.label),
+                            selected: selectedRange == range,
+                            onSelected: (_) =>
+                                notifier.setDashboardTimeRange(range.name),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    ListTile(
+                      title: const Text('Spiel-Fokus für Dashboard'),
+                      subtitle: Text(dashboardGame?.name ?? 'Alle sichtbaren Spiele'),
+                      leading: GameLogo(gameName: dashboardGame?.name, size: 32),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () async {
+                        final chosen = await showDialog<String?>(
+                          context: context,
+                          builder: (ctx) => _GamePickerDialog(
+                            title: 'Dashboard-Spiel',
+                            clearLabel: 'Alle sichtbaren Spiele',
+                            games: visibleGames,
+                            selectedId: dashboardGame?.id,
+                          ),
+                        );
+                        if (chosen == '__clear__') {
+                          await notifier.setDashboardGameId(null);
+                        } else if (chosen != null) {
+                          await notifier.setDashboardGameId(chosen);
+                        }
+                      },
+                    ),
+                  ],
+                );
+              },
+              loading: () => const Padding(
+                padding: EdgeInsets.all(24),
+                child: Center(child: CircularProgressIndicator()),
+              ),
+              error: (_, _) => const SizedBox.shrink(),
+            ),
+          ),
         ],
       ),
     );
@@ -134,24 +208,28 @@ class MatchPreferencesScreen extends ConsumerWidget {
 class _GamePickerDialog extends StatelessWidget {
   final List<Game> games;
   final String? selectedId;
+  final String title;
+  final String clearLabel;
 
   const _GamePickerDialog({
     required this.games,
     required this.selectedId,
+    this.title = 'Standard-Kartenspiel',
+    this.clearLabel = 'Keines (immer manuell wählen)',
   });
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Standard-Kartenspiel'),
+      title: Text(title),
       content: SizedBox(
         width: 360,
         child: ListView(
           shrinkWrap: true,
           children: [
             ListTile(
-              leading: const Icon(Icons.block_outlined),
-              title: const Text('Keines (immer manuell wählen)'),
+              leading: const Icon(Icons.apps_outlined),
+              title: Text(clearLabel),
               selected: selectedId == null,
               onTap: () => Navigator.pop(context, '__clear__'),
             ),

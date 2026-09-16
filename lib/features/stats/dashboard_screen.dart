@@ -15,11 +15,25 @@ class DashboardScreen extends ConsumerWidget {
     return Scaffold(
       body: dashboardAsync.when(
         data: (data) {
-          if (data.totalMatches == 0) {
+          if (data.unfilteredTotal == 0) {
             return const Center(
               child: Text(
                 'Willkommen!\nTrage erste Matches in deinen Decks ein, um Statistiken zu sehen.',
                 textAlign: TextAlign.center,
+              ),
+            );
+          }
+
+          if (data.totalMatches == 0) {
+            return RefreshIndicator(
+              onRefresh: () async => ref.invalidate(dashboardDataProvider),
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16),
+                children: const [
+                  SizedBox(height: 48),
+                  _EmptyFilterHint(),
+                ],
               ),
             );
           }
@@ -36,7 +50,7 @@ class DashboardScreen extends ConsumerWidget {
                       _WinrateTile(
                         label: 'Winrate',
                         value: '${data.overallWinRate.toStringAsFixed(1)}%',
-                        subtitle: 'Gesamt',
+                        subtitle: data.timeRange.label,
                         color: TcgColors.winRateColor(data.overallWinRate, data.totalMatches),
                         icon: Icons.emoji_events_outlined,
                       ),
@@ -81,6 +95,13 @@ class DashboardScreen extends ConsumerWidget {
                       ],
                     );
                   },
+                ),
+                const SizedBox(height: 16),
+                _MatchupHighlightsRow(
+                  best: data.bestMatchup,
+                  nemesis: data.nemesisMatchup,
+                  rangeLabel: data.timeRange.label,
+                  hasMatches: data.totalMatches > 0,
                 ),
                 const SizedBox(height: 28),
 
@@ -158,6 +179,206 @@ class DashboardScreen extends ConsumerWidget {
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, _) => Center(child: Text('Fehler: $err')),
+      ),
+    );
+  }
+}
+
+class _EmptyFilterHint extends StatelessWidget {
+  const _EmptyFilterHint();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2A2A3C),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: const Text(
+        'Keine Matches im gewählten Zeitraum',
+        textAlign: TextAlign.center,
+        style: TextStyle(color: Colors.white70, fontSize: 15),
+      ),
+    );
+  }
+}
+
+class _MatchupHighlightsRow extends StatelessWidget {
+  final OpponentMatchup? best;
+  final OpponentMatchup? nemesis;
+  final String rangeLabel;
+  final bool hasMatches;
+
+  const _MatchupHighlightsRow({
+    required this.best,
+    required this.nemesis,
+    required this.rangeLabel,
+    required this.hasMatches,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (!hasMatches) {
+      return const _EmptyFilterHint();
+    }
+
+    if (best == null && nemesis == null) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF2A2A3C),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white12),
+        ),
+        child: Text(
+          'Keine Matches gegen mehrfache Archetypen im gewählten Zeitraum ($rangeLabel).\nMindestens 2 Matches gegen dasselbe Deck nötig.',
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.white60, height: 1.4),
+        ),
+      );
+    }
+
+    final cards = [
+      if (best != null)
+        _MatchupHighlightCard(
+          title: 'Stärkstes Matchup',
+          matchup: best!,
+          accent: Colors.greenAccent,
+          icon: Icons.military_tech_outlined,
+          showLossRate: false,
+          rangeLabel: rangeLabel,
+        ),
+      if (nemesis != null)
+        _MatchupHighlightCard(
+          title: 'Nemesis / Problem-Deck',
+          matchup: nemesis!,
+          accent: Colors.redAccent,
+          icon: Icons.warning_amber_rounded,
+          showLossRate: true,
+          rangeLabel: rangeLabel,
+        ),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final sideBySide = constraints.maxWidth >= 560 && cards.length == 2;
+        if (sideBySide) {
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: cards[0]),
+              const SizedBox(width: 12),
+              Expanded(child: cards[1]),
+            ],
+          );
+        }
+        return Column(
+          children: [
+            for (var i = 0; i < cards.length; i++) ...[
+              if (i > 0) const SizedBox(height: 10),
+              cards[i],
+            ],
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _MatchupHighlightCard extends StatelessWidget {
+  final String title;
+  final OpponentMatchup matchup;
+  final Color accent;
+  final IconData icon;
+  final bool showLossRate;
+  final String rangeLabel;
+
+  const _MatchupHighlightCard({
+    required this.title,
+    required this.matchup,
+    required this.accent,
+    required this.icon,
+    required this.showLossRate,
+    required this.rangeLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final rate = showLossRate ? matchup.lossRate : matchup.winRate;
+    final rateLabel = showLossRate ? 'Loss-Rate' : 'Winrate';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: const Color(0xFF1E1E2C),
+        border: Border.all(color: accent.withValues(alpha: 0.4)),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            accent.withValues(alpha: 0.18),
+            const Color(0xFF2A2A3C),
+          ],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: accent, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: accent,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            matchup.opponentDeck,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'vs. ${matchup.opponentDeck} • ${rate.toStringAsFixed(0)}% ($rangeLabel)',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.72)),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '${rate.toStringAsFixed(1)}% $rateLabel',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: accent,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${matchup.wins}–${matchup.losses}  (${matchup.wins} Siege / ${matchup.total} Matches)',
+            style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.7)),
+          ),
+        ],
       ),
     );
   }

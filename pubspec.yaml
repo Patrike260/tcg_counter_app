@@ -103,4 +103,11 @@ flutter:
   # see https://flutter.dev/to/font-from-package
   assets:
     - assets/icon.png
-    - assets/games/
+    - assets/games/dragonball.png
+    - assets/games/gundam.png
+    - assets/games/lorcana.png
+    - assets/games/mtg.png
+    - assets/games/one_piece.png
+    - assets/games/pokemon.png
+    - assets/games/star_wars.png
+    - assets/games/yugioh.png
