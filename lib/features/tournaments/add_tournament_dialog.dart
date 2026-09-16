@@ -25,6 +25,7 @@ class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
   late DateTime _tournamentDate;
   String? _selectedGameId;
   String? _selectedDeckId;
+  late List<String> _selectedTags;
   bool _isLoading = false;
 
   @override
@@ -43,6 +44,13 @@ class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
     _tournamentDate = existing?.tournamentDate ?? DateTime.now();
     _selectedGameId = existing?.gameId ?? prefs.resolvedDefaultGameId;
     _selectedDeckId = existing?.deckId;
+    if (existing != null) {
+      _selectedTags = List<String>.from(existing.tags);
+    } else if (prefs.rememberLastTags) {
+      _selectedTags = List<String>.from(prefs.lastUsedTags);
+    } else {
+      _selectedTags = [];
+    }
   }
 
   @override
@@ -122,6 +130,7 @@ class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
           placement: placement,
           totalParticipants: participants,
           notes: notes.isEmpty ? null : notes,
+          tags: _selectedTags,
         );
       } else {
         await repo.createTournament(
@@ -132,10 +141,15 @@ class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
           placement: placement,
           totalParticipants: participants,
           notes: notes.isEmpty ? null : notes,
+          tags: _selectedTags,
         );
+      }
+      if (ref.read(appPreferencesProvider).rememberLastTags) {
+        ref.read(appPreferencesProvider.notifier).setLastUsedTags(_selectedTags);
       }
       ref.invalidate(tournamentsListProvider);
       ref.invalidate(tournamentsStreamProvider);
+      ref.invalidate(tournamentRelatedMatchesProvider);
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {
@@ -342,6 +356,29 @@ class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
               subtitle: Text(_dateLabel(_tournamentDate)),
               trailing: const Icon(Icons.chevron_right),
               onTap: _pickDate,
+            ),
+            const SizedBox(height: 16),
+            const Text('Event-Tags', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: ref.watch(appPreferencesProvider).allAvailableTags.map((tag) {
+                final isSelected = _selectedTags.contains(tag);
+                return FilterChip(
+                  label: Text(tag),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    setState(() {
+                      if (selected) {
+                        _selectedTags.add(tag);
+                      } else {
+                        _selectedTags.remove(tag);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
             ),
             const SizedBox(height: 16),
             TextField(

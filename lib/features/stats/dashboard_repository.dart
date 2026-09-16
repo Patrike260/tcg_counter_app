@@ -111,6 +111,7 @@ class DashboardData {
   final OpponentMatchup? nemesisMatchup;
   final DashboardTimeRange timeRange;
   final TurnOrderStats turnOrderStats;
+  final String? focusTag;
 
   DashboardData({
     required this.totalMatches,
@@ -122,16 +123,18 @@ class DashboardData {
     this.bestMatchup,
     this.nemesisMatchup,
     this.turnOrderStats = const TurnOrderStats(),
+    this.focusTag,
   });
 
   double get overallWinRate => totalMatches > 0 ? (totalWins / totalMatches) * 100 : 0.0;
 }
 
-final dashboardDataProvider = FutureProvider<DashboardData>((ref) async {
+final dashboardDataProvider = FutureProvider.family<DashboardData, String?>((ref, selectedTag) async {
   final prefs = ref.watch(appPreferencesProvider);
   final timeRange = DashboardTimeRange.fromStorage(prefs.dashboardTimeRange);
   final focusGameId = prefs.resolvedDashboardGameId;
   final hiddenIds = prefs.hiddenGameIds;
+  final focusTag = (selectedTag ?? '').trim().isEmpty ? null : selectedTag!.trim();
   final user = supabase.auth.currentUser;
   if (user == null) {
     return DashboardData(
@@ -141,6 +144,7 @@ final dashboardDataProvider = FutureProvider<DashboardData>((ref) async {
       gameSummaries: [],
       recentMatches: [],
       timeRange: timeRange,
+      focusTag: focusTag,
     );
   }
 
@@ -165,6 +169,10 @@ final dashboardDataProvider = FutureProvider<DashboardData>((ref) async {
     if (cutoff != null) {
       final createdAt = DateTime.tryParse(map['created_at']?.toString() ?? '');
       if (createdAt == null || createdAt.isBefore(cutoff)) return false;
+    }
+    if (focusTag != null) {
+      final tags = (map['tags'] as List?)?.map((e) => e.toString()).toList() ?? const [];
+      if (!tags.contains(focusTag)) return false;
     }
     return true;
   }).toList();
@@ -265,6 +273,7 @@ final dashboardDataProvider = FutureProvider<DashboardData>((ref) async {
     bestMatchup: bestMatchup,
     nemesisMatchup: nemesisMatchup,
     timeRange: timeRange,
+    focusTag: focusTag,
     turnOrderStats: TurnOrderStats(
       firstMatches: firstMatches,
       firstWins: firstWins,

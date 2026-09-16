@@ -19,7 +19,8 @@ class Deck {
   final String name;
   final String? notes;
   final bool isActive;
-  final String? gameName; // Aus dem Join geladen
+  final String? gameName;
+  final String? deckListUrl;
 
   Deck({
     required this.id,
@@ -29,6 +30,7 @@ class Deck {
     this.notes,
     this.isActive = true,
     this.gameName,
+    this.deckListUrl,
   });
 
   factory Deck.fromJson(Map<String, dynamic> json) {
@@ -40,6 +42,21 @@ class Deck {
       notes: json['notes'] as String?,
       isActive: json['is_active'] as bool? ?? true,
       gameName: json['games'] != null ? json['games']['name'] as String? : null,
+      deckListUrl: json['deck_list_url'] as String?,
     );
+  }
+
+  bool get hasDeckListUrl => (deckListUrl ?? '').trim().isNotEmpty;
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'user_id': userId,
+      'game_id': gameId,
+      'name': name,
+      'notes': notes,
+      'is_active': isActive,
+      'deck_list_url': deckListUrl,
+    };
   }
 }

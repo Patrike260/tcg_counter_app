@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/utils/deck_list_url.dart';
 import '../decks/deck_model.dart';
 import '../settings/app_preferences_service.dart';
 import '../stats/deck_stats_screen.dart';
@@ -20,6 +21,15 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
   String _selectedFormat = 'all'; // 'all', 'bo1', 'bo3'
   String? _selectedTag; // null = kein Tag-Filter
 
+  Future<void> _openDeckList(BuildContext context) async {
+    final opened = await openDeckListUrl(widget.deck.deckListUrl);
+    if (!opened && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Link konnte nicht geöffnet werden.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final matchesAsync = ref.watch(deckMatchesProvider(widget.deck.id));
@@ -39,6 +49,12 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
           ],
         ),
         actions: [
+          if (widget.deck.hasDeckListUrl)
+            IconButton(
+              icon: const Icon(Icons.open_in_new),
+              tooltip: 'Deckliste ansehen',
+              onPressed: () => _openDeckList(context),
+            ),
           IconButton(
             icon: const Icon(Icons.analytics_outlined),
             tooltip: 'Statistiken anzeigen',
@@ -76,6 +92,18 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
 
           return Column(
             children: [
+              if (widget.deck.hasDeckListUrl)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => _openDeckList(context),
+                      icon: const Icon(Icons.link),
+                      label: const Text('Deckliste ansehen'),
+                    ),
+                  ),
+                ),
               // Schnelle Statistik-Leiste
               Card(
                 margin: const EdgeInsets.all(12),

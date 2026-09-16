@@ -284,8 +284,8 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
     state = state.copyWith(dashboardTabs: tabs);
   }
 
-  Future<void> updateDashboardTabs(List<DashboardTabConfig> tabs) async {
-    var next = List<DashboardTabConfig>.from(tabs);
+  Future<void> updateDashboardTabs(List<DashboardTabConfig> newTabs) async {
+    var next = List<DashboardTabConfig>.from(newTabs);
     if (next.isEmpty) {
       next = List<DashboardTabConfig>.from(DashboardTabConfig.defaults);
     }
@@ -295,19 +295,20 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
     await _persistDashboardTabs(next);
   }
 
-  Future<bool> toggleDashboardTab(String id, bool isEnabled) async {
+  Future<void> toggleDashboardTab(String tabId, bool isEnabled) async {
     final enabledCount = state.dashboardTabs.where((tab) => tab.isEnabled).length;
-    if (!isEnabled && enabledCount <= 1) return false;
+    if (!isEnabled && enabledCount <= 1) return;
     final updated = state.dashboardTabs
-        .map((tab) => tab.id == id ? tab.copyWith(isEnabled: isEnabled) : tab)
+        .map((tab) => tab.id == tabId ? tab.copyWith(isEnabled: isEnabled) : tab)
         .toList();
     await updateDashboardTabs(updated);
-    return true;
   }
 
-  Future<void> resetDashboardTabs() async {
+  Future<void> resetDashboardTabsToDefault() async {
     await updateDashboardTabs(List<DashboardTabConfig>.from(DashboardTabConfig.defaults));
   }
+
+  Future<void> resetDashboardTabs() => resetDashboardTabsToDefault();
 
   Future<void> reorderDashboardTabs(int oldIndex, int newIndex) async {
     final updated = [...state.dashboardTabs];
@@ -317,32 +318,51 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
     await updateDashboardTabs(updated);
   }
 
-  Future<void> setDashboardTabWidgets(String id, List<String> widgetKeys) async {
+  Future<void> setDashboardTabSelectedTag(String tabId, String? tag) async {
+    final cleaned = tag?.trim();
     final updated = state.dashboardTabs
-        .map((tab) => tab.id == id ? tab.copyWith(widgetKeys: widgetKeys) : tab)
+        .map(
+          (tab) => tab.id == tabId
+              ? tab.copyWith(selectedTag: (cleaned == null || cleaned.isEmpty) ? null : cleaned)
+              : tab,
+        )
         .toList();
     await updateDashboardTabs(updated);
   }
 
-  Future<void> addDashboardTab(String title) async {
-    final tab = DashboardTabConfig(
-      id: 'tab_${DateTime.now().millisecondsSinceEpoch}',
-      title: title,
-      iconName: 'tune_outlined',
-      widgetKeys: const [DashboardWidgetKeys.kpiWinrate],
-    );
-    await updateDashboardTabs([...state.dashboardTabs, tab]);
+  Future<void> updateTabWidgets(String tabId, List<String> widgetKeys) async {
+    final updated = state.dashboardTabs
+        .map((tab) => tab.id == tabId ? tab.copyWith(widgetKeys: widgetKeys) : tab)
+        .toList();
+    await updateDashboardTabs(updated);
   }
 
-  Future<bool> deleteDashboardTab(String id) async {
-    if (state.dashboardTabs.length <= 1) return false;
-    final updated = state.dashboardTabs.where((tab) => tab.id != id).toList();
-    if (updated.isEmpty) return false;
-    if (updated.every((tab) => !tab.isEnabled)) {
-      updated[0] = updated[0].copyWith(isEnabled: true);
-    }
+  Future<void> setDashboardTabWidgets(String id, List<String> widgetKeys) {
+    return updateTabWidgets(id, widgetKeys);
+  }
+
+  Future<void> addCustomDashboardTab(DashboardTabConfig newTab) async {
+    await updateDashboardTabs([...state.dashboardTabs, newTab]);
+  }
+
+  Future<void> addDashboardTab(String title) {
+    return addCustomDashboardTab(
+      DashboardTabConfig(
+        id: 'tab_${DateTime.now().millisecondsSinceEpoch}',
+        title: title,
+        iconName: 'tune_outlined',
+        widgetKeys: const [DashboardWidgetKeys.kpiWinrate],
+      ),
+    );
+  }
+
+  Future<void> deleteDashboardTab(String tabId) async {
+    final target = state.dashboardTabs.where((tab) => tab.id == tabId);
+    if (target.isEmpty || target.first.isPreset) return;
+    if (state.dashboardTabs.length <= 1) return;
+    final updated = state.dashboardTabs.where((tab) => tab.id != tabId).toList();
+    if (updated.isEmpty) return;
     await updateDashboardTabs(updated);
-    return true;
   }
 
   Future<void> _persistToolPresets(List<ToolPreset> presets) async {

@@ -20,17 +20,17 @@ class DashboardWidgetKeys {
   static String labelOf(String key) {
     switch (key) {
       case kpiWinrate:
-        return 'Winrate & KPIs';
+        return 'Gesamte Winrate & Siegquote';
       case kpiNemesis:
         return 'Nemesis & Best Matchup';
       case performanceTcg:
-        return 'Performance nach TCG';
+        return 'Performance nach Kartenspiel';
       case recentMatches:
         return 'Letzte Matches';
       case tournamentsOverview:
-        return 'Turniere';
+        return 'Turniere & Platzierungen';
       case turnOrderStats:
-        return '1st vs. 2nd';
+        return '1st / 2nd Zugreihenfolge-Stats';
       default:
         return key;
     }
@@ -43,6 +43,7 @@ class DashboardTabConfig {
   final String iconName;
   final bool isEnabled;
   final List<String> widgetKeys;
+  final String? selectedTag;
 
   const DashboardTabConfig({
     required this.id,
@@ -50,7 +51,27 @@ class DashboardTabConfig {
     required this.iconName,
     this.isEnabled = true,
     required this.widgetKeys,
+    this.selectedTag,
   });
+
+  static const presetIds = <String>{
+    'tab_allround',
+    'tab_tournament',
+    'tab_minimal',
+  };
+
+  static const iconChoices = <String>[
+    'dashboard_outlined',
+    'emoji_events_outlined',
+    'view_agenda_outlined',
+    'tune_outlined',
+    'sports_esports_outlined',
+    'style_outlined',
+    'analytics_outlined',
+    'military_tech_outlined',
+  ];
+
+  bool get isPreset => presetIds.contains(id);
 
   static const List<DashboardTabConfig> defaults = [
     DashboardTabConfig(
@@ -103,6 +124,7 @@ class DashboardTabConfig {
       'iconName': iconName,
       'isEnabled': isEnabled,
       'widgetKeys': sanitizedWidgetKeys,
+      'selectedTag': selectedTag,
     };
   }
 
@@ -122,6 +144,9 @@ class DashboardTabConfig {
       iconName: map['iconName'] as String? ?? 'dashboard_outlined',
       isEnabled: map['isEnabled'] as bool? ?? true,
       widgetKeys: keys,
+      selectedTag: (map['selectedTag'] as String?)?.trim().isNotEmpty == true
+          ? (map['selectedTag'] as String).trim()
+          : null,
     );
   }
 
@@ -162,6 +187,7 @@ class DashboardTabConfig {
     String? iconName,
     bool? isEnabled,
     List<String>? widgetKeys,
+    Object? selectedTag = _copyWithUnset,
   }) {
     return DashboardTabConfig(
       id: id ?? this.id,
@@ -169,6 +195,11 @@ class DashboardTabConfig {
       iconName: iconName ?? this.iconName,
       isEnabled: isEnabled ?? this.isEnabled,
       widgetKeys: widgetKeys ?? this.widgetKeys,
+      selectedTag: identical(selectedTag, _copyWithUnset)
+          ? this.selectedTag
+          : selectedTag as String?,
     );
   }
 }
+
+const _copyWithUnset = Object();

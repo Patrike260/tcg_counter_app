@@ -34,7 +34,7 @@ class DeckRepository {
   Future<List<Deck>> fetchUserDecks({bool activeOnly = true}) async {
     var query = _client
         .from('decks')
-        .select('id, user_id, game_id, name, notes, is_active, games(name)');
+        .select('id, user_id, game_id, name, notes, is_active, deck_list_url, games(name)');
 
     if (activeOnly) {
       query = query.eq('is_active', true);
@@ -49,6 +49,7 @@ class DeckRepository {
     required String gameId,
     required String name,
     String? notes,
+    String? deckListUrl,
   }) async {
     final user = _client.auth.currentUser;
     if (user == null) throw Exception('Kein Nutzer eingeloggt');
@@ -58,19 +59,21 @@ class DeckRepository {
       'game_id': gameId,
       'name': name,
       'notes': notes,
+      'deck_list_url': deckListUrl,
       'is_active': true,
     });
   }
 
-  // Deck aktualisieren (Name & Notizen)
   Future<void> updateDeck({
     required String deckId,
     required String name,
     String? notes,
+    String? deckListUrl,
   }) async {
     await _client.from('decks').update({
       'name': name,
       'notes': notes,
+      'deck_list_url': deckListUrl,
     }).eq('id', deckId);
   }
 

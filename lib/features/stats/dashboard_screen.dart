@@ -11,108 +11,121 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final dashboardAsync = ref.watch(dashboardDataProvider);
     final activeTabs = ref.watch(appPreferencesProvider).enabledDashboardTabs;
 
+    if (activeTabs.isEmpty) {
+      return const Scaffold(body: Center(child: Text('Kein Dashboard-Tab aktiv.')));
+    }
+
+    if (activeTabs.length == 1) {
+      return Scaffold(body: _DashboardTabPane(tab: activeTabs.first));
+    }
+
     return Scaffold(
-      body: dashboardAsync.when(
-        data: (data) {
-          if (activeTabs.isEmpty) {
-            return const Center(child: Text('Kein Dashboard-Tab aktiv.'));
-          }
-
-          if (activeTabs.length == 1) {
-            return _DashboardTabPage(tab: activeTabs.first, data: data);
-          }
-
-          return DefaultTabController(
-            key: ValueKey(activeTabs.map((tab) => tab.id).join('|')),
-            length: activeTabs.length,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: TabBar(
-                    isScrollable: true,
-                    tabAlignment: TabAlignment.start,
-                    dividerColor: Colors.transparent,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    indicator: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.primary,
-                        width: 1.5,
+      body: DefaultTabController(
+        key: ValueKey(
+          activeTabs
+              .map((tab) => '${tab.id}:${tab.selectedTag}:${tab.sanitizedWidgetKeys.join(',')}')
+              .join('|'),
+        ),
+        length: activeTabs.length,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: TabBar(
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                dividerColor: Colors.transparent,
+                indicatorSize: TabBarIndicatorSize.tab,
+                indicator: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.2),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 1.5,
+                  ),
+                ),
+                splashBorderRadius: BorderRadius.circular(24),
+                labelColor: Theme.of(context).colorScheme.primary,
+                unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
+                labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+                tabs: [
+                  for (final tab in activeTabs)
+                    Tab(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(dashboardTabIcon(tab.iconName), size: 18),
+                            const SizedBox(width: 8),
+                            Text(
+                              tab.title,
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    splashBorderRadius: BorderRadius.circular(24),
-                    labelColor: Theme.of(context).colorScheme.primary,
-                    unselectedLabelColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.55),
-                    labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-                    tabs: [
-                      for (final tab in activeTabs)
-                        Tab(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(dashboardTabIcon(tab.iconName), size: 18),
-                                const SizedBox(width: 8),
-                                Text(
-                                  tab.title,
-                                  style: const TextStyle(fontWeight: FontWeight.w600),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: TabBarView(
-                    children: [
-                      for (final tab in activeTabs)
-                        _DashboardTabPage(tab: tab, data: data),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          );
-        },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('Fehler: $err')),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  for (final tab in activeTabs) _DashboardTabPane(tab: tab),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class _DashboardTabPage extends ConsumerWidget {
+class _DashboardTabPane extends ConsumerWidget {
   final DashboardTabConfig tab;
-  final DashboardData data;
 
-  const _DashboardTabPage({required this.tab, required this.data});
+  const _DashboardTabPane({required this.tab});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final dashboardAsync = ref.watch(dashboardDataProvider(tab.selectedTag));
     final keys = tab.sanitizedWidgetKeys;
-    return RefreshIndicator(
-      onRefresh: () async {
-        ref.invalidate(dashboardDataProvider);
-        ref.invalidate(tournamentsListProvider);
+
+    return dashboardAsync.when(
+      data: (data) {
+        return RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(dashboardDataProvider);
+            ref.invalidate(tournamentsListProvider);
+          },
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            children: [
+              if (data.focusTag != null) ...[
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Chip(
+                    avatar: const Icon(Icons.label_outlined, size: 16),
+                    label: Text('Event: ${data.focusTag}'),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+              for (var i = 0; i < keys.length; i++) ...[
+                if (i > 0) const SizedBox(height: 20),
+                buildDashboardWidget(keys[i], data, context),
+              ],
+            ],
+          ),
+        );
       },
-      child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        children: [
-          for (var i = 0; i < keys.length; i++) ...[
-            if (i > 0) const SizedBox(height: 20),
-            buildDashboardWidget(keys[i], data, context),
-          ],
-        ],
-      ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, _) => Center(child: Text('Fehler: $err')),
     );
   }
 }

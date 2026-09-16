@@ -9,6 +9,7 @@ create table if not exists public.tournaments (
   placement integer,
   total_participants integer,
   notes text,
+  tags text[] not null default '{}',
   created_at timestamptz not null default now()
 );
 

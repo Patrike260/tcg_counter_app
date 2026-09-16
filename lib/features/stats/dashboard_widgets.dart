@@ -18,6 +18,12 @@ IconData dashboardTabIcon(String iconName) {
       return Icons.tune_outlined;
     case 'sports_esports_outlined':
       return Icons.sports_esports_outlined;
+    case 'style_outlined':
+      return Icons.style_outlined;
+    case 'analytics_outlined':
+      return Icons.analytics_outlined;
+    case 'military_tech_outlined':
+      return Icons.military_tech_outlined;
     default:
       return Icons.dashboard_outlined;
   }

@@ -205,8 +205,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   _SettingsNavTile(
                     icon: Icons.dashboard_customize_outlined,
                     iconColor: Colors.cyanAccent,
-                    title: 'Dashboard-Tabs',
-                    subtitle: '${prefs.enabledDashboardTabs.length} aktiv • per Swipe wechseln',
+                    title: 'Dashboard-Tabs & Kacheln konfigurieren',
+                    subtitle: 'Reihenfolge, Tabs und angezeigte Widgets anpassen',
                     onTap: () => _open(const DashboardSettingsScreen()),
                     showDivider: false,
                   ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/widgets/game_logo.dart';
+import '../../core/utils/deck_list_url.dart';
 import 'deck_model.dart';
 import 'deck_repository.dart';
 import '../settings/app_preferences_service.dart';
@@ -17,6 +18,7 @@ class AddDeckDialog extends ConsumerStatefulWidget {
 class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
   late final TextEditingController _nameController;
   late final TextEditingController _notesController;
+  late final TextEditingController _urlController;
   String? _selectedGameId;
   bool _isLoading = false;
 
@@ -25,6 +27,7 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
     super.initState();
     _nameController = TextEditingController(text: widget.deck?.name ?? '');
     _notesController = TextEditingController(text: widget.deck?.notes ?? '');
+    _urlController = TextEditingController(text: widget.deck?.deckListUrl ?? '');
     final defaultPrefs = ref.read(appPreferencesProvider);
     _selectedGameId = widget.deck?.gameId ?? defaultPrefs.resolvedDefaultGameId;
   }
@@ -33,6 +36,7 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
   void dispose() {
     _nameController.dispose();
     _notesController.dispose();
+    _urlController.dispose();
     super.dispose();
   }
 
@@ -45,6 +49,20 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
       return;
     }
 
+    final notes = _notesController.text.trim();
+    final rawUrl = _urlController.text.trim();
+    String? deckListUrl;
+    if (rawUrl.isNotEmpty) {
+      final uri = parseDeckListUri(rawUrl);
+      if (uri == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Bitte eine gültige Decklisten-URL angeben.')),
+        );
+        return;
+      }
+      deckListUrl = uri.toString();
+    }
+
     setState(() => _isLoading = true);
 
     try {
@@ -54,13 +72,15 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
         await repo.updateDeck(
           deckId: widget.deck!.id,
           name: name,
-          notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+          notes: notes.isEmpty ? null : notes,
+          deckListUrl: deckListUrl,
         );
       } else {
         await repo.createDeck(
           gameId: _selectedGameId!,
           name: name,
-          notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+          notes: notes.isEmpty ? null : notes,
+          deckListUrl: deckListUrl,
         );
       }
 
@@ -132,6 +152,17 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
               controller: _nameController,
               decoration: const InputDecoration(
                 labelText: 'Deck-Name',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _urlController,
+              keyboardType: TextInputType.url,
+              decoration: const InputDecoration(
+                labelText: 'Decklisten-Link (optional)',
+                hintText: 'https://nakamadecks.com/... oder moxfield.com/...',
+                prefixIcon: Icon(Icons.link),
                 border: OutlineInputBorder(),
               ),
             ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/utils/game_colors.dart';
 import '../../core/widgets/game_logo.dart';
 import 'add_tournament_dialog.dart';
+import 'tournament_detail_screen.dart';
 import 'tournament_model.dart';
 import 'tournament_repository.dart';
 
@@ -112,6 +113,13 @@ class TournamentListScreen extends ConsumerWidget {
                 final tournament = tournaments[index];
                 return _TournamentCard(
                   tournament: tournament,
+                  onOpen: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => TournamentDetailScreen(tournament: tournament),
+                      ),
+                    );
+                  },
                   onEdit: () => _openEditor(context, tournament: tournament),
                   onDelete: () => _confirmDelete(context, ref, tournament),
                 );
@@ -136,11 +144,13 @@ class TournamentListScreen extends ConsumerWidget {
 
 class _TournamentCard extends StatelessWidget {
   final Tournament tournament;
+  final VoidCallback onOpen;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const _TournamentCard({
     required this.tournament,
+    required this.onOpen,
     required this.onEdit,
     required this.onDelete,
   });
@@ -181,7 +191,10 @@ class _TournamentCard extends StatelessWidget {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onOpen,
+        child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -264,6 +277,11 @@ class _TournamentCard extends StatelessWidget {
                   label: Text(tournament.deckName ?? 'Deck unbekannt'),
                   visualDensity: VisualDensity.compact,
                 ),
+                for (final tag in tournament.tags)
+                  Chip(
+                    label: Text(tag),
+                    visualDensity: VisualDensity.compact,
+                  ),
               ],
             ),
             if (tournament.notes != null && tournament.notes!.trim().isNotEmpty) ...[
@@ -275,6 +293,7 @@ class _TournamentCard extends StatelessWidget {
             ],
           ],
         ),
+      ),
       ),
     );
   }

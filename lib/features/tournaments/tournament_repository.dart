@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/constants/supabase_constants.dart';
+import '../matches/match_model.dart';
 import 'tournament_model.dart';
 
 final tournamentRepositoryProvider = Provider<TournamentRepository>((ref) {
@@ -15,9 +16,23 @@ final tournamentsStreamProvider = StreamProvider<List<Tournament>>((ref) {
   return ref.watch(tournamentRepositoryProvider).watchTournaments();
 });
 
+final tournamentRelatedMatchesProvider =
+    FutureProvider.family<List<MatchRecord>, String>((ref, tournamentId) async {
+  final tournaments = await ref.watch(tournamentsListProvider.future);
+  Tournament? tournament;
+  for (final item in tournaments) {
+    if (item.id == tournamentId) {
+      tournament = item;
+      break;
+    }
+  }
+  if (tournament == null) return [];
+  return ref.watch(tournamentRepositoryProvider).fetchRelatedMatches(tournament);
+});
+
 class TournamentRepository {
   static const _select =
-      'id, user_id, game_id, deck_id, name, tournament_date, placement, total_participants, notes, decks(name), games(name)';
+      'id, user_id, game_id, deck_id, name, tournament_date, placement, total_participants, notes, tags, decks(name), games(name)';
 
   final SupabaseClient _client;
 
@@ -58,6 +73,7 @@ class TournamentRepository {
     int? placement,
     int? totalParticipants,
     String? notes,
+    List<String> tags = const [],
   }) async {
     final user = _client.auth.currentUser;
     if (user == null) throw Exception('Kein Nutzer eingeloggt');
@@ -71,6 +87,7 @@ class TournamentRepository {
       'placement': placement,
       'total_participants': totalParticipants,
       'notes': notes,
+      'tags': tags,
     });
   }
 
@@ -83,6 +100,7 @@ class TournamentRepository {
     int? placement,
     int? totalParticipants,
     String? notes,
+    List<String> tags = const [],
   }) async {
     await _client.from('tournaments').update({
       'game_id': gameId,
@@ -92,10 +110,36 @@ class TournamentRepository {
       'placement': placement,
       'total_participants': totalParticipants,
       'notes': notes,
+      'tags': tags,
     }).eq('id', tournamentId);
   }
 
   Future<void> deleteTournament(String tournamentId) async {
     await _client.from('tournaments').delete().eq('id', tournamentId);
+  }
+
+  Future<List<MatchRecord>> fetchRelatedMatches(Tournament tournament) async {
+    final user = _client.auth.currentUser;
+    if (user == null) return [];
+
+    final response = await _client
+        .from('matches')
+        .select()
+        .eq('user_id', user.id)
+        .order('created_at', ascending: false);
+
+    final matches = (response as List)
+        .map((json) => MatchRecord.fromJson(json as Map<String, dynamic>))
+        .toList();
+
+    return matches.where((match) {
+      final tagOverlap = tournament.tags.isNotEmpty &&
+          match.tags.any((tag) => tournament.tags.contains(tag));
+      if (!tagOverlap) return false;
+      if (tournament.deckId != null && match.deckId != tournament.deckId) {
+        return false;
+      }
+      return true;
+    }).toList();
   }
 }

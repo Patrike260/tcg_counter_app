@@ -10,6 +10,7 @@ class Tournament {
   final String? notes;
   final String? deckName;
   final String? gameName;
+  final List<String> tags;
 
   const Tournament({
     required this.id,
@@ -23,6 +24,7 @@ class Tournament {
     this.notes,
     this.deckName,
     this.gameName,
+    this.tags = const [],
   });
 
   String get dateLabel {
@@ -56,6 +58,7 @@ class Tournament {
       notes: json['notes'] as String?,
       deckName: decks is Map<String, dynamic> ? decks['name'] as String? : null,
       gameName: games is Map<String, dynamic> ? games['name'] as String? : null,
+      tags: (json['tags'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const [],
     );
   }
 
@@ -69,6 +72,7 @@ class Tournament {
       'placement': placement,
       'total_participants': totalParticipants,
       'notes': notes,
+      'tags': tags,
     };
   }
 

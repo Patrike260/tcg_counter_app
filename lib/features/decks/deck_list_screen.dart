@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/tcg_colors.dart';
+import '../../core/utils/deck_list_url.dart';
 import '../../core/utils/game_colors.dart';
 import '../../core/widgets/game_logo.dart';
 import '../matches/deck_detail_screen.dart';
@@ -231,6 +232,22 @@ class _DeckSummaryCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
+                if (deck.hasDeckListUrl)
+                  IconButton(
+                    tooltip: 'Deckliste öffnen',
+                    icon: Icon(
+                      Icons.open_in_new,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    onPressed: () async {
+                      final opened = await openDeckListUrl(deck.deckListUrl);
+                      if (!opened && context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Link konnte nicht geöffnet werden.')),
+                        );
+                      }
+                    },
+                  ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   decoration: BoxDecoration(
