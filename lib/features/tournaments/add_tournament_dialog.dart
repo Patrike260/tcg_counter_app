@@ -1,0 +1,377 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/widgets/game_logo.dart';
+import '../decks/deck_model.dart';
+import '../decks/deck_repository.dart';
+import '../settings/app_preferences_service.dart';
+import 'tournament_model.dart';
+import 'tournament_repository.dart';
+
+class AddTournamentDialog extends ConsumerStatefulWidget {
+  final Tournament? tournament;
+
+  const AddTournamentDialog({super.key, this.tournament});
+
+  @override
+  ConsumerState<AddTournamentDialog> createState() => _AddTournamentDialogState();
+}
+
+class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _notesController;
+  late final TextEditingController _placementController;
+  late final TextEditingController _participantsController;
+  late DateTime _tournamentDate;
+  String? _selectedGameId;
+  String? _selectedDeckId;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final existing = widget.tournament;
+    final prefs = ref.read(appPreferencesProvider);
+    _nameController = TextEditingController(text: existing?.name ?? '');
+    _notesController = TextEditingController(text: existing?.notes ?? '');
+    _placementController = TextEditingController(
+      text: existing?.placement?.toString() ?? '',
+    );
+    _participantsController = TextEditingController(
+      text: existing?.totalParticipants?.toString() ?? '',
+    );
+    _tournamentDate = existing?.tournamentDate ?? DateTime.now();
+    _selectedGameId = existing?.gameId ?? prefs.resolvedDefaultGameId;
+    _selectedDeckId = existing?.deckId;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _notesController.dispose();
+    _placementController.dispose();
+    _participantsController.dispose();
+    super.dispose();
+  }
+
+  int? _parseOptionalInt(String raw) {
+    final value = raw.trim();
+    if (value.isEmpty) return null;
+    return int.tryParse(value);
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _tournamentDate,
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null) {
+      setState(() => _tournamentDate = picked);
+    }
+  }
+
+  Future<void> _submit() async {
+    final name = _nameController.text.trim();
+    if (name.isEmpty || _selectedGameId == null || _selectedDeckId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bitte Name, TCG und Deck ausfüllen.')),
+      );
+      return;
+    }
+
+    final placement = _parseOptionalInt(_placementController.text);
+    final participants = _parseOptionalInt(_participantsController.text);
+    if (_placementController.text.trim().isNotEmpty && placement == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Platzierung muss eine Zahl sein.')),
+      );
+      return;
+    }
+    if (_participantsController.text.trim().isNotEmpty && participants == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Teilnehmerzahl muss eine Zahl sein.')),
+      );
+      return;
+    }
+    if (placement != null && placement < 1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Platzierung muss mindestens 1 sein.')),
+      );
+      return;
+    }
+    if (participants != null && placement != null && placement > participants) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Platzierung darf nicht größer als die Teilnehmerzahl sein.')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      final repo = ref.read(tournamentRepositoryProvider);
+      final notes = _notesController.text.trim();
+      if (widget.tournament != null) {
+        await repo.updateTournament(
+          tournamentId: widget.tournament!.id,
+          gameId: _selectedGameId!,
+          deckId: _selectedDeckId!,
+          name: name,
+          tournamentDate: _tournamentDate,
+          placement: placement,
+          totalParticipants: participants,
+          notes: notes.isEmpty ? null : notes,
+        );
+      } else {
+        await repo.createTournament(
+          gameId: _selectedGameId!,
+          deckId: _selectedDeckId!,
+          name: name,
+          tournamentDate: _tournamentDate,
+          placement: placement,
+          totalParticipants: participants,
+          notes: notes.isEmpty ? null : notes,
+        );
+      }
+      ref.invalidate(tournamentsListProvider);
+      ref.invalidate(tournamentsStreamProvider);
+      if (mounted) Navigator.of(context).pop(true);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Fehler: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  String _dateLabel(DateTime date) {
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
+    return '$day.$month.${date.year}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final gamesAsync = ref.watch(gamesListProvider);
+    final decksAsync = ref.watch(userDecksProvider);
+    final hiddenGameIds = ref.watch(appPreferencesProvider).hiddenGameIds;
+    final isEditing = widget.tournament != null;
+    final scheme = Theme.of(context).colorScheme;
+    final maxWidth = MediaQuery.sizeOf(context).width;
+    final dialogWidth = maxWidth >= 520 ? 460.0 : maxWidth - 48;
+
+    return AlertDialog(
+      title: Text(isEditing ? 'Turnier bearbeiten' : 'Turnier eintragen'),
+      content: SizedBox(
+        width: dialogWidth,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+            TextField(
+              controller: _nameController,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: const InputDecoration(
+                labelText: 'Turnier-Name',
+                hintText: 'Bandai Card Fest, Store Championship, …',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            gamesAsync.when(
+              data: (games) {
+                final keepGameId = widget.tournament?.gameId ?? _selectedGameId;
+                final visibleGames = games.where((game) {
+                  if (!hiddenGameIds.contains(game.id)) return true;
+                  return game.id == keepGameId;
+                }).toList();
+                final selectedId = visibleGames.any((game) => game.id == _selectedGameId)
+                    ? _selectedGameId
+                    : null;
+
+                return DropdownButtonFormField<String>(
+                  key: ValueKey('tournament-game-$selectedId'),
+                  initialValue: selectedId,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Kartenspiel',
+                    border: OutlineInputBorder(),
+                  ),
+                  hint: const Text('TCG wählen'),
+                  items: visibleGames
+                      .map(
+                        (game) => DropdownMenuItem(
+                          value: game.id,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              GameLogo(gameName: game.name, size: 20),
+                              const SizedBox(width: 8),
+                              Text(game.name, overflow: TextOverflow.ellipsis),
+                            ],
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedGameId = value;
+                      _selectedDeckId = null;
+                    });
+                  },
+                );
+              },
+              loading: () => const SizedBox(height: 4, child: LinearProgressIndicator()),
+              error: (err, _) => Text('Spiele konnten nicht geladen werden: $err'),
+            ),
+            const SizedBox(height: 16),
+            decksAsync.when(
+              data: (decks) {
+                final filtered = decks.where((deck) {
+                  if (_selectedGameId == null) return false;
+                  return deck.gameId == _selectedGameId;
+                }).toList();
+                final existing = widget.tournament;
+                if (existing?.deckId != null &&
+                    existing!.gameId == _selectedGameId &&
+                    filtered.every((deck) => deck.id != existing.deckId)) {
+                  filtered.insert(
+                    0,
+                    Deck(
+                      id: existing.deckId!,
+                      userId: existing.userId,
+                      gameId: existing.gameId,
+                      name: existing.deckName ?? 'Archiviertes Deck',
+                    ),
+                  );
+                }
+                final selectedDeckId = filtered.any((deck) => deck.id == _selectedDeckId)
+                    ? _selectedDeckId
+                    : null;
+
+                if (_selectedGameId == null) {
+                  return const InputDecorator(
+                    decoration: InputDecoration(
+                      labelText: 'Deck',
+                      border: OutlineInputBorder(),
+                    ),
+                    child: Text('Zuerst ein Kartenspiel wählen'),
+                  );
+                }
+
+                if (filtered.isEmpty) {
+                  return const InputDecorator(
+                    decoration: InputDecoration(
+                      labelText: 'Deck',
+                      border: OutlineInputBorder(),
+                    ),
+                    child: Text('Keine Decks für dieses TCG'),
+                  );
+                }
+
+                return DropdownButtonFormField<String>(
+                  key: ValueKey('tournament-deck-$_selectedGameId-$selectedDeckId'),
+                  initialValue: selectedDeckId,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Gespieltes Deck',
+                    border: OutlineInputBorder(),
+                  ),
+                  hint: const Text('Deck wählen'),
+                  items: filtered
+                      .map(
+                        (deck) => DropdownMenuItem(
+                          value: deck.id,
+                          child: Text(deck.name, overflow: TextOverflow.ellipsis),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) => setState(() => _selectedDeckId = value),
+                );
+              },
+              loading: () => const SizedBox(height: 4, child: LinearProgressIndicator()),
+              error: (err, _) => Text('Decks konnten nicht geladen werden: $err'),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _placementController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: const InputDecoration(
+                      labelText: 'Platz',
+                      hintText: '8',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  child: Text('von'),
+                ),
+                Expanded(
+                  child: TextField(
+                    controller: _participantsController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    decoration: const InputDecoration(
+                      labelText: 'Teilnehmern',
+                      hintText: '64',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: scheme.outline.withValues(alpha: 0.4)),
+              ),
+              leading: Icon(Icons.event_outlined, color: scheme.primary),
+              title: const Text('Datum'),
+              subtitle: Text(_dateLabel(_tournamentDate)),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: _pickDate,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _notesController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: 'Notizen (optional)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+          child: const Text('Abbrechen'),
+        ),
+        FilledButton(
+          onPressed: _isLoading ? null : _submit,
+          child: _isLoading
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(isEditing ? 'Aktualisieren' : 'Speichern'),
+        ),
+      ],
+    );
+  }
+}

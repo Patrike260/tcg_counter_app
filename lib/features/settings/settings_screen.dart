@@ -16,6 +16,7 @@ import 'match_preferences_screen.dart';
 import 'tag_management_screen.dart';
 import 'theme_selection_screen.dart';
 import 'tool_presets_screen.dart';
+import '../tournaments/tournament_list_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -238,6 +239,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     title: 'Tool-Presets verwalten',
                     subtitle: 'Life Counter, Spieleranzahl und Timer anpassen',
                     onTap: () => _open(const ToolPresetsScreen()),
+                    showDivider: false,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'VERWALTUNG & INHALTE',
+                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+              ),
+              const SizedBox(height: 8),
+              _SettingsGroup(
+                children: [
+                  _SettingsNavTile(
+                    icon: Icons.emoji_events_outlined,
+                    iconColor: Colors.amber,
+                    title: 'Turniere & Events',
+                    subtitle: 'Platzierungen und gespielte Decks festhalten',
+                    onTap: () => _open(const TournamentListScreen()),
                   ),
                   _SettingsNavTile(
                     icon: Icons.category_outlined,
