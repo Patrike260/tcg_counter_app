@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../settings/app_preferences_service.dart';
+import '../stats/dashboard_repository.dart';
 import 'match_model.dart';
 import 'match_repository.dart';
 
@@ -108,6 +109,8 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
 
       ref.invalidate(deckMatchesProvider(widget.deckId));
       ref.invalidate(archetypesProvider(widget.gameId));
+      ref.invalidate(deckMatchSummariesProvider);
+      ref.invalidate(dashboardDataProvider);
 
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
@@ -134,14 +137,38 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'win', label: Text('Sieg'), icon: Icon(Icons.check, color: Colors.green)),
-                ButtonSegment(value: 'loss', label: Text('Niederlage'), icon: Icon(Icons.close, color: Colors.red)),
-                ButtonSegment(value: 'draw', label: Text('Unentsch.'), icon: Icon(Icons.remove, color: Colors.grey)),
+            Row(
+              children: [
+                _ResultChoiceButton(
+                  label: 'Sieg',
+                  icon: Icons.check_circle,
+                  color: Colors.greenAccent,
+                  selected: _result == 'win',
+                  onTap: () => setState(() => _result = 'win'),
+                ),
+                const SizedBox(width: 10),
+                _ResultChoiceButton(
+                  label: 'Niederlage',
+                  icon: Icons.cancel,
+                  color: Colors.redAccent,
+                  selected: _result == 'loss',
+                  onTap: () => setState(() => _result = 'loss'),
+                ),
               ],
-              selected: {_result},
-              onSelectionChanged: (set) => setState(() => _result = set.first),
+            ),
+            const SizedBox(height: 10),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: FilterChip(
+                avatar: Icon(
+                  Icons.remove_circle_outline,
+                  size: 18,
+                  color: _result == 'draw' ? Colors.grey.shade200 : Colors.grey,
+                ),
+                label: const Text('Unentschieden'),
+                selected: _result == 'draw',
+                onSelected: (_) => setState(() => _result = 'draw'),
+              ),
             ),
             const SizedBox(height: 16),
             archetypesAsync.when(
@@ -168,7 +195,7 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
                 },
               ),
               loading: () => const LinearProgressIndicator(),
-              error: (_, __) => TextField(
+              error: (_, _) => TextField(
                 controller: _opponentDeckController,
                 decoration: const InputDecoration(
                   labelText: 'Gegnerisches Deck',
@@ -262,6 +289,61 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
               : Text(isEditing ? 'Aktualisieren' : 'Speichern'),
         ),
       ],
+    );
+  }
+}
+
+class _ResultChoiceButton extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ResultChoiceButton({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Material(
+        color: selected ? color.withValues(alpha: 0.22) : Colors.white10,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            height: 88,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: selected ? color : Colors.white24,
+                width: selected ? 2.5 : 1,
+              ),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, color: color, size: 36),
+                const SizedBox(height: 6),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: selected ? color : Colors.white70,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

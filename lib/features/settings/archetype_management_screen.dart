@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/supabase_constants.dart';
+import '../../core/widgets/game_logo.dart';
 import '../decks/deck_model.dart';
 import '../decks/deck_repository.dart';
 
@@ -153,7 +154,18 @@ class _ArchetypeManagementScreenState extends ConsumerState<ArchetypeManagementS
                   border: OutlineInputBorder(),
                 ),
                 items: games
-                    .map((g) => DropdownMenuItem(value: g.id, child: Text(g.name)))
+                    .map(
+                      (g) => DropdownMenuItem(
+                        value: g.id,
+                        child: Row(
+                          children: [
+                            GameLogo(gameName: g.name, size: 20),
+                            const SizedBox(width: 8),
+                            Text(g.name),
+                          ],
+                        ),
+                      ),
+                    )
                     .toList(),
                 onChanged: (val) {
                   if (val != null) {

@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+const _copyWithUnset = Object();
+
 final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError('SharedPreferences muss in main() initialisiert werden');
 });
@@ -17,6 +19,7 @@ class AppPreferencesState {
   final bool rememberLastTags;
   final List<String> lastUsedTags;
   final List<String> customTags;
+  final List<String> hiddenGameIds;
 
   // Die unveränderlichen Standard-Tags
   static const List<String> defaultBaseTags = [
@@ -34,6 +37,7 @@ class AppPreferencesState {
     this.rememberLastTags = false,
     this.lastUsedTags = const [],
     this.customTags = const [],
+    this.hiddenGameIds = const [],
   });
 
   // Liefert alle verfügbaren Tags (Standard + Eigene ohne Duplikate)
@@ -42,21 +46,36 @@ class AppPreferencesState {
     return combined.toList();
   }
 
+  bool isGameHidden(String gameId) => hiddenGameIds.contains(gameId);
+
+  bool isGameVisible(String gameId) => !isGameHidden(gameId);
+
+  /// Standard-TCG, oder null wenn keines gesetzt / ausgeblendet ist.
+  String? get resolvedDefaultGameId {
+    final id = defaultGameId;
+    if (id == null || isGameHidden(id)) return null;
+    return id;
+  }
+
   AppPreferencesState copyWith({
     String? defaultFormat,
     String? defaultTurnOrder,
-    String? defaultGameId,
+    Object? defaultGameId = _copyWithUnset,
     bool? rememberLastTags,
     List<String>? lastUsedTags,
     List<String>? customTags,
+    List<String>? hiddenGameIds,
   }) {
     return AppPreferencesState(
       defaultFormat: defaultFormat ?? this.defaultFormat,
       defaultTurnOrder: defaultTurnOrder ?? this.defaultTurnOrder,
-      defaultGameId: defaultGameId ?? this.defaultGameId,
+      defaultGameId: identical(defaultGameId, _copyWithUnset)
+          ? this.defaultGameId
+          : defaultGameId as String?,
       rememberLastTags: rememberLastTags ?? this.rememberLastTags,
       lastUsedTags: lastUsedTags ?? this.lastUsedTags,
       customTags: customTags ?? this.customTags,
+      hiddenGameIds: hiddenGameIds ?? this.hiddenGameIds,
     );
   }
 }
@@ -68,6 +87,7 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
   static const _keyRememberTags = 'pref_remember_last_tags';
   static const _keyLastUsedTags = 'pref_last_used_tags';
   static const _keyCustomTags = 'pref_custom_tags';
+  static const _keyHiddenGameIds = 'pref_hidden_game_ids';
 
   @override
   AppPreferencesState build() {
@@ -79,6 +99,7 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
       rememberLastTags: prefs.getBool(_keyRememberTags) ?? false,
       lastUsedTags: prefs.getStringList(_keyLastUsedTags) ?? const [],
       customTags: prefs.getStringList(_keyCustomTags) ?? const [],
+      hiddenGameIds: prefs.getStringList(_keyHiddenGameIds) ?? const [],
     );
   }
 
@@ -96,11 +117,12 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
 
   Future<void> setDefaultGameId(String? gameId) async {
     final prefs = ref.read(sharedPreferencesProvider);
-    if (gameId == null) {
+    if (gameId == null || state.isGameHidden(gameId)) {
       await prefs.remove(_keyGameId);
-    } else {
-      await prefs.setString(_keyGameId, gameId);
+      state = state.copyWith(defaultGameId: null);
+      return;
     }
+    await prefs.setString(_keyGameId, gameId);
     state = state.copyWith(defaultGameId: gameId);
   }
 
@@ -138,5 +160,29 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
       customTags: updated,
       lastUsedTags: updatedLastUsed,
     );
+  }
+
+  /// [isVisible] true = TCG anzeigen, false = in Dropdowns ausblenden.
+  Future<bool> toggleGameVisibility(String gameId, bool isVisible) async {
+    final hidden = [...state.hiddenGameIds];
+    if (isVisible) {
+      hidden.remove(gameId);
+    } else if (!hidden.contains(gameId)) {
+      hidden.add(gameId);
+    }
+
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setStringList(_keyHiddenGameIds, hidden);
+
+    final hideDefault = !isVisible && state.defaultGameId == gameId;
+    if (hideDefault) {
+      await prefs.remove(_keyGameId);
+    }
+
+    state = state.copyWith(
+      hiddenGameIds: hidden,
+      defaultGameId: hideDefault ? null : _copyWithUnset,
+    );
+    return true;
   }
 }

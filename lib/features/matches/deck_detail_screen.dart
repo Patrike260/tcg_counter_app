@@ -190,6 +190,7 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
                             onDismissed: (direction) async {
                               await ref.read(matchRepositoryProvider).deleteMatch(match.id);
                               ref.invalidate(deckMatchesProvider(widget.deck.id));
+                              ref.invalidate(deckMatchSummariesProvider);
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('Match gelöscht.')),

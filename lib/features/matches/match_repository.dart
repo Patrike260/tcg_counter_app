@@ -3,6 +3,15 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/constants/supabase_constants.dart';
 import 'match_model.dart';
 
+class DeckMatchSummary {
+  final int totalMatches;
+  final int wins;
+
+  const DeckMatchSummary({this.totalMatches = 0, this.wins = 0});
+
+  double get winRate => totalMatches > 0 ? (wins / totalMatches) * 100 : 0.0;
+}
+
 final matchRepositoryProvider = Provider<MatchRepository>((ref) {
   return MatchRepository(supabase);
 });
@@ -11,6 +20,12 @@ final matchRepositoryProvider = Provider<MatchRepository>((ref) {
 final deckMatchesProvider = FutureProvider.family<List<MatchRecord>, String>((ref, deckId) async {
   final repo = ref.watch(matchRepositoryProvider);
   return repo.fetchMatchesForDeck(deckId);
+});
+
+// Winrate und Match-Anzahl je Deck (eine Query für die Deck-Liste)
+final deckMatchSummariesProvider = FutureProvider<Map<String, DeckMatchSummary>>((ref) async {
+  final repo = ref.watch(matchRepositoryProvider);
+  return repo.fetchDeckMatchSummaries();
 });
 
 // Liefert Archetypen für Auto-Suggest
@@ -23,6 +38,31 @@ class MatchRepository {
   final SupabaseClient _client;
 
   MatchRepository(this._client);
+
+  Future<Map<String, DeckMatchSummary>> fetchDeckMatchSummaries() async {
+    final user = _client.auth.currentUser;
+    if (user == null) return {};
+
+    final response = await _client.from('matches').select('deck_id, result');
+    final totals = <String, int>{};
+    final wins = <String, int>{};
+
+    for (final row in response as List) {
+      final deckId = row['deck_id'] as String;
+      totals[deckId] = (totals[deckId] ?? 0) + 1;
+      if (row['result'] == 'win') {
+        wins[deckId] = (wins[deckId] ?? 0) + 1;
+      }
+    }
+
+    return {
+      for (final id in totals.keys)
+        id: DeckMatchSummary(
+          totalMatches: totals[id]!,
+          wins: wins[id] ?? 0,
+        ),
+    };
+  }
 
   // Matches eines Decks abfragen
   Future<List<MatchRecord>> fetchMatchesForDeck(String deckId) async {

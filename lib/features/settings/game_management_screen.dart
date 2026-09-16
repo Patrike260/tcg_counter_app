@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/supabase_constants.dart';
+import '../../core/widgets/game_logo.dart';
 import '../decks/deck_model.dart';
 import '../decks/deck_repository.dart';
 
@@ -101,7 +102,7 @@ class _GameManagementScreenState extends ConsumerState<GameManagementScreen> {
           itemBuilder: (context, index) {
             final game = games[index];
             return ListTile(
-              leading: const Icon(Icons.style_outlined),
+              leading: GameLogo(gameName: game.name, size: 36),
               title: Text(game.name, style: const TextStyle(fontWeight: FontWeight.w600)),
               trailing: IconButton(
                 icon: const Icon(Icons.edit_outlined, size: 20),

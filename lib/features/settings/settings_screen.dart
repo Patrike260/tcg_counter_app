@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/supabase_constants.dart';
+import '../../core/widgets/game_logo.dart';
 import '../auth/auth_repository.dart';
 import '../decks/deck_repository.dart';
 import 'app_preferences_service.dart';
@@ -11,6 +12,7 @@ import 'archetype_management_screen.dart';
 import 'backup_service.dart';
 import 'tag_management_screen.dart';
 import 'game_management_screen.dart';
+import 'game_visibility_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -175,30 +177,41 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     children: [
                       // Standard-TCG
                       gamesAsync.when(
-                        data: (games) => DropdownButtonFormField<String?>(
-                          value: games.any((g) => g.id == prefs.defaultGameId)
-                              ? prefs.defaultGameId
-                              : null,
-                          decoration: const InputDecoration(
-                            labelText: 'Standard-Kartenspiel',
-                            helperText: 'Wird beim Anlegen neuer Decks vorausgewählt',
-                          ),
-                          items: [
-                            const DropdownMenuItem(
-                              value: null,
-                              child: Text('Keines (Immer manuell wählen)'),
+                        data: (games) {
+                          final visibleGames =
+                              games.where((g) => prefs.isGameVisible(g.id)).toList();
+                          final selectedId = visibleGames.any((g) => g.id == prefs.resolvedDefaultGameId)
+                              ? prefs.resolvedDefaultGameId
+                              : null;
+                          return DropdownButtonFormField<String?>(
+                            value: selectedId,
+                            decoration: const InputDecoration(
+                              labelText: 'Standard-Kartenspiel',
+                              helperText: 'Wird beim Anlegen neuer Decks vorausgewählt',
                             ),
-                            ...games.map((g) => DropdownMenuItem(
-                                  value: g.id,
-                                  child: Text(g.name),
-                                )),
-                          ],
-                          onChanged: (val) {
-                            ref.read(appPreferencesProvider.notifier).setDefaultGameId(val);
-                          },
-                        ),
+                            items: [
+                              const DropdownMenuItem(
+                                value: null,
+                                child: Text('Keines (Immer manuell wählen)'),
+                              ),
+                              ...visibleGames.map((g) => DropdownMenuItem(
+                                    value: g.id,
+                                    child: Row(
+                                      children: [
+                                        GameLogo(gameName: g.name, size: 20),
+                                        const SizedBox(width: 8),
+                                        Text(g.name),
+                                      ],
+                                    ),
+                                  )),
+                            ],
+                            onChanged: (val) {
+                              ref.read(appPreferencesProvider.notifier).setDefaultGameId(val);
+                            },
+                          );
+                        },
                         loading: () => const LinearProgressIndicator(),
-                        error: (_, __) => const SizedBox.shrink(),
+                        error: (_, _) => const SizedBox.shrink(),
                       ),
                       const SizedBox(height: 12),
 
@@ -265,6 +278,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           );
                         },
                       ),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.visibility_outlined, color: Colors.tealAccent),
+                        title: const Text('Sichtbare TCGs anpassen'),
+                        subtitle: const Text('Unerwünschte Kartenspiele in Dropdowns ausblenden'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const GameVisibilityScreen()),
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -313,10 +339,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         );
                       },
                     ),
-                  ],
-                ),
-              ),
-			  const Divider(height: 1),
+                    const Divider(height: 1),
                     ListTile(
                       leading: const Icon(Icons.sports_esports_outlined, color: Colors.tealAccent),
                       title: const Text('Kartenspiele (TCGs) verwalten'),
@@ -329,9 +352,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         );
                       },
                     ),
-					
+                  ],
+                ),
+              ),
               const SizedBox(height: 24),
-			  
+
               // KONTO & INFO
               const Text(
                 'KONTO & INFO',

@@ -1,0 +1,20 @@
+﻿# TCG Counter App - Projekt-Kontext & Regeln
+
+## Tech-Stack & Architektur
+- Framework: Flutter (Web/PWA & Android Target)
+- State Management: Flutter Riverpod (ConsumerWidget, ConsumerStatefulWidget, NotifierProvider)
+- Backend & Datenbank: Supabase (PostgreSQL, Row-Level Security, Auth)
+- Lokale Preferences: SharedPreferences via appPreferencesProvider
+- Architektur-Muster: Feature-First Clean Architecture (lib/features/auth, decks, matches, stats, settings)
+
+## Datenbankschema (Supabase)
+- games: id, name, is_custom, created_by
+- decks: id, user_id, game_id, name, notes, is_active, created_at
+- archetypes: id, game_id, name, created_by
+- matches: id, user_id, deck_id, opponent_deck, result (win/loss/draw/timeout), match_format (bo1/bo3), score, turn_order (first/second), tags, notes, created_at
+
+## Entwicklungs- & UI-Regeln
+1. Plattform-Code: Niemals direkt "dart:io" importieren oder aufrufen (Web-Kompilierung bricht sonst ab). Immer "kIsWeb" nutzen.
+2. Provider-Integrität: Nach Datenbankänderungen immer die zugehörigen Riverpod-Provider mit ref.invalidate() aktualisieren (z. B. userDecksProvider, dashboardDataProvider, gamesListProvider).
+3. Design & Theme: Material 3, Dark Theme (Deep Purple Seed / #1E1E2C Hintergrund), responsive Layouts für Mobile und Web.
+4. Vollständigkeit: Generiere immer vollständigen, fehlerfreien Dart-Code ohne abgekürzte Platzhalter oder unvollständige Widget-Blöcke.

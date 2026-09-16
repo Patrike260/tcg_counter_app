@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/supabase_constants.dart';
 import '../../core/utils/file_export_helper.dart';
 import '../decks/deck_repository.dart';
+import '../matches/match_repository.dart';
 import '../stats/dashboard_repository.dart';
 
 final backupServiceProvider = Provider<BackupService>((ref) {
@@ -104,6 +105,7 @@ class BackupService {
     // UI-Caches invalidieren
     _ref.invalidate(userDecksProvider);
     _ref.invalidate(dashboardDataProvider);
+    _ref.invalidate(deckMatchSummariesProvider);
 
     return matches.length;
   }

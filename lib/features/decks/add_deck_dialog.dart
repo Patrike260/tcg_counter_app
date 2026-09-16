@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/widgets/game_logo.dart';
 import 'deck_model.dart';
 import 'deck_repository.dart';
 import '../settings/app_preferences_service.dart';
@@ -25,7 +26,7 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
     _nameController = TextEditingController(text: widget.deck?.name ?? '');
     _notesController = TextEditingController(text: widget.deck?.notes ?? '');
     final defaultPrefs = ref.read(appPreferencesProvider);
-	_selectedGameId = widget.deck?.gameId ?? defaultPrefs.defaultGameId;
+    _selectedGameId = widget.deck?.gameId ?? defaultPrefs.resolvedDefaultGameId;
   }
 
   @override
@@ -80,6 +81,7 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
   @override
   Widget build(BuildContext context) {
     final gamesAsync = ref.watch(gamesListProvider);
+    final hiddenGameIds = ref.watch(appPreferencesProvider).hiddenGameIds;
     final isEditing = widget.deck != null;
 
     return AlertDialog(
@@ -88,24 +90,43 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (!isEditing)
-              gamesAsync.when(
-                data: (games) => DropdownButtonFormField<String>(
-                  value: _selectedGameId,
+            gamesAsync.when(
+              data: (games) {
+                final keepGameId = widget.deck?.gameId ?? _selectedGameId;
+                final visibleGames = games.where((g) {
+                  if (!hiddenGameIds.contains(g.id)) return true;
+                  return g.id == keepGameId;
+                }).toList();
+                final selectedId = visibleGames.any((g) => g.id == _selectedGameId)
+                    ? _selectedGameId
+                    : null;
+
+                return DropdownButtonFormField<String>(
+                  value: selectedId,
                   decoration: const InputDecoration(labelText: 'Kartenspiel'),
-                  items: games
-                      .map((g) => DropdownMenuItem(value: g.id, child: Text(g.name)))
+                  hint: const Text('Kartenspiel wählen'),
+                  items: visibleGames
+                      .map(
+                        (g) => DropdownMenuItem(
+                          value: g.id,
+                          child: Row(
+                            children: [
+                              GameLogo(gameName: g.name, size: 20),
+                              const SizedBox(width: 8),
+                              Text(g.name),
+                            ],
+                          ),
+                        ),
+                      )
                       .toList(),
-                  onChanged: (val) => setState(() => _selectedGameId = val),
-                ),
-                loading: () => const LinearProgressIndicator(),
-                error: (err, _) => Text('Fehler beim Laden: $err'),
-              )
-            else
-              Text(
-                'Spiel: ${widget.deck!.gameName ?? "Unbekannt"}',
-                style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
-              ),
+                  onChanged: isEditing
+                      ? null
+                      : (val) => setState(() => _selectedGameId = val),
+                );
+              },
+              loading: () => const LinearProgressIndicator(),
+              error: (err, _) => Text('Fehler beim Laden: $err'),
+            ),
             const SizedBox(height: 16),
             TextField(
               controller: _nameController,
