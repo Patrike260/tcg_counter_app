@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,17 +8,32 @@ import 'core/constants/supabase_constants.dart';
 import 'features/auth/auth_repository.dart';
 import 'features/auth/login_screen.dart';
 import 'features/decks/deck_list_screen.dart';
+import 'features/settings/settings_screen.dart'; // <-- Neu
 import 'features/stats/dashboard_repository.dart';
 import 'features/stats/dashboard_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
 
-  await Supabase.initialize(
-    url: SupabaseConstants.supabaseUrl,
-    anonKey: SupabaseConstants.supabaseAnonKey,
-  );
+  FlutterError.onError = (details) {
+    FlutterError.presentError(details);
+    debugPrint('FLUTTER START ERROR: ${details.exception}');
+  };
+
+  if (!kIsWeb) {
+    try {
+      await dotenv.load(fileName: ".env");
+    } catch (_) {}
+  }
+
+  try {
+    await Supabase.initialize(
+      url: SupabaseConstants.supabaseUrl,
+      anonKey: SupabaseConstants.supabaseAnonKey,
+    );
+  } catch (e) {
+    debugPrint('SUPABASE INIT FEHLER: $e');
+  }
 
   runApp(const ProviderScope(child: MyApp()));
 }
@@ -69,20 +85,20 @@ class _MainNavigationHostState extends ConsumerState<MainNavigationHost> {
   final List<Widget> _screens = const [
     DashboardScreen(),
     DeckListScreen(),
+    SettingsScreen(), // <-- Neu
+  ];
+
+  final List<String> _titles = const [
+    'Dashboard',
+    'Meine Decks',
+    'Einstellungen',
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_currentIndex == 0 ? 'Dashboard' : 'Meine Decks'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Abmelden',
-            onPressed: () => ref.read(authRepositoryProvider).signOut(),
-          ),
-        ],
+        title: Text(_titles[_currentIndex]),
       ),
       body: _screens[_currentIndex],
       bottomNavigationBar: NavigationBar(
@@ -103,6 +119,11 @@ class _MainNavigationHostState extends ConsumerState<MainNavigationHost> {
             icon: Icon(Icons.style_outlined),
             selectedIcon: Icon(Icons.style),
             label: 'Decks',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings),
+            label: 'Settings',
           ),
         ],
       ),

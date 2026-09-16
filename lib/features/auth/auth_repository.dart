@@ -50,7 +50,7 @@ class AuthRepository {
       // Im Browser mit fester Weiterleitungsadresse
       await _client.auth.signInWithOAuth(
         OAuthProvider.google,
-        redirectTo: 'http://localhost:5000',
+        redirectTo: kIsWeb ? Uri.base.origin + Uri.base.path : null,
       );
     } else {
       // Auf Android über natives Google Sign-In via ID-Token
