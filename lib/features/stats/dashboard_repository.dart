@@ -81,6 +81,26 @@ class OpponentMatchup {
   double get lossRate => total > 0 ? (losses / total) * 100 : 0.0;
 }
 
+class TurnOrderStats {
+  final int firstMatches;
+  final int firstWins;
+  final int secondMatches;
+  final int secondWins;
+
+  const TurnOrderStats({
+    this.firstMatches = 0,
+    this.firstWins = 0,
+    this.secondMatches = 0,
+    this.secondWins = 0,
+  });
+
+  double get firstWinRate =>
+      firstMatches > 0 ? (firstWins / firstMatches) * 100 : 0.0;
+
+  double get secondWinRate =>
+      secondMatches > 0 ? (secondWins / secondMatches) * 100 : 0.0;
+}
+
 class DashboardData {
   final int totalMatches;
   final int totalWins;
@@ -90,6 +110,7 @@ class DashboardData {
   final OpponentMatchup? bestMatchup;
   final OpponentMatchup? nemesisMatchup;
   final DashboardTimeRange timeRange;
+  final TurnOrderStats turnOrderStats;
 
   DashboardData({
     required this.totalMatches,
@@ -100,6 +121,7 @@ class DashboardData {
     required this.timeRange,
     this.bestMatchup,
     this.nemesisMatchup,
+    this.turnOrderStats = const TurnOrderStats(),
   });
 
   double get overallWinRate => totalMatches > 0 ? (totalWins / totalMatches) * 100 : 0.0;
@@ -216,6 +238,20 @@ final dashboardDataProvider = FutureProvider<DashboardData>((ref) async {
     nemesisMatchup = nemesis;
   }
 
+  var firstMatches = 0;
+  var firstWins = 0;
+  var secondMatches = 0;
+  var secondWins = 0;
+  for (final match in matches) {
+    if (match.turnOrder == 'first') {
+      firstMatches++;
+      if (match.result == 'win') firstWins++;
+    } else if (match.turnOrder == 'second') {
+      secondMatches++;
+      if (match.result == 'win') secondWins++;
+    }
+  }
+
   return DashboardData(
     totalMatches: matches.length,
     totalWins: totalWins,
@@ -229,5 +265,11 @@ final dashboardDataProvider = FutureProvider<DashboardData>((ref) async {
     bestMatchup: bestMatchup,
     nemesisMatchup: nemesisMatchup,
     timeRange: timeRange,
+    turnOrderStats: TurnOrderStats(
+      firstMatches: firstMatches,
+      firstWins: firstWins,
+      secondMatches: secondMatches,
+      secondWins: secondWins,
+    ),
   );
 });

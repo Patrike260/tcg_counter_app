@@ -16,6 +16,7 @@ import 'match_preferences_screen.dart';
 import 'tag_management_screen.dart';
 import 'theme_selection_screen.dart';
 import 'tool_presets_screen.dart';
+import 'dashboard_settings_screen.dart';
 import '../tournaments/tournament_list_screen.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -200,6 +201,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     title: 'Farbschema & Design-Presets',
                     subtitle: getThemeTitle(prefs.themePreset),
                     onTap: () => _open(const ThemeSelectionScreen()),
+                  ),
+                  _SettingsNavTile(
+                    icon: Icons.dashboard_customize_outlined,
+                    iconColor: Colors.cyanAccent,
+                    title: 'Dashboard-Tabs',
+                    subtitle: '${prefs.enabledDashboardTabs.length} aktiv • per Swipe wechseln',
+                    onTap: () => _open(const DashboardSettingsScreen()),
                     showDivider: false,
                   ),
                 ],

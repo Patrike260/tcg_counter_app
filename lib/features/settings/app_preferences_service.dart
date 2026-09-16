@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/app_theme_presets.dart';
+import '../stats/dashboard_config_model.dart';
 import '../tools/tool_preset_model.dart';
 
 const _copyWithUnset = Object();
@@ -26,6 +27,7 @@ class AppPreferencesState {
   final String dashboardTimeRange;
   final String? dashboardGameId;
   final AppThemePreset themePreset;
+  final List<DashboardTabConfig> dashboardTabs;
 
   // Die unveränderlichen Standard-Tags
   static const List<String> defaultBaseTags = [
@@ -48,6 +50,7 @@ class AppPreferencesState {
     this.dashboardTimeRange = 'month',
     this.dashboardGameId,
     this.themePreset = AppThemePreset.onePiece,
+    this.dashboardTabs = DashboardTabConfig.defaults,
   });
 
   // Liefert alle verfügbaren Tags (Standard + Eigene ohne Duplikate)
@@ -87,6 +90,12 @@ class AppPreferencesState {
     return id;
   }
 
+  List<DashboardTabConfig> get enabledDashboardTabs {
+    final enabled = dashboardTabs.where((tab) => tab.isEnabled).toList();
+    if (enabled.isNotEmpty) return enabled;
+    return [dashboardTabs.isNotEmpty ? dashboardTabs.first : DashboardTabConfig.defaults.first];
+  }
+
   AppPreferencesState copyWith({
     String? defaultFormat,
     String? defaultTurnOrder,
@@ -99,6 +108,7 @@ class AppPreferencesState {
     String? dashboardTimeRange,
     Object? dashboardGameId = _copyWithUnset,
     AppThemePreset? themePreset,
+    List<DashboardTabConfig>? dashboardTabs,
   }) {
     return AppPreferencesState(
       defaultFormat: defaultFormat ?? this.defaultFormat,
@@ -116,6 +126,7 @@ class AppPreferencesState {
           ? this.dashboardGameId
           : dashboardGameId as String?,
       themePreset: themePreset ?? this.themePreset,
+      dashboardTabs: dashboardTabs ?? this.dashboardTabs,
     );
   }
 }
@@ -133,6 +144,7 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
   static const _keyDashboardGameId = 'pref_dashboard_game_id';
   static const _keyThemePreset = 'pref_app_theme_preset';
   static const _legacyKeyThemePreset = 'pref_selected_theme_preset';
+  static const _keyDashboardTabs = 'pref_dashboard_tabs_config';
 
   @override
   AppPreferencesState build() {
@@ -151,6 +163,7 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
       themePreset: parseAppThemePreset(
         prefs.getString(_keyThemePreset) ?? prefs.getString(_legacyKeyThemePreset),
       ),
+      dashboardTabs: DashboardTabConfig.decodeList(prefs.getStringList(_keyDashboardTabs)),
     );
   }
 
@@ -263,6 +276,73 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
     }
     await prefs.setString(_keyDashboardGameId, gameId);
     state = state.copyWith(dashboardGameId: gameId);
+  }
+
+  Future<void> _persistDashboardTabs(List<DashboardTabConfig> tabs) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setStringList(_keyDashboardTabs, DashboardTabConfig.encodeList(tabs));
+    state = state.copyWith(dashboardTabs: tabs);
+  }
+
+  Future<void> updateDashboardTabs(List<DashboardTabConfig> tabs) async {
+    var next = List<DashboardTabConfig>.from(tabs);
+    if (next.isEmpty) {
+      next = List<DashboardTabConfig>.from(DashboardTabConfig.defaults);
+    }
+    if (next.every((tab) => !tab.isEnabled)) {
+      next[0] = next[0].copyWith(isEnabled: true);
+    }
+    await _persistDashboardTabs(next);
+  }
+
+  Future<bool> toggleDashboardTab(String id, bool isEnabled) async {
+    final enabledCount = state.dashboardTabs.where((tab) => tab.isEnabled).length;
+    if (!isEnabled && enabledCount <= 1) return false;
+    final updated = state.dashboardTabs
+        .map((tab) => tab.id == id ? tab.copyWith(isEnabled: isEnabled) : tab)
+        .toList();
+    await updateDashboardTabs(updated);
+    return true;
+  }
+
+  Future<void> resetDashboardTabs() async {
+    await updateDashboardTabs(List<DashboardTabConfig>.from(DashboardTabConfig.defaults));
+  }
+
+  Future<void> reorderDashboardTabs(int oldIndex, int newIndex) async {
+    final updated = [...state.dashboardTabs];
+    if (newIndex > oldIndex) newIndex -= 1;
+    final item = updated.removeAt(oldIndex);
+    updated.insert(newIndex, item);
+    await updateDashboardTabs(updated);
+  }
+
+  Future<void> setDashboardTabWidgets(String id, List<String> widgetKeys) async {
+    final updated = state.dashboardTabs
+        .map((tab) => tab.id == id ? tab.copyWith(widgetKeys: widgetKeys) : tab)
+        .toList();
+    await updateDashboardTabs(updated);
+  }
+
+  Future<void> addDashboardTab(String title) async {
+    final tab = DashboardTabConfig(
+      id: 'tab_${DateTime.now().millisecondsSinceEpoch}',
+      title: title,
+      iconName: 'tune_outlined',
+      widgetKeys: const [DashboardWidgetKeys.kpiWinrate],
+    );
+    await updateDashboardTabs([...state.dashboardTabs, tab]);
+  }
+
+  Future<bool> deleteDashboardTab(String id) async {
+    if (state.dashboardTabs.length <= 1) return false;
+    final updated = state.dashboardTabs.where((tab) => tab.id != id).toList();
+    if (updated.isEmpty) return false;
+    if (updated.every((tab) => !tab.isEnabled)) {
+      updated[0] = updated[0].copyWith(isEnabled: true);
+    }
+    await updateDashboardTabs(updated);
+    return true;
   }
 
   Future<void> _persistToolPresets(List<ToolPreset> presets) async {
