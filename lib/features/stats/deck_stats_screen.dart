@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../l10n/l10n.dart';
 import '../decks/deck_model.dart';
 import '../matches/match_repository.dart';
 import 'stats_calculator.dart';
@@ -11,17 +12,18 @@ class DeckStatsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final matchesAsync = ref.watch(deckMatchesProvider(deck.id));
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('${deck.name} - Stats'),
+        title: Text(l10n.statsTitle(deck.name)),
       ),
       body: matchesAsync.when(
         data: (matches) {
           if (matches.isEmpty) {
-            return const Center(
-              child: Text('Noch keine Matches vorhanden, um Statistiken zu berechnen.'),
+            return Center(
+              child: Text(l10n.noStatsYet),
             );
           }
 
@@ -31,16 +33,16 @@ class DeckStatsScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             children: [
               // Turn-Order Statistiken
-              const Text(
-                'Zugreihenfolge (Turn Order)',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                l10n.turnOrder,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
                     child: _StatBox(
-                      title: '1st (Beginn)',
+                      title: l10n.turnFirstFull,
                       ratio: '${stats.firstWins} / ${stats.firstMatches}',
                       rate: '${stats.firstWinRate.toStringAsFixed(1)}%',
                       color: Colors.blueAccent,
@@ -49,7 +51,7 @@ class DeckStatsScreen extends ConsumerWidget {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _StatBox(
-                      title: '2nd (Zweiter)',
+                      title: l10n.turnSecondFull,
                       ratio: '${stats.secondWins} / ${stats.secondMatches}',
                       rate: '${stats.secondWinRate.toStringAsFixed(1)}%',
                       color: Colors.purpleAccent,
@@ -60,9 +62,9 @@ class DeckStatsScreen extends ConsumerWidget {
               const SizedBox(height: 28),
 
               // Matchup-Statistiken
-              const Text(
-                'Matchups gegen Archetypen',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              Text(
+                l10n.matchupsVsArchetypes,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               ...stats.matchups.map(
@@ -70,7 +72,7 @@ class DeckStatsScreen extends ConsumerWidget {
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   child: ListTile(
                     title: Text(m.opponentDeck, style: const TextStyle(fontWeight: FontWeight.w600)),
-                    subtitle: Text('${m.wins} Siege von ${m.total} Spielen'),
+                    subtitle: Text(l10n.winsOfGames(m.wins, m.total)),
                     trailing: Text(
                       '${m.winRate.toStringAsFixed(1)}%',
                       style: TextStyle(
@@ -86,7 +88,7 @@ class DeckStatsScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('Fehler: $err')),
+        error: (err, _) => Center(child: Text(l10n.errorWithDetails(err))),
       ),
     );
   }

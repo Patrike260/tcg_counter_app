@@ -17,7 +17,10 @@ import 'tag_management_screen.dart';
 import 'theme_selection_screen.dart';
 import 'tool_presets_screen.dart';
 import 'dashboard_settings_screen.dart';
+import 'legal_info_screen.dart';
+import 'language_selection_screen.dart';
 import '../tournaments/tournament_list_screen.dart';
+import '../../l10n/l10n.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -35,14 +38,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       await ref.read(backupServiceProvider).exportMatchesAsCsv();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Matches als CSV exportiert!')),
+          SnackBar(content: Text(context.l10n.csvExported)),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Fehler beim CSV-Export: $e'),
+            content: Text(context.l10n.csvExportFailed(e)),
             backgroundColor: Colors.red,
           ),
         );
@@ -58,14 +61,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       await ref.read(backupServiceProvider).exportFullBackup();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('JSON-Backup erfolgreich generiert!')),
+          SnackBar(content: Text(context.l10n.jsonBackupCreated)),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Fehler beim Backup-Export: $e'),
+            content: Text(context.l10n.jsonBackupFailed(e)),
             backgroundColor: Colors.red,
           ),
         );
@@ -89,8 +92,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Datei konnte nicht gelesen werden.'),
+          SnackBar(
+            content: Text(context.l10n.fileReadFailed),
             backgroundColor: Colors.red,
           ),
         );
@@ -101,18 +104,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Backup einspielen?'),
-        content: const Text(
-          'Vorhandene Decks und Matches werden zusammengeführt bzw. aktualisiert.',
-        ),
+        title: Text(context.l10n.restoreBackupQuestion),
+        content: Text(context.l10n.restoreBackupBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Abbrechen'),
+            child: Text(context.l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Wiederherstellen'),
+            child: Text(context.l10n.restore),
           ),
         ],
       ),
@@ -126,14 +127,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       final count = await ref.read(backupServiceProvider).restoreBackupFromJson(jsonString);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$count Matches erfolgreich wiederhergestellt!')),
+          SnackBar(content: Text(context.l10n.matchesRestored(count))),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Wiederherstellung fehlgeschlagen: $e'),
+            content: Text(context.l10n.restoreFailed(e)),
             backgroundColor: Colors.red,
           ),
         );
@@ -147,8 +148,70 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
   }
 
+  Future<void> _confirmDeleteAccount() async {
+    final first = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(context.l10n.deleteAccountQuestion),
+        content: Text(context.l10n.deleteAccountBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(context.l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+            child: Text(context.l10n.continueAction),
+          ),
+        ],
+      ),
+    );
+    if (first != true || !mounted) return;
+
+    final second = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(context.l10n.lastConfirmation),
+        content: Text(context.l10n.deleteAccountFinalBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(context.l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+            ),
+            child: Text(context.l10n.deletePermanently),
+          ),
+        ],
+      ),
+    );
+    if (second != true || !mounted) return;
+
+    setState(() => _isProcessing = true);
+    try {
+      await ref.read(authRepositoryProvider).deleteAccount();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n.deleteAccountFailed(e)),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final user = supabase.auth.currentUser;
     final prefs = ref.watch(appPreferencesProvider);
     final gamesAsync = ref.watch(gamesListProvider);
@@ -162,10 +225,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       },
       orElse: () => null,
     );
+    final turnLabel = switch (prefs.defaultTurnOrder) {
+      'first' => l10n.turnFirstShort,
+      'second' => l10n.turnSecondShort,
+      _ => l10n.turnFree,
+    };
     final summary = [
-      gameName ?? 'Kein TCG',
+      gameName ?? l10n.noTcg,
       prefs.defaultFormatLabel,
-      prefs.defaultTurnOrderLabel,
+      turnLabel,
     ].join(' • ');
 
     return Scaffold(
@@ -179,43 +247,56 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 child: ListTile(
                   leading: const CircleAvatar(child: Icon(Icons.person)),
-                  title: Text(user?.email ?? 'Kein Nutzer eingeloggt'),
+                  title: Text(user?.email ?? l10n.noUserLoggedIn),
                   subtitle: Text(
                     user != null && user.id.length >= 8
-                        ? 'ID: ${user.id.substring(0, 8)}...'
+                        ? l10n.userIdShort(user.id.substring(0, 8))
                         : '',
                   ),
                 ),
               ),
               const SizedBox(height: 24),
-              const Text(
-                'ERSCHEINUNGSBILD',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+              Text(
+                l10n.sectionAppearance,
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
               ),
               const SizedBox(height: 8),
               _SettingsGroup(
                 children: [
                   _SettingsNavTile(
+                    icon: Icons.language_outlined,
+                    iconColor: Theme.of(context).colorScheme.secondary,
+                    title: l10n.languageTitle,
+                    subtitle: prefs.localeLabel(
+                      system: l10n.languageSystem,
+                      german: l10n.languageGerman,
+                      english: l10n.languageEnglish,
+                      french: l10n.languageFrench,
+                      italian: l10n.languageItalian,
+                    ),
+                    onTap: () => _open(const LanguageSelectionScreen()),
+                  ),
+                  _SettingsNavTile(
                     icon: Icons.palette_outlined,
                     iconColor: Theme.of(context).colorScheme.primary,
-                    title: 'Farbschema & Design-Presets',
+                    title: l10n.themePresetsTitle,
                     subtitle: getThemeTitle(prefs.themePreset),
                     onTap: () => _open(const ThemeSelectionScreen()),
                   ),
                   _SettingsNavTile(
                     icon: Icons.dashboard_customize_outlined,
                     iconColor: Colors.cyanAccent,
-                    title: 'Dashboard-Tabs & Kacheln konfigurieren',
-                    subtitle: 'Reihenfolge, Tabs und angezeigte Widgets anpassen',
+                    title: l10n.dashboardTabsTitle,
+                    subtitle: l10n.dashboardTabsSubtitle,
                     onTap: () => _open(const DashboardSettingsScreen()),
                     showDivider: false,
                   ),
                 ],
               ),
               const SizedBox(height: 24),
-              const Text(
-                'EINSTELLUNGEN',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+              Text(
+                l10n.sectionSettings,
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
               ),
               const SizedBox(height: 8),
               _SettingsGroup(
@@ -223,38 +304,38 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   _SettingsNavTile(
                     icon: Icons.tune_outlined,
                     iconColor: Colors.deepPurpleAccent,
-                    title: 'Match- & Standardeinstellungen',
+                    title: l10n.matchDefaultsTitle,
                     subtitle: summary,
                     onTap: () => _open(const MatchPreferencesScreen()),
                   ),
                   _SettingsNavTile(
                     icon: Icons.visibility_outlined,
                     iconColor: Colors.tealAccent,
-                    title: 'Sichtbare TCGs anpassen',
-                    subtitle: 'Unerwünschte Kartenspiele in Dropdowns ausblenden',
+                    title: l10n.visibleTcgsTitle,
+                    subtitle: l10n.visibleTcgsSubtitle,
                     onTap: () => _open(const GameVisibilityScreen()),
                   ),
                   _SettingsNavTile(
                     icon: Icons.sports_esports_outlined,
                     iconColor: Colors.lightBlueAccent,
-                    title: 'Kartenspiele (TCGs) verwalten',
-                    subtitle: 'Spiele hinzufügen oder umbenennen',
+                    title: l10n.manageTcgsTitle,
+                    subtitle: l10n.manageTcgsSubtitle,
                     onTap: () => _open(const GameManagementScreen()),
                   ),
                   _SettingsNavTile(
                     icon: Icons.calculate_outlined,
                     iconColor: Colors.amber,
-                    title: 'Tool-Presets verwalten',
-                    subtitle: 'Life Counter, Spieleranzahl und Timer anpassen',
+                    title: l10n.toolPresetsTitle,
+                    subtitle: l10n.toolPresetsSubtitle,
                     onTap: () => _open(const ToolPresetsScreen()),
                     showDivider: false,
                   ),
                 ],
               ),
               const SizedBox(height: 24),
-              const Text(
-                'VERWALTUNG & INHALTE',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+              Text(
+                l10n.sectionContent,
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
               ),
               const SizedBox(height: 8),
               _SettingsGroup(
@@ -262,31 +343,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   _SettingsNavTile(
                     icon: Icons.emoji_events_outlined,
                     iconColor: Colors.amber,
-                    title: 'Turniere & Events',
-                    subtitle: 'Platzierungen und gespielte Decks festhalten',
+                    title: l10n.tournamentsTitle,
+                    subtitle: l10n.tournamentsSubtitle,
                     onTap: () => _open(const TournamentListScreen()),
                   ),
                   _SettingsNavTile(
                     icon: Icons.category_outlined,
                     iconColor: Colors.purpleAccent,
-                    title: 'Gegner-Archetypen verwalten',
-                    subtitle: 'Gespeicherte Vorschläge umbenennen oder bereinigen',
+                    title: l10n.archetypesTitle,
+                    subtitle: l10n.archetypesSubtitle,
                     onTap: () => _open(const ArchetypeManagementScreen()),
                   ),
                   _SettingsNavTile(
                     icon: Icons.label_outlined,
                     iconColor: const Color(0xFFCE93D8),
-                    title: 'Event-Tags verwalten',
-                    subtitle: 'Eigene Tags für Turniere oder Cups erstellen',
+                    title: l10n.eventTagsTitle,
+                    subtitle: l10n.eventTagsSubtitle,
                     onTap: () => _open(const TagManagementScreen()),
                     showDivider: false,
                   ),
                 ],
               ),
               const SizedBox(height: 24),
-              const Text(
-                'DATEN & BACKUP',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+              Text(
+                l10n.sectionBackup,
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
               ),
               const SizedBox(height: 8),
               _SettingsGroup(
@@ -294,52 +375,67 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   _SettingsNavTile(
                     icon: Icons.table_chart_outlined,
                     iconColor: Colors.greenAccent,
-                    title: 'Matches als CSV exportieren',
-                    subtitle: 'Ideal für Excel oder Tabellenkalkulation',
+                    title: l10n.exportCsvTitle,
+                    subtitle: l10n.exportCsvSubtitle,
                     onTap: _isProcessing ? null : _exportCsv,
                   ),
                   _SettingsNavTile(
                     icon: Icons.file_download_outlined,
                     iconColor: Colors.blueAccent,
-                    title: 'Vollständiges Backup sichern (JSON)',
-                    subtitle: 'Sichert alle Decks & Match-Historien',
+                    title: l10n.exportJsonTitle,
+                    subtitle: l10n.exportJsonSubtitle,
                     onTap: _isProcessing ? null : _exportJson,
                   ),
                   _SettingsNavTile(
                     icon: Icons.file_upload_outlined,
                     iconColor: Colors.orangeAccent,
-                    title: 'Backup wiederherstellen',
-                    subtitle: 'JSON-Sicherungsdatei einlesen',
+                    title: l10n.restoreBackupTitle,
+                    subtitle: l10n.restoreBackupSubtitle,
                     onTap: _isProcessing ? null : _restoreJson,
                     showDivider: false,
                   ),
                 ],
               ),
               const SizedBox(height: 24),
-              const Text(
-                'KONTO & INFO',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+              Text(
+                l10n.sectionAccount,
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
               ),
               const SizedBox(height: 8),
               _SettingsGroup(
                 children: [
-                  const _SettingsNavTile(
+                  _SettingsNavTile(
                     icon: Icons.info_outline,
                     iconColor: Colors.white70,
-                    title: 'Version',
-                    subtitle: 'Web / PWA',
-                    trailing: Text('1.0.0'),
-                    showDivider: true,
+                    title: l10n.version,
+                    subtitle: l10n.versionSubtitle,
+                    trailing: const Text('0.3.1 (Web/PWA)'),
+                  ),
+                  _SettingsNavTile(
+                    icon: Icons.gavel_outlined,
+                    iconColor: Theme.of(context).colorScheme.primary,
+                    title: l10n.legalSettingsTitle,
+                    subtitle: l10n.legalSettingsSubtitle,
+                    onTap: () => _open(const LegalInfoScreen()),
                   ),
                   _SettingsNavTile(
                     icon: Icons.logout,
                     iconColor: Colors.redAccent,
-                    title: 'Abmelden',
-                    subtitle: 'Sitzung beenden',
+                    title: l10n.signOutTitle,
+                    subtitle: l10n.signOutSubtitle,
                     titleColor: Colors.redAccent,
                     showChevron: false,
-                    showDivider: false,
                     onTap: () => ref.read(authRepositoryProvider).signOut(),
+                  ),
+                  _SettingsNavTile(
+                    icon: Icons.delete_forever,
+                    iconColor: Colors.red.shade700,
+                    title: l10n.deleteAccountTitle,
+                    subtitle: l10n.deleteAccountSubtitle,
+                    titleColor: Colors.red.shade700,
+                    showChevron: false,
+                    showDivider: false,
+                    onTap: _isProcessing ? null : _confirmDeleteAccount,
                   ),
                 ],
               ),

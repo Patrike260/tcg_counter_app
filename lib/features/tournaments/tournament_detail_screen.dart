@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../l10n/l10n.dart';
 import '../matches/match_model.dart';
 import 'add_tournament_dialog.dart';
 import 'tournament_model.dart';
@@ -14,13 +15,14 @@ class TournamentDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final matchesAsync = ref.watch(tournamentRelatedMatchesProvider(tournament.id));
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(tournament.name),
         actions: [
           IconButton(
-            tooltip: 'Bearbeiten',
+            tooltip: l10n.edit,
             icon: const Icon(Icons.edit_outlined),
             onPressed: () {
               showDialog(
@@ -40,7 +42,7 @@ class TournamentDetailScreen extends ConsumerWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              Chip(label: Text(tournament.placementLabel)),
+              Chip(label: Text(tournament.localizedPlacement(l10n))),
               if (tournament.gameName != null) Chip(label: Text(tournament.gameName!)),
               if (tournament.deckName != null) Chip(label: Text(tournament.deckName!)),
               for (final tag in tournament.tags) Chip(label: Text(tag)),
@@ -59,17 +61,19 @@ class TournamentDetailScreen extends ConsumerWidget {
           Text(
             tournament.tags.isEmpty
                 ? 'Weise dem Turnier Event-Tags zu, um passende Matches zuzuordnen.'
-                : 'Matches mit denselben Tags${tournament.deckName != null ? ' und Deck „${tournament.deckName}“' : ''}.',
+                : tournament.deckName != null
+                    ? l10n.relatedMatchesTagsAndDeck(tournament.deckName!)
+                    : l10n.relatedMatchesTags,
             style: TextStyle(color: scheme.onSurface.withValues(alpha: 0.65)),
           ),
           const SizedBox(height: 12),
           matchesAsync.when(
             data: (matches) {
               if (matches.isEmpty) {
-                return const Card(
+                return Card(
                   child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Text('Keine passenden Matches gefunden.'),
+                    padding: const EdgeInsets.all(16),
+                    child: Text(l10n.noMatchingMatches),
                   ),
                 );
               }
@@ -84,10 +88,10 @@ class TournamentDetailScreen extends ConsumerWidget {
                     child: ListTile(
                       leading: Icon(Icons.analytics_outlined, color: scheme.primary),
                       title: Text(
-                        '$wins Siege - $losses Niederlagen • ${winRate.toStringAsFixed(1)}% Winrate',
+                        '$wins ${l10n.wins} - $losses ${l10n.loss} • ${winRate.toStringAsFixed(1)}% ${l10n.winrate}',
                         style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
-                      subtitle: Text('${matches.length} Matches zugeordnet'),
+                      subtitle: Text(l10n.relatedMatchesCount(matches.length)),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -96,7 +100,7 @@ class TournamentDetailScreen extends ConsumerWidget {
               );
             },
             loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, _) => Text('Matches konnten nicht geladen werden: $err'),
+            error: (err, _) => Text(l10n.matchesLoadFailed(err)),
           ),
         ],
       ),
@@ -119,9 +123,9 @@ class _RelatedMatchTile extends StatelessWidget {
         isWin ? Icons.check_circle : (isLoss ? Icons.cancel : Icons.pause_circle),
         color: isWin ? Colors.green : (isLoss ? Colors.red : Colors.grey),
       ),
-      title: Text('vs. ${match.opponentDeck}', style: const TextStyle(fontWeight: FontWeight.w600)),
+      title: Text(context.l10n.vsOpponent(match.opponentDeck), style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: Text(
-        '${match.matchFormat.toUpperCase()} • ${match.turnOrder == 'first' ? '1st' : '2nd'}'
+        '${match.matchFormat.toUpperCase()} • ${match.turnOrder == 'first' ? context.l10n.turnFirstShort : context.l10n.turnSecondShort}'
         '${match.tags.isEmpty ? '' : ' • ${match.tags.join(', ')}'}',
       ),
       trailing: Text(

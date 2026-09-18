@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../l10n/l10n.dart';
 import '../settings/app_preferences_service.dart';
 import '../tournaments/tournament_repository.dart';
 import 'dashboard_config_model.dart';
@@ -11,10 +12,11 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final activeTabs = ref.watch(appPreferencesProvider).enabledDashboardTabs;
 
     if (activeTabs.isEmpty) {
-      return const Scaffold(body: Center(child: Text('Kein Dashboard-Tab aktiv.')));
+      return Scaffold(body: Center(child: Text(l10n.noDashboardTab)));
     }
 
     if (activeTabs.length == 1) {
@@ -61,7 +63,7 @@ class DashboardScreen extends ConsumerWidget {
                             Icon(dashboardTabIcon(tab.iconName), size: 18),
                             const SizedBox(width: 8),
                             Text(
-                              tab.title,
+                              tab.localizedTitle(l10n),
                               style: const TextStyle(fontWeight: FontWeight.w600),
                             ),
                           ],
@@ -92,6 +94,7 @@ class _DashboardTabPane extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final dashboardAsync = ref.watch(dashboardDataProvider(tab.selectedTag));
     final keys = tab.sanitizedWidgetKeys;
 
@@ -111,7 +114,7 @@ class _DashboardTabPane extends ConsumerWidget {
                   alignment: Alignment.centerLeft,
                   child: Chip(
                     avatar: const Icon(Icons.label_outlined, size: 16),
-                    label: Text('Event: ${data.focusTag}'),
+                    label: Text(l10n.eventFilter(data.focusTag!)),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -125,7 +128,7 @@ class _DashboardTabPane extends ConsumerWidget {
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => Center(child: Text('Fehler: $err')),
+      error: (err, _) => Center(child: Text(l10n.errorWithDetails(err))),
     );
   }
 }

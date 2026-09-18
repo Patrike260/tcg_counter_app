@@ -1,0 +1,524 @@
+{
+  "@@locale": "en",
+  "appTitle": "TCG Tracker",
+  "cancel": "Cancel",
+  "save": "Save",
+  "delete": "Delete",
+  "add": "Add",
+  "close": "Close",
+  "continueAction": "Continue",
+  "apply": "Apply",
+  "create": "Create",
+  "reset": "Reset",
+  "all": "All",
+  "edit": "Edit",
+  "archive": "Archive",
+  "or": "OR",
+  "from": "of",
+  "version": "Version",
+  "versionSubtitle": "Web / PWA",
+  "errorWithDetails": "Error: {error}",
+  "@errorWithDetails": {
+    "placeholders": {
+      "error": {"type": "Object"}
+    }
+  },
+  "loadErrorWithDetails": "Could not load: {error}",
+  "@loadErrorWithDetails": {
+    "placeholders": {
+      "error": {"type": "Object"}
+    }
+  },
+  "gamesLoadError": "Could not load games: {error}",
+  "@gamesLoadError": {
+    "placeholders": {
+      "error": {"type": "Object"}
+    }
+  },
+  "decksLoadError": "Could not load decks: {error}",
+  "@decksLoadError": {
+    "placeholders": {
+      "error": {"type": "Object"}
+    }
+  },
+  "noUserLoggedIn": "No user signed in",
+  "userIdShort": "ID: {id}...",
+  "@userIdShort": {
+    "placeholders": {
+      "id": {"type": "String"}
+    }
+  },
+  "navDashboard": "Dashboard",
+  "navDecks": "Decks",
+  "navTools": "Tools",
+  "navSettings": "Settings",
+  "titleMyDecks": "My decks",
+  "tooltipDashboardFilter": "Dashboard filters",
+  "tooltipDiceCoin": "Coin & dice",
+  "noTcg": "No TCG",
+  "turnFree": "Turn free",
+  "turnFirstShort": "1st",
+  "turnSecondShort": "2nd",
+  "turnFirstFull": "1st (going first)",
+  "turnSecondFull": "2nd (going second)",
+  "formatBo1": "Best of 1",
+  "formatBo3": "Best of 3",
+  "bo1": "BO1",
+  "bo3": "BO3",
+  "allFormats": "All formats",
+  "languageTitle": "Language",
+  "languageSubtitle": "Choose app language",
+  "languageSystem": "System language",
+  "languageSystemSubtitle": "Follow the device language",
+  "languageGerman": "Deutsch",
+  "languageEnglish": "English",
+  "languageFrench": "Français",
+  "languageItalian": "Italiano",
+  "loginTitle": "TCG Tracker Login",
+  "createAccount": "Create account",
+  "email": "Email",
+  "password": "Password",
+  "signIn": "Sign in",
+  "register": "Register",
+  "alreadyHaveAccount": "Already have an account? Sign in",
+  "noAccountYet": "No account yet? Register now",
+  "continueWithGoogle": "Continue with Google",
+  "enterEmailPassword": "Please enter email and password.",
+  "registrationSuccess": "Registration successful!",
+  "googleLoginFailed": "Google sign-in failed: {error}",
+  "@googleLoginFailed": {
+    "placeholders": {
+      "error": {"type": "Object"}
+    }
+  },
+  "legalAcceptHint": "By registering you accept our Terms of Use & Privacy Policy.",
+  "sectionAppearance": "APPEARANCE",
+  "sectionSettings": "SETTINGS",
+  "sectionContent": "MANAGEMENT & CONTENT",
+  "sectionBackup": "DATA & BACKUP",
+  "sectionAccount": "ACCOUNT & INFO",
+  "themePresetsTitle": "Color scheme & design presets",
+  "dashboardTabsTitle": "Configure dashboard tabs & tiles",
+  "dashboardTabsSubtitle": "Reorder tabs and choose which widgets to show",
+  "matchDefaultsTitle": "Match & default settings",
+  "visibleTcgsTitle": "Visible TCGs",
+  "visibleTcgsSubtitle": "Hide unwanted card games from dropdowns",
+  "manageTcgsTitle": "Manage card games (TCGs)",
+  "manageTcgsSubtitle": "Add or rename games",
+  "toolPresetsTitle": "Manage tool presets",
+  "toolPresetsSubtitle": "Life counter, player count and timer",
+  "tournamentsTitle": "Tournaments & events",
+  "tournamentsSubtitle": "Track placements and decks you played",
+  "archetypesTitle": "Manage opponent archetypes",
+  "archetypesSubtitle": "Rename or clean saved suggestions",
+  "eventTagsTitle": "Manage event tags",
+  "eventTagsSubtitle": "Create your own tags for tournaments or cups",
+  "exportCsvTitle": "Export matches as CSV",
+  "exportCsvSubtitle": "Ideal for Excel or spreadsheets",
+  "exportJsonTitle": "Full backup (JSON)",
+  "exportJsonSubtitle": "Saves all decks and match history",
+  "restoreBackupTitle": "Restore backup",
+  "restoreBackupSubtitle": "Import a JSON backup file",
+  "legalSettingsTitle": "Terms of use & privacy",
+  "legalSettingsSubtitle": "View terms, disclaimer and imprint",
+  "signOutTitle": "Sign out",
+  "signOutSubtitle": "End this session",
+  "deleteAccountTitle": "Permanently delete account",
+  "deleteAccountSubtitle": "Remove account, decks and matches for good",
+  "csvExported": "Matches exported as CSV!",
+  "csvExportFailed": "CSV export failed: {error}",
+  "@csvExportFailed": {
+    "placeholders": {
+      "error": {"type": "Object"}
+    }
+  },
+  "jsonBackupCreated": "JSON backup created!",
+  "jsonBackupFailed": "Backup export failed: {error}",
+  "@jsonBackupFailed": {
+    "placeholders": {
+      "error": {"type": "Object"}
+    }
+  },
+  "fileReadFailed": "The file could not be read.",
+  "restoreBackupQuestion": "Restore backup?",
+  "restoreBackupBody": "Existing decks and matches will be merged or updated.",
+  "restore": "Restore",
+  "matchesRestored": "{count} matches restored!",
+  "@matchesRestored": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "restoreFailed": "Restore failed: {error}",
+  "@restoreFailed": {
+    "placeholders": {
+      "error": {"type": "Object"}
+    }
+  },
+  "deleteAccountQuestion": "Delete account?",
+  "deleteAccountBody": "Do you really want to permanently delete your account and all saved decks and matches?",
+  "lastConfirmation": "Final confirmation",
+  "deleteAccountFinalBody": "This cannot be undone. The account and all tracker data will be deleted permanently.",
+  "deletePermanently": "Delete permanently",
+  "deleteAccountFailed": "Account could not be deleted: {error}",
+  "@deleteAccountFailed": {
+    "placeholders": {
+      "error": {"type": "Object"}
+    }
+  },
+  "legalScreenTitle": "Legal & privacy",
+  "legalIntro": "Please read the following notes before using the app or creating an account.",
+  "legalTermsTitle": "Terms of use",
+  "legalTermsBody": "TCG Tracker is a private, unofficial fan project. The app is meant for tracking your own decks, matches and tournament placements at the table. It is not a commercial product of the respective card game publishers.\n\nUse is at your own risk. There is no warranty for uninterrupted availability, error-free operation or that your data will be kept. Data loss (for example through outages, account deletion or service changes) cannot be ruled out. Keep your own backups if needed.\n\nYou may use the app for private purposes only. Abuse, automated scraping of other accounts or bypassing security mechanisms is not allowed.",
+  "legalPrivacyTitle": "Privacy (GDPR)",
+  "legalPrivacyBody": "The controller for personal data under the GDPR is the operator of this app (see imprint).\n\nWe store in particular: your email address (account), authentication data and content you enter (decks, match results, notes, tags, tournaments). Data is stored in the Supabase cloud (PostgreSQL with row-level security).\n\nThe purpose is providing the tracker (performance of a contract, Art. 6(1)(b) GDPR). Your data is not shared with third parties for advertising. Technical processors (hosting/auth) only process data as needed to run the service.\n\nYou have the right to access, rectification, restriction, objection and erasure. Use “Permanently delete account” in Settings to have your account and tracker data removed.",
+  "legalDisclaimerTitle": "Trademark & copyright notice",
+  "legalDisclaimerBody": "Pokémon, One Piece, Yu-Gi-Oh!, Magic: The Gathering, Dragon Ball Super and all other named card games, characters, logos and names are registered trademarks or copyrighted works of their respective owners, including Nintendo, The Pokémon Company, Bandai, Toei Animation, Konami, Wizards of the Coast / Hasbro and other licensors.\n\nThis app is not affiliated with those companies. It is an independent fan project. Game names are used only so you can track your own games. Official card images or protected artwork are not sold or licensed as part of this product.",
+  "legalImprintTitle": "Imprint & contact",
+  "legalImprintBody": "Information according to applicable imprint law:\n\nOperator / developer:\n[First and last name]\n[Street and number]\n[ZIP City]\nGermany\n\nContact:\nEmail: kontakt@example.com\n\nPlease replace the placeholders with real details before operating the app publicly.",
+  "themeScreenTitle": "Color scheme & design",
+  "themeLight": "LIGHT",
+  "themeDark": "DARK",
+  "matchSettingsTitle": "Match settings",
+  "defaultGame": "Default card game",
+  "defaultFormat": "Default match format",
+  "defaultTurnOrder": "Default turn order",
+  "turnFreeLabel": "Free",
+  "rememberLastTags": "Remember last selected tags",
+  "statsTimeRange": "Time range for statistics",
+  "statsTimeRangeSubtitle": "Applies to win rate, nemesis and TCG performance",
+  "dashboardGameFocus": "Game focus for dashboard",
+  "dashboardGamePickerTitle": "Dashboard game",
+  "rangeWeek": "Week",
+  "rangeMonth": "Month",
+  "rangeSeason": "Season",
+  "rangeYear": "Year",
+  "rangeAllTime": "All time",
+  "visibleTcgsScreenTitle": "Visible TCGs",
+  "noGamesAvailable": "No card games available.",
+  "atLeastOneTcgVisible": "At least one TCG must stay visible.",
+  "addTcgTitle": "Add a new TCG",
+  "renameTcgTitle": "Rename TCG",
+  "gameNameLabel": "Card game name",
+  "newName": "New name",
+  "manageTcgsScreenTitle": "Manage card games (TCGs)",
+  "toolPresetsScreenTitle": "Tool presets",
+  "factoryResetQuestion": "Reset to defaults?",
+  "noPresets": "No presets available.",
+  "keepOnePreset": "At least one preset must remain.",
+  "enterNameAndLp": "Please enter a name and valid starting LP.",
+  "playerCount": "Player count",
+  "roundTimer": "Round timer",
+  "minutes": "Minutes",
+  "minutesValue": "{minutes} min",
+  "@minutesValue": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "presetName": "Name",
+  "startingLp": "Starting LP",
+  "createTagTitle": "Create a new tag",
+  "tagNameHint": "Tag name (e.g. Store Cup, League)",
+  "manageTagsScreenTitle": "Manage event tags",
+  "standardTagsHeader": "STANDARD TAGS (FIXED)",
+  "systemTagSubtitle": "System tag (cannot be deleted)",
+  "customTagsHeader": "CUSTOM TAGS",
+  "createTag": "Create tag",
+  "noCustomTags": "No custom tags yet.",
+  "deleteArchetypeQuestion": "Delete archetype?",
+  "deleteArchetypeBody": "Remove \"{name}\" from automatic suggestions?",
+  "@deleteArchetypeBody": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "itemDeleted": "\"{name}\" deleted.",
+  "@itemDeleted": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "deleteFailed": "Delete failed: {error}",
+  "@deleteFailed": {
+    "placeholders": {
+      "error": {"type": "Object"}
+    }
+  },
+  "renameArchetypeTitle": "Rename archetype",
+  "renamedTo": "Renamed to \"{name}\".",
+  "@renamedTo": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "renameFailed": "Rename failed: {error}",
+  "@renameFailed": {
+    "placeholders": {
+      "error": {"type": "Object"}
+    }
+  },
+  "archetypesScreenTitle": "Manage opponent archetypes",
+  "chooseCardGame": "Choose card game",
+  "noArchetypesForGame": "No archetypes for this TCG.",
+  "dashboardConfigTitle": "Configure dashboard",
+  "resetToDefault": "Reset to default",
+  "resetDashboardQuestion": "Reset to default?",
+  "atLeastOneTab": "At least one tab must stay enabled.",
+  "allEvents": "All events",
+  "focusEventTag": "Focus event tag",
+  "focusEventTagOptional": "Focus event tag (optional)",
+  "customDashboard": "Custom dashboard",
+  "tabTitle": "Title",
+  "icon": "Icon",
+  "startTiles": "Starting tiles",
+  "widgetWinrate": "Overall win rate",
+  "widgetNemesis": "Nemesis & best matchup",
+  "widgetPerformance": "Performance by card game",
+  "widgetRecent": "Recent matches",
+  "widgetTournaments": "Tournaments & placements",
+  "widgetTurnOrder": "1st / 2nd turn-order stats",
+  "tabAllround": "Allround",
+  "tabTournament": "Tournament",
+  "tabMinimal": "Minimal",
+  "noDashboardTab": "No dashboard tab is active.",
+  "eventFilter": "Event: {tag}",
+  "@eventFilter": {
+    "placeholders": {
+      "tag": {"type": "String"}
+    }
+  },
+  "winrate": "Winrate",
+  "matches": "Matches",
+  "wins": "Wins",
+  "recorded": "Recorded",
+  "winsOfTotal": "of {total}",
+  "@winsOfTotal": {
+    "placeholders": {
+      "total": {"type": "int"}
+    }
+  },
+  "noMatchesInRange": "No matches in the selected period",
+  "noRepeatMatchups": "No matches against repeating archetypes in the selected period ({range}).\nAt least 2 matches against the same deck are required.",
+  "@noRepeatMatchups": {
+    "placeholders": {
+      "range": {"type": "String"}
+    }
+  },
+  "bestMatchup": "Strongest matchup",
+  "nemesisDeck": "Nemesis / problem deck",
+  "performanceByGame": "Performance by card game",
+  "noMatchesVisibleTcgs": "No matches yet for visible TCGs.",
+  "winsOfMatches": "{wins} wins of {total} matches",
+  "@winsOfMatches": {
+    "placeholders": {
+      "wins": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "recentMatches": "Recent matches",
+  "turnOrder": "Turn order",
+  "first": "First",
+  "second": "Second",
+  "winsFraction": "{wins}/{total} wins",
+  "@winsFraction": {
+    "placeholders": {
+      "wins": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "recentTournaments": "Recent tournaments",
+  "noTournamentsYet": "No tournaments recorded yet.",
+  "tournamentsLoadFailed": "Tournaments could not be loaded.\n{error}",
+  "@tournamentsLoadFailed": {
+    "placeholders": {
+      "error": {"type": "Object"}
+    }
+  },
+  "lossRate": "Loss rate",
+  "winsLossesSummary": "{wins}–{losses}  ({wins} wins / {total} matches)",
+  "@winsLossesSummary": {
+    "placeholders": {
+      "wins": {"type": "int"},
+      "losses": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "vsNameRange": "vs. {name} • {rate}% ({range})",
+  "@vsNameRange": {
+    "placeholders": {
+      "name": {"type": "String"},
+      "rate": {"type": "String"},
+      "range": {"type": "String"}
+    }
+  },
+  "vsOpponent": "vs. {name}",
+  "@vsOpponent": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "noDecksYet": "No decks yet.\nTap + at the bottom right to create your first deck!",
+  "deleteDeckQuestion": "Delete this deck?",
+  "deleteDeckBody": "Deck \"{name}\" and ALL related matches will be deleted permanently!",
+  "@deleteDeckBody": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "deckDeleted": "Deck \"{name}\" deleted.",
+  "@deckDeleted": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "deckArchived": "Deck \"{name}\" archived.",
+  "@deckArchived": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "linkOpenFailed": "The link could not be opened.",
+  "matchSingular": "match",
+  "matchPlural": "matches",
+  "fillRequiredFields": "Please fill in all required fields.",
+  "invalidDecklistUrl": "Please enter a valid decklist URL.",
+  "cardGame": "Card game",
+  "deckName": "Deck name",
+  "decklistLinkOptional": "Decklist link (optional)",
+  "notesOptional": "Notes (optional)",
+  "addDeck": "Add deck",
+  "editDeck": "Edit deck",
+  "viewDecklist": "View decklist",
+  "noMatchesForDeck": "No matches recorded for this deck yet.\nTap + below to add a match!",
+  "noMatchesForFilter": "No matches found for this filter.",
+  "deleteMatchQuestion": "Delete match?",
+  "deleteMatchBody": "Do you really want to delete the game against {name}?",
+  "@deleteMatchBody": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "matchDeleted": "Match deleted.",
+  "statsTitle": "{name} - Stats",
+  "@statsTitle": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "noStatsYet": "No matches yet to calculate statistics.",
+  "matchupsVsArchetypes": "Matchups against archetypes",
+  "winsOfGames": "{wins} wins of {total} games",
+  "@winsOfGames": {
+    "placeholders": {
+      "wins": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "needDeckForMatch": "Create a deck first to record matches.",
+  "noToolPresets": "No tool presets available.",
+  "recordMatch": "Record match",
+  "chooseOwnDeck": "Choose your deck",
+  "editMatch": "Edit match",
+  "logMatch": "Log match",
+  "needOpponentDeck": "Please enter the opponent’s deck.",
+  "win": "Win",
+  "loss": "Loss",
+  "draw": "Draw",
+  "opponentDeckArchetype": "Opponent deck / archetype",
+  "opponentDeck": "Opponent deck",
+  "format": "Format",
+  "order": "Order",
+  "eventTags": "Event tags",
+  "scoreOptional": "Score (optional, e.g. 2-1)",
+  "rollTitle": "Randomize",
+  "d20": "D20",
+  "d6": "D6",
+  "coin": "Coin",
+  "multi": "Multi",
+  "rollDie": "Roll D{sides}",
+  "@rollDie": {
+    "placeholders": {
+      "sides": {"type": "int"}
+    }
+  },
+  "flipCoin": "Flip coin",
+  "rollMulti": "Roll {count}×D{sides}",
+  "@rollMulti": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "sides": {"type": "int"}
+    }
+  },
+  "deleteTournamentQuestion": "Delete tournament?",
+  "deleteTournamentBody": "“{name}” will be deleted permanently.",
+  "@deleteTournamentBody": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "tournamentDeleted": "“{name}” deleted.",
+  "@tournamentDeleted": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "noTournamentsHint": "No tournaments yet.\nRecord store championships, regionals and opens.",
+  "needNameTcgDeck": "Please fill in name, TCG and deck.",
+  "placementMustBeNumber": "Placement must be a number.",
+  "participantsMustBeNumber": "Participant count must be a number.",
+  "placementMinOne": "Placement must be at least 1.",
+  "placementVsField": "Placement cannot be greater than the field size.",
+  "tournamentName": "Tournament name",
+  "chooseTcg": "Choose TCG",
+  "chooseGameFirst": "Choose a card game first",
+  "noDecksForTcg": "No decks for this TCG",
+  "chooseDeck": "Choose deck",
+  "playedDeck": "Deck played",
+  "place": "Place",
+  "participants": "Participants",
+  "date": "Date",
+  "addTournament": "Add tournament",
+  "editTournament": "Edit tournament",
+  "noMatchingMatches": "No matching matches found.",
+  "relatedMatchesCount": "{count} matches linked",
+  "@relatedMatchesCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "matchesLoadFailed": "Matches could not be loaded: {error}",
+  "@matchesLoadFailed": {
+    "placeholders": {
+      "error": {"type": "Object"}
+    }
+  },
+  "relatedMatchesTagsAndDeck": "Matches with the same tags and deck “{deck}”.",
+  "@relatedMatchesTagsAndDeck": {
+    "placeholders": {
+      "deck": {"type": "String"}
+    }
+  },
+  "relatedMatchesTags": "Matches with the same tags.",
+  "noPlacement": "No placement",
+  "placementOf": "#{place} / {total}",
+  "@placementOf": {
+    "placeholders": {
+      "place": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "firstPlace": "1st place",
+  "topPlacement": "Top {place}",
+  "@topPlacement": {
+    "placeholders": {
+      "place": {"type": "int"}
+    }
+  },
+  "placeNumber": "Place {place}",
+  "@placeNumber": {
+    "placeholders": {
+      "place": {"type": "int"}
+    }
+  }
+}

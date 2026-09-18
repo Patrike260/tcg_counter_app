@@ -1,3 +1,5 @@
+import '../../l10n/app_localizations.dart';
+
 class Tournament {
   final String id;
   final String userId;
@@ -39,6 +41,16 @@ class Tournament {
     if (placement == 1) return '1. Platz';
     if (placement! <= 8) return 'Top $placement';
     return 'Platz $placement';
+  }
+
+  String localizedPlacement(AppLocalizations l10n) {
+    if (placement == null) return l10n.noPlacement;
+    if (totalParticipants != null) {
+      return l10n.placementOf(placement!, totalParticipants!);
+    }
+    if (placement == 1) return l10n.firstPlace;
+    if (placement! <= 8) return l10n.topPlacement(placement!);
+    return l10n.placeNumber(placement!);
   }
 
   bool get isTopCut => placement != null && placement! <= 8;

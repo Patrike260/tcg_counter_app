@@ -80,4 +80,14 @@ class AuthRepository {
   Future<void> signOut() async {
     await _client.auth.signOut();
   }
+
+  /// Löscht das Konto serverseitig (DSGVO) und beendet die Sitzung.
+  Future<void> deleteAccount() async {
+    await _client.rpc('delete_user_account');
+    try {
+      await signOut();
+    } catch (_) {
+      // Nach der Löschung kann die Session bereits ungültig sein.
+    }
+  }
 }

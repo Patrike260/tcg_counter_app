@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/widgets/game_logo.dart';
 import '../../core/utils/deck_list_url.dart';
+import '../../l10n/l10n.dart';
 import 'deck_model.dart';
 import 'deck_repository.dart';
 import '../settings/app_preferences_service.dart';
@@ -41,10 +42,11 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
   }
 
   Future<void> _submit() async {
+    final l10n = context.l10n;
     final name = _nameController.text.trim();
     if (name.isEmpty || (_selectedGameId == null && widget.deck == null)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bitte alle Pflichtfelder ausfüllen.')),
+        SnackBar(content: Text(l10n.fillRequiredFields)),
       );
       return;
     }
@@ -56,7 +58,7 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
       final uri = parseDeckListUri(rawUrl);
       if (uri == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Bitte eine gültige Decklisten-URL angeben.')),
+          SnackBar(content: Text(l10n.invalidDecklistUrl)),
         );
         return;
       }
@@ -90,7 +92,7 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(context.l10n.errorWithDetails(e)), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -100,12 +102,13 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final gamesAsync = ref.watch(gamesListProvider);
     final hiddenGameIds = ref.watch(appPreferencesProvider).hiddenGameIds;
     final isEditing = widget.deck != null;
 
     return AlertDialog(
-      title: Text(isEditing ? 'Deck bearbeiten' : 'Neues Deck anlegen'),
+      title: Text(isEditing ? l10n.editDeck : l10n.addDeck),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -123,8 +126,8 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
 
                 return DropdownButtonFormField<String>(
                   value: selectedId,
-                  decoration: const InputDecoration(labelText: 'Kartenspiel'),
-                  hint: const Text('Kartenspiel wählen'),
+                  decoration: InputDecoration(labelText: l10n.cardGame),
+                  hint: Text(l10n.chooseCardGame),
                   items: visibleGames
                       .map(
                         (g) => DropdownMenuItem(
@@ -145,33 +148,33 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
                 );
               },
               loading: () => const LinearProgressIndicator(),
-              error: (err, _) => Text('Fehler beim Laden: $err'),
+              error: (err, _) => Text(l10n.loadErrorWithDetails(err)),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Deck-Name',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.deckName,
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _urlController,
               keyboardType: TextInputType.url,
-              decoration: const InputDecoration(
-                labelText: 'Decklisten-Link (optional)',
+              decoration: InputDecoration(
+                labelText: l10n.decklistLinkOptional,
                 hintText: 'https://nakamadecks.com/... oder moxfield.com/...',
-                prefixIcon: Icon(Icons.link),
-                border: OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.link),
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notizen (optional)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.notesOptional,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 2,
             ),
@@ -181,7 +184,7 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Abbrechen'),
+          child: Text(l10n.cancel),
         ),
         ElevatedButton(
           onPressed: _isLoading ? null : _submit,
@@ -191,7 +194,7 @@ class _AddDeckDialogState extends ConsumerState<AddDeckDialog> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text(isEditing ? 'Aktualisieren' : 'Speichern'),
+              : Text(l10n.save),
         ),
       ],
     );

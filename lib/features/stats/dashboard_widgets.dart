@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/tcg_colors.dart';
 import '../../core/utils/game_colors.dart';
 import '../../core/widgets/game_logo.dart';
+import '../../l10n/l10n.dart';
 import '../tournaments/tournament_list_screen.dart';
 import '../tournaments/tournament_repository.dart';
 import 'dashboard_config_model.dart';
@@ -55,25 +56,26 @@ class DashboardKpiWinrate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final tiles = [
       _KpiTile(
-        label: 'Winrate',
+        label: l10n.winrate,
         value: '${data.overallWinRate.toStringAsFixed(1)}%',
-        subtitle: data.timeRange.label,
+        subtitle: data.timeRange.localizedLabel(l10n),
         color: TcgColors.winRateColor(data.overallWinRate, data.totalMatches),
         icon: Icons.emoji_events_outlined,
       ),
       _KpiTile(
-        label: 'Matches',
+        label: l10n.matches,
         value: '${data.totalMatches}',
-        subtitle: 'Erfasst',
+        subtitle: l10n.recorded,
         color: Colors.lightBlueAccent,
         icon: Icons.sports_esports_outlined,
       ),
       _KpiTile(
-        label: 'Siege',
+        label: l10n.wins,
         value: '${data.totalWins}',
-        subtitle: 'von ${data.totalMatches}',
+        subtitle: l10n.winsOfTotal(data.totalMatches),
         color: Colors.greenAccent,
         icon: Icons.check_circle_outline,
       ),
@@ -117,24 +119,23 @@ class DashboardNemesisSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final best = data.bestMatchup;
     final nemesis = data.nemesisMatchup;
-    final rangeLabel = data.timeRange.label;
+    final rangeLabel = data.timeRange.localizedLabel(l10n);
 
     if (data.totalMatches == 0) {
-      return const _DashboardHint('Keine Matches im gewählten Zeitraum');
+      return _DashboardHint(l10n.noMatchesInRange);
     }
 
     if (best == null && nemesis == null) {
-      return _DashboardHint(
-        'Keine Matches gegen mehrfache Archetypen im gewählten Zeitraum ($rangeLabel).\nMindestens 2 Matches gegen dasselbe Deck nötig.',
-      );
+      return _DashboardHint(l10n.noRepeatMatchups(rangeLabel));
     }
 
     final cards = [
       if (best != null)
         _MatchupHighlightCard(
-          title: 'Stärkstes Matchup',
+          title: l10n.bestMatchup,
           matchup: best,
           accent: Colors.greenAccent,
           icon: Icons.military_tech_outlined,
@@ -143,7 +144,7 @@ class DashboardNemesisSection extends StatelessWidget {
         ),
       if (nemesis != null)
         _MatchupHighlightCard(
-          title: 'Nemesis / Problem-Deck',
+          title: l10n.nemesisDeck,
           matchup: nemesis,
           accent: Colors.redAccent,
           icon: Icons.warning_amber_rounded,
@@ -185,16 +186,17 @@ class DashboardTcgPerformance extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Performance nach Kartenspiel',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        Text(
+          l10n.performanceByGame,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
         if (data.gameSummaries.isEmpty)
-          const _DashboardHint('Noch keine Matches für sichtbare TCGs.')
+          _DashboardHint(l10n.noMatchesVisibleTcgs)
         else
           ...data.gameSummaries.map((game) {
             final winRateColor = TcgColors.winRateColor(game.winRate, game.totalMatches);
@@ -213,7 +215,7 @@ class DashboardTcgPerformance extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 subtitle: Text(
-                  '${game.wins} Siege von ${game.totalMatches} Matches',
+                  l10n.winsOfMatches(game.wins, game.totalMatches),
                   style: TextStyle(color: Colors.white.withValues(alpha: 0.78)),
                 ),
                 trailing: Container(
@@ -247,16 +249,17 @@ class DashboardRecentMatches extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Letzte Matches',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        Text(
+          l10n.recentMatches,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
         if (data.recentMatches.isEmpty)
-          const _DashboardHint('Keine Matches im gewählten Zeitraum.')
+          _DashboardHint(l10n.noMatchesInRange)
         else
           ...data.recentMatches.map((match) {
             final isWin = match.result == 'win';
@@ -268,11 +271,11 @@ class DashboardRecentMatches extends StatelessWidget {
                 color: isWin ? Colors.green : (isLoss ? Colors.red : Colors.grey),
               ),
               title: Text(
-                'vs. ${match.opponentDeck}',
+                l10n.vsOpponent(match.opponentDeck),
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
               subtitle: Text(
-                '${match.matchFormat.toUpperCase()} • ${match.turnOrder == 'first' ? '1st' : '2nd'}',
+                '${match.matchFormat.toUpperCase()} • ${match.turnOrder == 'first' ? l10n.turnFirstShort : l10n.turnSecondShort}',
               ),
               trailing: Text(
                 '${match.createdAt.day}.${match.createdAt.month}.${match.createdAt.year}',
@@ -292,22 +295,23 @@ class DashboardTurnOrderStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final stats = data.turnOrderStats;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Zugreihenfolge',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        Text(
+          l10n.turnOrder,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
         Row(
           children: [
             Expanded(
               child: _KpiTile(
-                label: 'First',
+                label: l10n.first,
                 value: '${stats.firstWinRate.toStringAsFixed(0)}%',
-                subtitle: '${stats.firstWins}/${stats.firstMatches} Siege',
+                subtitle: l10n.winsFraction(stats.firstWins, stats.firstMatches),
                 color: Colors.cyanAccent,
                 icon: Icons.looks_one_outlined,
               ),
@@ -315,9 +319,9 @@ class DashboardTurnOrderStats extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: _KpiTile(
-                label: 'Second',
+                label: l10n.second,
                 value: '${stats.secondWinRate.toStringAsFixed(0)}%',
-                subtitle: '${stats.secondWins}/${stats.secondMatches} Siege',
+                subtitle: l10n.winsFraction(stats.secondWins, stats.secondMatches),
                 color: Colors.orangeAccent,
                 icon: Icons.looks_two_outlined,
               ),
@@ -336,16 +340,17 @@ class DashboardTournamentsOverview extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tournamentsAsync = ref.watch(tournamentsListProvider);
     final scheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Expanded(
+            Expanded(
               child: Text(
-                'Letzte Turniere',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                l10n.recentTournaments,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
             TextButton(
@@ -354,7 +359,7 @@ class DashboardTournamentsOverview extends ConsumerWidget {
                   MaterialPageRoute(builder: (_) => const TournamentListScreen()),
                 );
               },
-              child: const Text('Alle'),
+              child: Text(l10n.all),
             ),
           ],
         ),
@@ -362,7 +367,7 @@ class DashboardTournamentsOverview extends ConsumerWidget {
         tournamentsAsync.when(
           data: (tournaments) {
             if (tournaments.isEmpty) {
-              return const _DashboardHint('Noch keine Turniere erfasst.');
+              return _DashboardHint(l10n.noTournamentsYet);
             }
             return Column(
               children: tournaments.take(4).map((tournament) {
@@ -381,7 +386,7 @@ class DashboardTournamentsOverview extends ConsumerWidget {
                       ].join(' • '),
                     ),
                     trailing: Text(
-                      tournament.placementLabel,
+                      tournament.localizedPlacement(l10n),
                       style: TextStyle(
                         fontWeight: FontWeight.w800,
                         color: scheme.primary,
@@ -401,7 +406,7 @@ class DashboardTournamentsOverview extends ConsumerWidget {
             padding: EdgeInsets.all(16),
             child: Center(child: CircularProgressIndicator()),
           ),
-          error: (err, _) => _DashboardHint('Turniere konnten nicht geladen werden.\n$err'),
+          error: (err, _) => _DashboardHint(l10n.tournamentsLoadFailed(err)),
         ),
       ],
     );
@@ -452,7 +457,8 @@ class _MatchupHighlightCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rate = showLossRate ? matchup.lossRate : matchup.winRate;
-    final rateLabel = showLossRate ? 'Loss-Rate' : 'Winrate';
+    final l10n = context.l10n;
+    final rateLabel = showLossRate ? l10n.lossRate : l10n.winrate;
 
     return Container(
       width: double.infinity,
@@ -502,7 +508,11 @@ class _MatchupHighlightCard extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            'vs. ${matchup.opponentDeck} • ${rate.toStringAsFixed(0)}% ($rangeLabel)',
+            l10n.vsNameRange(
+              matchup.opponentDeck,
+              rate.toStringAsFixed(0),
+              rangeLabel,
+            ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.72)),
@@ -518,7 +528,7 @@ class _MatchupHighlightCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '${matchup.wins}–${matchup.losses}  (${matchup.wins} Siege / ${matchup.total} Matches)',
+            l10n.winsLossesSummary(matchup.wins, matchup.losses, matchup.total),
             style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.7)),
           ),
         ],

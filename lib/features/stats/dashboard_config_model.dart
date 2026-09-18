@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../l10n/app_localizations.dart';
 
 class DashboardWidgetKeys {
   static const kpiWinrate = 'kpi_winrate';
@@ -17,20 +18,20 @@ class DashboardWidgetKeys {
     turnOrderStats,
   ];
 
-  static String labelOf(String key) {
+  static String labelOf(String key, AppLocalizations l10n) {
     switch (key) {
       case kpiWinrate:
-        return 'Gesamte Winrate & Siegquote';
+        return l10n.widgetWinrate;
       case kpiNemesis:
-        return 'Nemesis & Best Matchup';
+        return l10n.widgetNemesis;
       case performanceTcg:
-        return 'Performance nach Kartenspiel';
+        return l10n.widgetPerformance;
       case recentMatches:
-        return 'Letzte Matches';
+        return l10n.widgetRecent;
       case tournamentsOverview:
-        return 'Turniere & Platzierungen';
+        return l10n.widgetTournaments;
       case turnOrderStats:
-        return '1st / 2nd Zugreihenfolge-Stats';
+        return l10n.widgetTurnOrder;
       default:
         return key;
     }
@@ -72,6 +73,19 @@ class DashboardTabConfig {
   ];
 
   bool get isPreset => presetIds.contains(id);
+
+  String localizedTitle(AppLocalizations l10n) {
+    switch (id) {
+      case 'tab_allround':
+        return l10n.tabAllround;
+      case 'tab_tournament':
+        return l10n.tabTournament;
+      case 'tab_minimal':
+        return l10n.tabMinimal;
+      default:
+        return title;
+    }
+  }
 
   static const List<DashboardTabConfig> defaults = [
     DashboardTabConfig(

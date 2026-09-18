@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/widgets/game_logo.dart';
+import '../../l10n/l10n.dart';
 import '../decks/deck_repository.dart';
 import 'app_preferences_service.dart';
 
@@ -9,18 +10,19 @@ class GameVisibilityScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final gamesAsync = ref.watch(gamesListProvider);
     final prefs = ref.watch(appPreferencesProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Sichtbare TCGs'),
+        title: Text(l10n.visibleTcgsScreenTitle),
       ),
       body: gamesAsync.when(
         data: (games) {
           if (games.isEmpty) {
-            return const Center(
-              child: Text('Keine Kartenspiele vorhanden.'),
+            return Center(
+              child: Text(l10n.noGamesAvailable),
             );
           }
 
@@ -65,8 +67,8 @@ class GameVisibilityScreen extends ConsumerWidget {
                       onChanged: (value) async {
                         if (!value && !canHide) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Mindestens ein TCG muss sichtbar bleiben.'),
+                            SnackBar(
+                              content: Text(l10n.atLeastOneTcgVisible),
                             ),
                           );
                           return;
@@ -83,7 +85,7 @@ class GameVisibilityScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('Fehler beim Laden: $err')),
+        error: (err, _) => Center(child: Text(l10n.loadErrorWithDetails(err))),
       ),
     );
   }

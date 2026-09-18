@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/utils/game_colors.dart';
 import '../../core/widgets/game_logo.dart';
+import '../../l10n/l10n.dart';
 import 'add_tournament_dialog.dart';
 import 'tournament_detail_screen.dart';
 import 'tournament_model.dart';
@@ -22,20 +23,21 @@ class TournamentListScreen extends ConsumerWidget {
     WidgetRef ref,
     Tournament tournament,
   ) async {
+    final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Turnier löschen?'),
-        content: Text('„${tournament.name}“ wird unwiderruflich gelöscht.'),
+        title: Text(l10n.deleteTournamentQuestion),
+        content: Text(l10n.deleteTournamentBody(tournament.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Abbrechen'),
+            child: Text(l10n.cancel),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Löschen'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -48,13 +50,13 @@ class TournamentListScreen extends ConsumerWidget {
       ref.invalidate(tournamentsStreamProvider);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('„${tournament.name}“ gelöscht.')),
+          SnackBar(content: Text(context.l10n.tournamentDeleted(tournament.name))),
         );
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Löschen fehlgeschlagen: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(context.l10n.deleteFailed(e)), backgroundColor: Colors.red),
         );
       }
     }
@@ -62,14 +64,15 @@ class TournamentListScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final tournamentsAsync = ref.watch(tournamentsListProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Turniere & Events'),
+        title: Text(l10n.tournamentsTitle),
         actions: [
           IconButton(
-            tooltip: 'Turnier hinzufügen',
+            tooltip: l10n.addTournament,
             icon: const Icon(Icons.add),
             onPressed: () => _openEditor(context),
           ),
@@ -94,8 +97,8 @@ class TournamentListScreen extends ConsumerWidget {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'Noch keine Turniere erfasst.\nHalte Store Championships, Regionals und Opens fest.',
+                    Text(
+                      l10n.noTournamentsHint,
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -132,7 +135,7 @@ class TournamentListScreen extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Text(
-              'Turniere konnten nicht geladen werden.\n$err',
+              l10n.tournamentsLoadFailed(err),
               textAlign: TextAlign.center,
             ),
           ),
@@ -228,9 +231,9 @@ class _TournamentCard extends StatelessWidget {
                     if (value == 'edit') onEdit();
                     if (value == 'delete') onDelete();
                   },
-                  itemBuilder: (context) => const [
-                    PopupMenuItem(value: 'edit', child: Text('Bearbeiten')),
-                    PopupMenuItem(value: 'delete', child: Text('Löschen')),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(value: 'edit', child: Text(context.l10n.edit)),
+                    PopupMenuItem(value: 'delete', child: Text(context.l10n.delete)),
                   ],
                 ),
               ],
@@ -251,7 +254,7 @@ class _TournamentCard extends StatelessWidget {
                     Icon(_badgeIcon(), size: 18, color: badgeColor),
                     const SizedBox(width: 8),
                     Text(
-                      tournament.placementLabel,
+                      tournament.localizedPlacement(context.l10n),
                       style: TextStyle(
                         color: badgeColor,
                         fontWeight: FontWeight.w800,
@@ -268,7 +271,7 @@ class _TournamentCard extends StatelessWidget {
               children: [
                 Chip(
                   avatar: GameLogo(gameName: tournament.gameName, size: 18),
-                  label: Text(tournament.gameName ?? 'TCG'),
+                  label: Text(tournament.gameName ?? context.l10n.noTcg),
                   visualDensity: VisualDensity.compact,
                   side: BorderSide(color: gameColor.withValues(alpha: 0.45)),
                 ),

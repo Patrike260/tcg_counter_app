@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme_presets.dart';
+import '../../l10n/l10n.dart';
 import 'app_preferences_service.dart';
 
 class ThemeSelectionScreen extends ConsumerWidget {
@@ -12,7 +13,7 @@ class ThemeSelectionScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Farbschema & Design'),
+        title: Text(context.l10n.themeScreenTitle),
       ),
       body: GridView.builder(
         padding: const EdgeInsets.all(16),
@@ -103,7 +104,7 @@ class _ThemePresetTile extends StatelessWidget {
                     border: Border.all(color: palette.primaryColor.withValues(alpha: 0.45)),
                   ),
                   child: Text(
-                    isLight ? '[HELL]' : '[DUNKEL]',
+                    isLight ? context.l10n.themeLight : context.l10n.themeDark,
                     style: TextStyle(
                       color: palette.primaryColor,
                       fontSize: 10,

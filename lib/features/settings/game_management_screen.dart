@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/supabase_constants.dart';
 import '../../core/widgets/game_logo.dart';
+import '../../l10n/l10n.dart';
 import '../decks/deck_model.dart';
 import '../decks/deck_repository.dart';
 
@@ -15,21 +16,22 @@ class GameManagementScreen extends ConsumerStatefulWidget {
 class _GameManagementScreenState extends ConsumerState<GameManagementScreen> {
   void _showAddGameDialog() {
     final controller = TextEditingController();
+    final l10n = context.l10n;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Neues TCG hinzufügen'),
+        title: Text(l10n.addTcgTitle),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'Name des Kartenspiels',
+          decoration: InputDecoration(
+            labelText: l10n.gameNameLabel,
             hintText: 'z. B. Weiß Schwarz',
-            border: OutlineInputBorder(),
+            border: const OutlineInputBorder(),
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Abbrechen')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.cancel)),
           ElevatedButton(
             onPressed: () async {
               final name = controller.text.trim();
@@ -44,7 +46,7 @@ class _GameManagementScreenState extends ConsumerState<GameManagementScreen> {
                 if (mounted) Navigator.pop(ctx);
               }
             },
-            child: const Text('Hinzufügen'),
+            child: Text(l10n.add),
           ),
         ],
       ),
@@ -53,17 +55,18 @@ class _GameManagementScreenState extends ConsumerState<GameManagementScreen> {
 
   void _showRenameDialog(Game game) {
     final controller = TextEditingController(text: game.name);
+    final l10n = context.l10n;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('TCG umbenennen'),
+        title: Text(l10n.renameTcgTitle),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(labelText: 'Neuer Name', border: OutlineInputBorder()),
+          decoration: InputDecoration(labelText: l10n.newName, border: const OutlineInputBorder()),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Abbrechen')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.cancel)),
           ElevatedButton(
             onPressed: () async {
               final name = controller.text.trim();
@@ -73,7 +76,7 @@ class _GameManagementScreenState extends ConsumerState<GameManagementScreen> {
                 if (mounted) Navigator.pop(ctx);
               }
             },
-            child: const Text('Speichern'),
+            child: Text(l10n.save),
           ),
         ],
       ),
@@ -82,15 +85,16 @@ class _GameManagementScreenState extends ConsumerState<GameManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final gamesAsync = ref.watch(gamesListProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kartenspiele (TCGs) verwalten'),
+        title: Text(l10n.manageTcgsScreenTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
-            tooltip: 'Neues Spiel hinzufügen',
+            tooltip: l10n.addTcgTitle,
             onPressed: _showAddGameDialog,
           ),
         ],
@@ -112,7 +116,7 @@ class _GameManagementScreenState extends ConsumerState<GameManagementScreen> {
           },
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('Fehler beim Laden: $err')),
+        error: (err, _) => Center(child: Text(l10n.loadErrorWithDetails(err))),
       ),
     );
   }

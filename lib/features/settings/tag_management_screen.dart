@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../l10n/l10n.dart';
 import 'app_preferences_service.dart';
 
 class TagManagementScreen extends ConsumerWidget {
@@ -7,22 +8,23 @@ class TagManagementScreen extends ConsumerWidget {
 
   void _showAddTagDialog(BuildContext context, WidgetRef ref) {
     final controller = TextEditingController();
+    final l10n = context.l10n;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Neuen Tag erstellen'),
+        title: Text(l10n.createTagTitle),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(
-            labelText: 'Tag-Name (z. B. Store Cup, League)',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: l10n.tagNameHint,
+            border: const OutlineInputBorder(),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Abbrechen'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             onPressed: () {
@@ -32,7 +34,7 @@ class TagManagementScreen extends ConsumerWidget {
               }
               Navigator.pop(ctx);
             },
-            child: const Text('Hinzufügen'),
+            child: Text(l10n.add),
           ),
         ],
       ),
@@ -41,19 +43,20 @@ class TagManagementScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final prefs = ref.watch(appPreferencesProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Event-Tags verwalten'),
+        title: Text(l10n.manageTagsScreenTitle),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           // Standard-Tags
-          const Text(
-            'STANDARD-TAGS (FEST VORGEGEBEN)',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+          Text(
+            l10n.standardTagsHeader,
+            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
           ),
           const SizedBox(height: 8),
           Card(
@@ -63,7 +66,7 @@ class TagManagementScreen extends ConsumerWidget {
                     (tag) => ListTile(
                       leading: const Icon(Icons.lock_outline, size: 20, color: Colors.grey),
                       title: Text(tag),
-                      subtitle: const Text('System-Tag (kann nicht gelöscht werden)'),
+                      subtitle: Text(l10n.systemTagSubtitle),
                     ),
                   )
                   .toList(),
@@ -75,24 +78,24 @@ class TagManagementScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'BENUTZERDEFINIERTE TAGS',
-                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+              Text(
+                l10n.customTagsHeader,
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
               ),
               TextButton.icon(
                 onPressed: () => _showAddTagDialog(context, ref),
                 icon: const Icon(Icons.add),
-                label: const Text('Tag erstellen'),
+                label: Text(l10n.createTag),
               ),
             ],
           ),
           const SizedBox(height: 8),
           Card(
             child: prefs.customTags.isEmpty
-                ? const Padding(
-                    padding: EdgeInsets.all(16),
+                ? Padding(
+                    padding: const EdgeInsets.all(16),
                     child: Center(
-                      child: Text('Noch keine eigenen Tags angelegt.'),
+                      child: Text(l10n.noCustomTags),
                     ),
                   )
                 : Column(

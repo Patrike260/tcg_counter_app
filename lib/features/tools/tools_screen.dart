@@ -6,6 +6,7 @@ import '../decks/deck_model.dart';
 import '../decks/deck_repository.dart';
 import '../matches/add_match_dialog.dart';
 import '../settings/app_preferences_service.dart';
+import '../../l10n/l10n.dart';
 import 'tool_preset_model.dart';
 
 const _playerAccents = [
@@ -174,7 +175,7 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
     if (!mounted) return;
     if (decks.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lege zuerst ein Deck an, um Matches zu erfassen.')),
+        SnackBar(content: Text(context.l10n.needDeckForMatch)),
       );
       return;
     }
@@ -201,8 +202,8 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
   Widget build(BuildContext context) {
     final presets = ref.watch(appPreferencesProvider).toolPresets;
     if (presets.isEmpty) {
-      return const Scaffold(
-        body: Center(child: Text('Keine Tool-Presets vorhanden.')),
+      return Scaffold(
+        body: Center(child: Text(context.l10n.noToolPresets)),
       );
     }
 
@@ -282,7 +283,7 @@ class _ToolsScreenState extends ConsumerState<ToolsScreen> {
                 child: FilledButton.icon(
                   onPressed: _openMatchDialog,
                   icon: const Icon(Icons.edit_note),
-                  label: const Text('Match erfassen'),
+                  label: Text(context.l10n.recordMatch),
                 ),
               ),
             ),
@@ -535,10 +536,10 @@ class _PlayerTileState extends State<_PlayerTile> {
             },
             textAlign: TextAlign.center,
             style: const TextStyle(fontWeight: FontWeight.w600),
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               isDense: true,
               border: InputBorder.none,
-              hintText: 'Name',
+              hintText: context.l10n.presetName,
             ),
           ),
           Expanded(
@@ -590,7 +591,7 @@ class _DeckPickDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Eigenes Deck wählen'),
+      title: Text(context.l10n.chooseOwnDeck),
       content: SizedBox(
         width: 360,
         child: ListView.separated(
@@ -601,7 +602,7 @@ class _DeckPickDialog extends StatelessWidget {
             final deck = decks[index];
             return ListTile(
               title: Text(deck.name),
-              subtitle: Text(deck.gameName ?? 'Unbekanntes Spiel'),
+              subtitle: Text(deck.gameName ?? context.l10n.noTcg),
               onTap: () => Navigator.of(context).pop(deck),
             );
           },
@@ -610,7 +611,7 @@ class _DeckPickDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Abbrechen'),
+          child: Text(context.l10n.cancel),
         ),
       ],
     );

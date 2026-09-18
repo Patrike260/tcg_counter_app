@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/supabase_constants.dart';
 import '../../core/widgets/game_logo.dart';
-import '../decks/deck_model.dart';
+import '../../l10n/l10n.dart';
 import '../decks/deck_repository.dart';
 
 class ArchetypeManagementScreen extends ConsumerStatefulWidget {
@@ -34,7 +34,6 @@ class _ArchetypeManagementScreenState extends ConsumerState<ArchetypeManagementS
   Future<void> _loadArchetypes(String gameId) async {
     setState(() => _isLoading = true);
     try {
-      final user = supabase.auth.currentUser;
       final response = await supabase
           .from('archetypes')
           .select('id, name, created_by')
@@ -49,7 +48,7 @@ class _ArchetypeManagementScreenState extends ConsumerState<ArchetypeManagementS
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler beim Laden: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(context.l10n.loadErrorWithDetails(e)), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -58,17 +57,18 @@ class _ArchetypeManagementScreenState extends ConsumerState<ArchetypeManagementS
   }
 
   Future<void> _deleteArchetype(Map<String, dynamic> item) async {
+    final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Archetyp löschen?'),
-        content: Text('Soll "${item['name']}" aus den automatischen Vorschlägen entfernt werden?'),
+        title: Text(l10n.deleteArchetypeQuestion),
+        content: Text(l10n.deleteArchetypeBody('${item['name']}')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Abbrechen')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel)),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Löschen'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -81,13 +81,13 @@ class _ArchetypeManagementScreenState extends ConsumerState<ArchetypeManagementS
       if (_selectedGameId != null) _loadArchetypes(_selectedGameId!);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('"${item['name']}" gelöscht.')),
+          SnackBar(content: Text(context.l10n.itemDeleted('${item['name']}'))),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler beim Löschen: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(context.l10n.deleteFailed(e)), backgroundColor: Colors.red),
         );
       }
     }
@@ -95,21 +95,22 @@ class _ArchetypeManagementScreenState extends ConsumerState<ArchetypeManagementS
 
   Future<void> _renameArchetype(Map<String, dynamic> item) async {
     final controller = TextEditingController(text: item['name']);
+    final l10n = context.l10n;
 
     final newName = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Archetyp umbenennen'),
+        title: Text(l10n.renameArchetypeTitle),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(labelText: 'Neuer Name', border: OutlineInputBorder()),
+          decoration: InputDecoration(labelText: l10n.newName, border: const OutlineInputBorder()),
           autofocus: true,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Abbrechen')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.cancel)),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: const Text('Speichern'),
+            child: Text(l10n.save),
           ),
         ],
       ),
@@ -122,13 +123,13 @@ class _ArchetypeManagementScreenState extends ConsumerState<ArchetypeManagementS
       if (_selectedGameId != null) _loadArchetypes(_selectedGameId!);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Umbenannt in "$newName".')),
+          SnackBar(content: Text(context.l10n.renamedTo(newName))),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler beim Umbenennen: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(context.l10n.renameFailed(e)), backgroundColor: Colors.red),
         );
       }
     }
@@ -136,11 +137,12 @@ class _ArchetypeManagementScreenState extends ConsumerState<ArchetypeManagementS
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final gamesAsync = ref.watch(gamesListProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gegner-Archetypen verwalten'),
+        title: Text(l10n.archetypesScreenTitle),
       ),
       body: Column(
         children: [
@@ -149,9 +151,9 @@ class _ArchetypeManagementScreenState extends ConsumerState<ArchetypeManagementS
             child: gamesAsync.when(
               data: (games) => DropdownButtonFormField<String>(
                 value: _selectedGameId,
-                decoration: const InputDecoration(
-                  labelText: 'Kartenspiel wählen',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.chooseCardGame,
+                  border: const OutlineInputBorder(),
                 ),
                 items: games
                     .map(
@@ -175,7 +177,7 @@ class _ArchetypeManagementScreenState extends ConsumerState<ArchetypeManagementS
                 },
               ),
               loading: () => const LinearProgressIndicator(),
-              error: (err, _) => Text('Fehler: $err'),
+              error: (err, _) => Text(l10n.errorWithDetails(err)),
             ),
           ),
           const Divider(height: 1),
@@ -183,7 +185,7 @@ class _ArchetypeManagementScreenState extends ConsumerState<ArchetypeManagementS
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _archetypes.isEmpty
-                    ? const Center(child: Text('Keine Archetypen für dieses TCG vorhanden.'))
+                    ? Center(child: Text(l10n.noArchetypesForGame))
                     : ListView.separated(
                         itemCount: _archetypes.length,
                         separatorBuilder: (_, __) => const Divider(height: 1),

@@ -17,6 +17,7 @@ import 'features/settings/settings_screen.dart';
 import 'features/stats/dashboard_repository.dart';
 import 'features/stats/dashboard_screen.dart';
 import 'features/tools/tools_screen.dart';
+import 'l10n/l10n.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,10 +63,14 @@ class MyApp extends ConsumerWidget {
     final authState = ref.watch(authStateProvider);
 
     final themePreset = ref.watch(appPreferencesProvider).themePreset;
+    final locale = ref.watch(appPreferencesProvider).localeOverride;
 
     return MaterialApp(
-      title: 'TCG Counter App',
+      onGenerateTitle: (context) => context.l10n.appTitle,
       theme: buildAppTheme(themePreset),
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: authState.when(
         data: (data) {
           if (data.session != null) {
@@ -77,7 +82,7 @@ class MyApp extends ConsumerWidget {
           body: Center(child: CircularProgressIndicator()),
         ),
         error: (error, _) => Scaffold(
-          body: Center(child: Text('Fehler: $error')),
+          body: Center(child: Text('Error: $error')),
         ),
       ),
     );
@@ -101,22 +106,23 @@ class _MainNavigationHostState extends ConsumerState<MainNavigationHost> {
     SettingsScreen(),
   ];
 
-  final List<String> _titles = const [
-    'Dashboard',
-    'Meine Decks',
-    'Tools',
-    'Einstellungen',
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final titles = [
+      l10n.navDashboard,
+      l10n.titleMyDecks,
+      l10n.navTools,
+      l10n.navSettings,
+    ];
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(_titles[_currentIndex]),
+        title: Text(titles[_currentIndex]),
         actions: [
           if (_currentIndex == 0) ...[
             IconButton(
-              tooltip: 'Dashboard-Filter',
+              tooltip: l10n.tooltipDashboardFilter,
               icon: const Icon(Icons.tune_outlined),
               onPressed: () {
                 Navigator.of(context).push(
@@ -127,7 +133,7 @@ class _MainNavigationHostState extends ConsumerState<MainNavigationHost> {
             const SizedBox(width: 12),
           ],
           IconButton(
-            tooltip: 'Münze & Würfel',
+            tooltip: l10n.tooltipDiceCoin,
             icon: const Icon(Icons.casino_outlined),
             onPressed: () {
               showDialog(
@@ -150,26 +156,26 @@ class _MainNavigationHostState extends ConsumerState<MainNavigationHost> {
             ref.invalidate(dashboardDataProvider);
           }
         },
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
-            label: 'Dashboard',
+            icon: const Icon(Icons.dashboard_outlined),
+            selectedIcon: const Icon(Icons.dashboard),
+            label: l10n.navDashboard,
           ),
           NavigationDestination(
-            icon: Icon(Icons.style_outlined),
-            selectedIcon: Icon(Icons.style),
-            label: 'Decks',
+            icon: const Icon(Icons.style_outlined),
+            selectedIcon: const Icon(Icons.style),
+            label: l10n.navDecks,
           ),
           NavigationDestination(
-            icon: Icon(Icons.calculate_outlined),
-            selectedIcon: Icon(Icons.calculate),
-            label: 'Tools',
+            icon: const Icon(Icons.calculate_outlined),
+            selectedIcon: const Icon(Icons.calculate),
+            label: l10n.navTools,
           ),
           NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
+            icon: const Icon(Icons.settings_outlined),
+            selectedIcon: const Icon(Icons.settings),
+            label: l10n.navSettings,
           ),
         ],
       ),

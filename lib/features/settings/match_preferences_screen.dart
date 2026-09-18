@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/widgets/game_logo.dart';
+import '../../l10n/l10n.dart';
 import '../decks/deck_model.dart';
 import '../decks/deck_repository.dart';
 import '../stats/dashboard_repository.dart';
@@ -11,13 +12,14 @@ class MatchPreferencesScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final prefs = ref.watch(appPreferencesProvider);
     final gamesAsync = ref.watch(gamesListProvider);
     final notifier = ref.read(appPreferencesProvider.notifier);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Match-Einstellungen'),
+        title: Text(l10n.matchSettingsTitle),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -40,7 +42,7 @@ class MatchPreferencesScreen extends ConsumerWidget {
                 return Column(
                   children: [
                     ListTile(
-                      title: const Text('Standard-Kartenspiel'),
+                      title: Text(l10n.defaultGame),
                       subtitle: Text(selectedGame?.name ?? 'Keines (immer manuell wählen)'),
                       leading: GameLogo(gameName: selectedGame?.name, size: 32),
                       trailing: const Icon(Icons.chevron_right),
@@ -48,6 +50,8 @@ class MatchPreferencesScreen extends ConsumerWidget {
                         final chosen = await showDialog<String?>(
                           context: context,
                           builder: (ctx) => _GamePickerDialog(
+                            title: l10n.defaultGame,
+                            clearLabel: 'Keines (immer manuell wählen)',
                             games: visibleGames,
                             selectedId: selectedGame?.id,
                           ),
@@ -61,17 +65,17 @@ class MatchPreferencesScreen extends ConsumerWidget {
                     ),
                     const Divider(height: 1),
                     ListTile(
-                      title: const Text('Standard Match-Format'),
+                      title: Text(l10n.defaultFormat),
                       subtitle: Text(
-                        prefs.defaultFormat == 'bo3' ? 'Best of 3 (BO3)' : 'Best of 1 (BO1)',
+                        prefs.defaultFormat == 'bo3' ? l10n.formatBo3 : l10n.formatBo1,
                       ),
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                       child: SegmentedButton<String>(
-                        segments: const [
-                          ButtonSegment(value: 'bo1', label: Text('BO1')),
-                          ButtonSegment(value: 'bo3', label: Text('BO3')),
+                        segments: [
+                          ButtonSegment(value: 'bo1', label: Text(l10n.bo1)),
+                          ButtonSegment(value: 'bo3', label: Text(l10n.bo3)),
                         ],
                         selected: {prefs.defaultFormat},
                         onSelectionChanged: (set) {
@@ -81,22 +85,22 @@ class MatchPreferencesScreen extends ConsumerWidget {
                     ),
                     const Divider(height: 1),
                     ListTile(
-                      title: const Text('Standard Zugreihenfolge'),
+                      title: Text(l10n.defaultTurnOrder),
                       subtitle: Text(
                         prefs.defaultTurnOrder == 'first'
-                            ? '1st (Immer Beginn)'
+                            ? l10n.turnFirstFull
                             : prefs.defaultTurnOrder == 'second'
-                                ? '2nd (Immer Zweiter)'
-                                : 'Keine Vorgabe',
+                                ? l10n.turnSecondFull
+                                : l10n.turnFree,
                       ),
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                       child: SegmentedButton<String>(
-                        segments: const [
-                          ButtonSegment(value: 'none', label: Text('Frei')),
-                          ButtonSegment(value: 'first', label: Text('1st')),
-                          ButtonSegment(value: 'second', label: Text('2nd')),
+                        segments: [
+                          ButtonSegment(value: 'none', label: Text(l10n.turnFreeLabel)),
+                          ButtonSegment(value: 'first', label: Text(l10n.turnFirstShort)),
+                          ButtonSegment(value: 'second', label: Text(l10n.turnSecondShort)),
                         ],
                         selected: {prefs.defaultTurnOrder},
                         onSelectionChanged: (set) {
@@ -106,7 +110,7 @@ class MatchPreferencesScreen extends ConsumerWidget {
                     ),
                     const Divider(height: 1),
                     SwitchListTile(
-                      title: const Text('Zuletzt gewählte Tags merken'),
+                      title: Text(l10n.rememberLastTags),
                       subtitle: const Text(
                         'Setzt die Tags des letzten Matches automatisch ein',
                       ),
@@ -122,7 +126,7 @@ class MatchPreferencesScreen extends ConsumerWidget {
               ),
               error: (err, _) => Padding(
                 padding: const EdgeInsets.all(16),
-                child: Text('Spiele konnten nicht geladen werden: $err'),
+                child: Text(l10n.gamesLoadError(err)),
               ),
             ),
           ),
@@ -147,9 +151,9 @@ class MatchPreferencesScreen extends ConsumerWidget {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const ListTile(
-                      title: Text('Zeitraum für Statistiken'),
-                      subtitle: Text('Wirkt auf Winrate, Nemesis und TCG-Performance'),
+                    ListTile(
+                      title: Text(l10n.statsTimeRange),
+                      subtitle: Text(l10n.statsTimeRangeSubtitle),
                     ),
                     Padding(
                       padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
@@ -158,7 +162,7 @@ class MatchPreferencesScreen extends ConsumerWidget {
                         runSpacing: 8,
                         children: DashboardTimeRange.values.map((range) {
                           return ChoiceChip(
-                            label: Text(range.label),
+                            label: Text(range.localizedLabel(l10n)),
                             selected: selectedRange == range,
                             onSelected: (_) =>
                                 notifier.setDashboardTimeRange(range.name),
@@ -168,7 +172,7 @@ class MatchPreferencesScreen extends ConsumerWidget {
                     ),
                     const Divider(height: 1),
                     ListTile(
-                      title: const Text('Spiel-Fokus für Dashboard'),
+                      title: Text(l10n.dashboardGameFocus),
                       subtitle: Text(dashboardGame?.name ?? 'Alle sichtbaren Spiele'),
                       leading: GameLogo(gameName: dashboardGame?.name, size: 32),
                       trailing: const Icon(Icons.chevron_right),
@@ -176,7 +180,7 @@ class MatchPreferencesScreen extends ConsumerWidget {
                         final chosen = await showDialog<String?>(
                           context: context,
                           builder: (ctx) => _GamePickerDialog(
-                            title: 'Dashboard-Spiel',
+                            title: l10n.dashboardGamePickerTitle,
                             clearLabel: 'Alle sichtbaren Spiele',
                             games: visibleGames,
                             selectedId: dashboardGame?.id,
@@ -214,8 +218,8 @@ class _GamePickerDialog extends StatelessWidget {
   const _GamePickerDialog({
     required this.games,
     required this.selectedId,
-    this.title = 'Standard-Kartenspiel',
-    this.clearLabel = 'Keines (immer manuell wählen)',
+    required this.title,
+    required this.clearLabel,
   });
 
   @override
@@ -247,7 +251,7 @@ class _GamePickerDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Abbrechen'),
+          child: Text(context.l10n.cancel),
         ),
       ],
     );

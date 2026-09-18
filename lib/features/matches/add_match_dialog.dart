@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../l10n/l10n.dart';
 import '../settings/app_preferences_service.dart';
 import '../stats/dashboard_repository.dart';
 import 'match_model.dart';
@@ -78,7 +79,7 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
     final opponentDeck = _opponentDeckController.text.trim();
     if (opponentDeck.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bitte das gegnerische Deck angeben.')),
+        SnackBar(content: Text(context.l10n.needOpponentDeck)),
       );
       return;
     }
@@ -126,7 +127,7 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(context.l10n.errorWithDetails(e)), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -139,9 +140,10 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
     final archetypesAsync = ref.watch(archetypesProvider(widget.gameId));
     final allAvailableTags = ref.watch(appPreferencesProvider).allAvailableTags;
     final isEditing = widget.match != null;
+    final l10n = context.l10n;
 
     return AlertDialog(
-      title: Text(isEditing ? 'Match bearbeiten' : 'Match eintragen'),
+      title: Text(isEditing ? l10n.editMatch : l10n.logMatch),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -150,7 +152,7 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
             Row(
               children: [
                 _ResultChoiceButton(
-                  label: 'Sieg',
+                  label: l10n.win,
                   icon: Icons.check_circle,
                   color: Colors.greenAccent,
                   selected: _result == 'win',
@@ -158,7 +160,7 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
                 ),
                 const SizedBox(width: 10),
                 _ResultChoiceButton(
-                  label: 'Niederlage',
+                  label: l10n.loss,
                   icon: Icons.cancel,
                   color: Colors.redAccent,
                   selected: _result == 'loss',
@@ -175,7 +177,7 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
                   size: 18,
                   color: _result == 'draw' ? Colors.grey.shade200 : Colors.grey,
                 ),
-                label: const Text('Unentschieden'),
+                label: Text(l10n.draw),
                 selected: _result == 'draw',
                 onSelected: (_) => setState(() => _result = 'draw'),
               ),
@@ -197,9 +199,9 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
                   return TextField(
                     controller: controller,
                     focusNode: focusNode,
-                    decoration: const InputDecoration(
-                      labelText: 'Gegnerisches Deck / Archetyp',
-                      border: OutlineInputBorder(),
+                    decoration: InputDecoration(
+                      labelText: l10n.opponentDeckArchetype,
+                      border: const OutlineInputBorder(),
                     ),
                   );
                 },
@@ -207,9 +209,9 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
               loading: () => const LinearProgressIndicator(),
               error: (_, _) => TextField(
                 controller: _opponentDeckController,
-                decoration: const InputDecoration(
-                  labelText: 'Gegnerisches Deck',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.opponentDeck,
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ),
@@ -219,10 +221,10 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     value: _format,
-                    decoration: const InputDecoration(labelText: 'Format', border: OutlineInputBorder()),
-                    items: const [
-                      DropdownMenuItem(value: 'bo1', child: Text('Best of 1')),
-                      DropdownMenuItem(value: 'bo3', child: Text('Best of 3')),
+                    decoration: InputDecoration(labelText: l10n.format, border: const OutlineInputBorder()),
+                    items: [
+                      DropdownMenuItem(value: 'bo1', child: Text(l10n.formatBo1)),
+                      DropdownMenuItem(value: 'bo3', child: Text(l10n.formatBo3)),
                     ],
                     onChanged: (val) => setState(() => _format = val!),
                   ),
@@ -231,10 +233,10 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
                 Expanded(
                   child: DropdownButtonFormField<String>(
                     value: _turnOrder,
-                    decoration: const InputDecoration(labelText: 'Reihenfolge', border: OutlineInputBorder()),
-                    items: const [
-                      DropdownMenuItem(value: 'first', child: Text('1st (Beginn)')),
-                      DropdownMenuItem(value: 'second', child: Text('2nd (Zweiter)')),
+                    decoration: InputDecoration(labelText: l10n.order, border: const OutlineInputBorder()),
+                    items: [
+                      DropdownMenuItem(value: 'first', child: Text(l10n.turnFirstFull)),
+                      DropdownMenuItem(value: 'second', child: Text(l10n.turnSecondFull)),
                     ],
                     onChanged: (val) => setState(() => _turnOrder = val!),
                   ),
@@ -242,7 +244,7 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
               ],
             ),
             const SizedBox(height: 16),
-            const Text('Event-Tags', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            Text(l10n.eventTags, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
             const SizedBox(height: 6),
             Wrap(
               spacing: 8,
@@ -266,17 +268,17 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
             const SizedBox(height: 16),
             TextField(
               controller: _scoreController,
-              decoration: const InputDecoration(
-                labelText: 'Score (optional, z. B. 2-1)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.scoreOptional,
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: _notesController,
-              decoration: const InputDecoration(
-                labelText: 'Notizen (optional)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.notesOptional,
+                border: const OutlineInputBorder(),
               ),
               maxLines: 2,
             ),
@@ -286,7 +288,7 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Abbrechen'),
+          child: Text(l10n.cancel),
         ),
         ElevatedButton(
           onPressed: _isLoading ? null : _submit,
@@ -296,7 +298,7 @@ class _AddMatchDialogState extends ConsumerState<AddMatchDialog> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text(isEditing ? 'Aktualisieren' : 'Speichern'),
+              : Text(l10n.save),
         ),
       ],
     );

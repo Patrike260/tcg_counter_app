@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/app_theme_presets.dart';
@@ -28,6 +29,8 @@ class AppPreferencesState {
   final String? dashboardGameId;
   final AppThemePreset themePreset;
   final List<DashboardTabConfig> dashboardTabs;
+  /// `system`, `de`, `en`, `fr` or `it`.
+  final String localeCode;
 
   // Die unveränderlichen Standard-Tags
   static const List<String> defaultBaseTags = [
@@ -51,7 +54,39 @@ class AppPreferencesState {
     this.dashboardGameId,
     this.themePreset = AppThemePreset.onePiece,
     this.dashboardTabs = DashboardTabConfig.defaults,
+    this.localeCode = 'system',
   });
+
+  static const supportedLocaleCodes = ['de', 'en', 'fr', 'it'];
+
+  bool get usesSystemLocale =>
+      localeCode.isEmpty || localeCode == 'system';
+
+  Locale? get localeOverride {
+    if (usesSystemLocale) return null;
+    return Locale(localeCode);
+  }
+
+  String localeLabel({
+    required String system,
+    required String german,
+    required String english,
+    required String french,
+    required String italian,
+  }) {
+    switch (localeCode) {
+      case 'de':
+        return german;
+      case 'en':
+        return english;
+      case 'fr':
+        return french;
+      case 'it':
+        return italian;
+      default:
+        return system;
+    }
+  }
 
   // Liefert alle verfügbaren Tags (Standard + Eigene ohne Duplikate)
   List<String> get allAvailableTags {
@@ -109,6 +144,7 @@ class AppPreferencesState {
     Object? dashboardGameId = _copyWithUnset,
     AppThemePreset? themePreset,
     List<DashboardTabConfig>? dashboardTabs,
+    String? localeCode,
   }) {
     return AppPreferencesState(
       defaultFormat: defaultFormat ?? this.defaultFormat,
@@ -127,6 +163,7 @@ class AppPreferencesState {
           : dashboardGameId as String?,
       themePreset: themePreset ?? this.themePreset,
       dashboardTabs: dashboardTabs ?? this.dashboardTabs,
+      localeCode: localeCode ?? this.localeCode,
     );
   }
 }
@@ -145,6 +182,7 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
   static const _keyThemePreset = 'pref_app_theme_preset';
   static const _legacyKeyThemePreset = 'pref_selected_theme_preset';
   static const _keyDashboardTabs = 'pref_dashboard_tabs_config';
+  static const _keyLocaleCode = 'pref_app_locale_code';
 
   @override
   AppPreferencesState build() {
@@ -164,7 +202,18 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
         prefs.getString(_keyThemePreset) ?? prefs.getString(_legacyKeyThemePreset),
       ),
       dashboardTabs: DashboardTabConfig.decodeList(prefs.getStringList(_keyDashboardTabs)),
+      localeCode: prefs.getString(_keyLocaleCode) ?? 'system',
     );
+  }
+
+  Future<void> setLocaleCode(String code) async {
+    final normalized = (code == 'system' ||
+            AppPreferencesState.supportedLocaleCodes.contains(code))
+        ? code
+        : 'system';
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setString(_keyLocaleCode, normalized);
+    state = state.copyWith(localeCode: normalized);
   }
 
   Future<void> setDefaultFormat(String format) async {

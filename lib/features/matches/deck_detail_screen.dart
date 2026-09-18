@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/utils/deck_list_url.dart';
+import '../../l10n/l10n.dart';
 import '../decks/deck_model.dart';
 import '../settings/app_preferences_service.dart';
 import '../stats/deck_stats_screen.dart';
 import 'add_match_dialog.dart';
-import 'match_model.dart';
 import 'match_repository.dart';
 
 class DeckDetailScreen extends ConsumerStatefulWidget {
@@ -25,13 +25,14 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
     final opened = await openDeckListUrl(widget.deck.deckListUrl);
     if (!opened && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Link konnte nicht geöffnet werden.')),
+        SnackBar(content: Text(context.l10n.linkOpenFailed)),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final matchesAsync = ref.watch(deckMatchesProvider(widget.deck.id));
     final allAvailableTags = ref.watch(appPreferencesProvider).allAvailableTags;
 
@@ -52,7 +53,7 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
           if (widget.deck.hasDeckListUrl)
             IconButton(
               icon: const Icon(Icons.open_in_new),
-              tooltip: 'Deckliste ansehen',
+              tooltip: l10n.viewDecklist,
               onPressed: () => _openDeckList(context),
             ),
           IconButton(
@@ -71,9 +72,9 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
       body: matchesAsync.when(
         data: (matches) {
           if (matches.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
-                'Noch keine Matches für dieses Deck erfasst.\nKlicke unten auf +, um ein Match hinzuzufügen!',
+                l10n.noMatchesForDeck,
                 textAlign: TextAlign.center,
               ),
             );
@@ -100,7 +101,7 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
                     child: OutlinedButton.icon(
                       onPressed: () => _openDeckList(context),
                       icon: const Icon(Icons.link),
-                      label: const Text('Deckliste ansehen'),
+                      label: Text(l10n.viewDecklist),
                     ),
                   ),
                 ),
@@ -114,19 +115,19 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
                     children: [
                       Column(
                         children: [
-                          const Text('Matches', style: TextStyle(color: Colors.grey)),
+                          Text(l10n.matches, style: const TextStyle(color: Colors.grey)),
                           Text('$total', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       Column(
                         children: [
-                          const Text('Siege', style: TextStyle(color: Colors.grey)),
+                          Text(l10n.wins, style: const TextStyle(color: Colors.grey)),
                           Text('$wins', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.green)),
                         ],
                       ),
                       Column(
                         children: [
-                          const Text('Winrate', style: TextStyle(color: Colors.grey)),
+                          Text(l10n.winrate, style: const TextStyle(color: Colors.grey)),
                           Text('$winRate%', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.amber)),
                         ],
                       ),
@@ -142,19 +143,19 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
                 child: Row(
                   children: [
                     ChoiceChip(
-                      label: const Text('Alle Formate'),
+                      label: Text(l10n.allFormats),
                       selected: _selectedFormat == 'all',
                       onSelected: (val) => setState(() => _selectedFormat = 'all'),
                     ),
                     const SizedBox(width: 6),
                     ChoiceChip(
-                      label: const Text('BO1'),
+                      label: Text(l10n.bo1),
                       selected: _selectedFormat == 'bo1',
                       onSelected: (val) => setState(() => _selectedFormat = 'bo1'),
                     ),
                     const SizedBox(width: 6),
                     ChoiceChip(
-                      label: const Text('BO3'),
+                      label: Text(l10n.bo3),
                       selected: _selectedFormat == 'bo3',
                       onSelected: (val) => setState(() => _selectedFormat = 'bo3'),
                     ),
@@ -178,7 +179,7 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
               // Match-Liste mit Swipe-to-Delete & Edit
               Expanded(
                 child: filteredMatches.isEmpty
-                    ? const Center(child: Text('Keine Matches für diesen Filter gefunden.'))
+                    ? Center(child: Text(l10n.noMatchesForFilter))
                     : ListView.builder(
                         itemCount: filteredMatches.length,
                         itemBuilder: (context, index) {
@@ -199,17 +200,17 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
                               return await showDialog<bool>(
                                 context: context,
                                 builder: (ctx) => AlertDialog(
-                                  title: const Text('Match löschen?'),
-                                  content: Text('Möchtest du das Spiel gegen ${match.opponentDeck} wirklich löschen?'),
+                                  title: Text(l10n.deleteMatchQuestion),
+                                  content: Text(l10n.deleteMatchBody(match.opponentDeck)),
                                   actions: [
                                     TextButton(
                                       onPressed: () => Navigator.of(ctx).pop(false),
-                                      child: const Text('Abbrechen'),
+                                      child: Text(l10n.cancel),
                                     ),
                                     ElevatedButton(
                                       style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                                       onPressed: () => Navigator.of(ctx).pop(true),
-                                      child: const Text('Löschen'),
+                                      child: Text(l10n.delete),
                                     ),
                                   ],
                                 ),
@@ -221,7 +222,7 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
                               ref.invalidate(deckMatchSummariesProvider);
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Match gelöscht.')),
+                                  SnackBar(content: Text(l10n.matchDeleted)),
                                 );
                               }
                             },
@@ -231,12 +232,12 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
                                 color: isWin ? Colors.green : (isLoss ? Colors.red : Colors.grey),
                                 size: 32,
                               ),
-                              title: Text('vs. ${match.opponentDeck}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                              title: Text(l10n.vsOpponent(match.opponentDeck), style: const TextStyle(fontWeight: FontWeight.bold)),
                               subtitle: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    '${match.matchFormat.toUpperCase()} • ${match.turnOrder == 'first' ? '1st' : '2nd'}${match.score != null ? ' • (${match.score})' : ''}',
+                                    '${match.matchFormat.toUpperCase()} • ${match.turnOrder == 'first' ? l10n.turnFirstShort : l10n.turnSecondShort}${match.score != null ? ' • (${match.score})' : ''}',
                                   ),
                                   if (match.tags.isNotEmpty)
                                     Padding(
@@ -286,7 +287,7 @@ class _DeckDetailScreenState extends ConsumerState<DeckDetailScreen> {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('Fehler: $err')),
+        error: (err, _) => Center(child: Text(l10n.errorWithDetails(err))),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

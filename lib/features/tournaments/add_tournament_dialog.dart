@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/widgets/game_logo.dart';
+import '../../l10n/l10n.dart';
 import '../decks/deck_model.dart';
 import '../decks/deck_repository.dart';
 import '../settings/app_preferences_service.dart';
@@ -84,7 +85,7 @@ class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
     final name = _nameController.text.trim();
     if (name.isEmpty || _selectedGameId == null || _selectedDeckId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bitte Name, TCG und Deck ausfüllen.')),
+        SnackBar(content: Text(context.l10n.needNameTcgDeck)),
       );
       return;
     }
@@ -93,25 +94,25 @@ class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
     final participants = _parseOptionalInt(_participantsController.text);
     if (_placementController.text.trim().isNotEmpty && placement == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Platzierung muss eine Zahl sein.')),
+        SnackBar(content: Text(context.l10n.placementMustBeNumber)),
       );
       return;
     }
     if (_participantsController.text.trim().isNotEmpty && participants == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Teilnehmerzahl muss eine Zahl sein.')),
+        SnackBar(content: Text(context.l10n.participantsMustBeNumber)),
       );
       return;
     }
     if (placement != null && placement < 1) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Platzierung muss mindestens 1 sein.')),
+        SnackBar(content: Text(context.l10n.placementMinOne)),
       );
       return;
     }
     if (participants != null && placement != null && placement > participants) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Platzierung darf nicht größer als die Teilnehmerzahl sein.')),
+        SnackBar(content: Text(context.l10n.placementVsField)),
       );
       return;
     }
@@ -154,7 +155,7 @@ class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Fehler: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text(context.l10n.errorWithDetails(e)), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -177,9 +178,10 @@ class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
     final scheme = Theme.of(context).colorScheme;
     final maxWidth = MediaQuery.sizeOf(context).width;
     final dialogWidth = maxWidth >= 520 ? 460.0 : maxWidth - 48;
+    final l10n = context.l10n;
 
     return AlertDialog(
-      title: Text(isEditing ? 'Turnier bearbeiten' : 'Turnier eintragen'),
+      title: Text(isEditing ? l10n.editTournament : l10n.addTournament),
       content: SizedBox(
         width: dialogWidth,
         child: SingleChildScrollView(
@@ -190,10 +192,10 @@ class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
             TextField(
               controller: _nameController,
               textCapitalization: TextCapitalization.sentences,
-              decoration: const InputDecoration(
-                labelText: 'Turnier-Name',
+              decoration: InputDecoration(
+                labelText: l10n.tournamentName,
                 hintText: 'Bandai Card Fest, Store Championship, …',
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 16),
@@ -212,11 +214,11 @@ class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
                   key: ValueKey('tournament-game-$selectedId'),
                   initialValue: selectedId,
                   isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Kartenspiel',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.cardGame,
+                    border: const OutlineInputBorder(),
                   ),
-                  hint: const Text('TCG wählen'),
+                  hint: Text(l10n.chooseTcg),
                   items: visibleGames
                       .map(
                         (game) => DropdownMenuItem(
@@ -241,7 +243,7 @@ class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
                 );
               },
               loading: () => const SizedBox(height: 4, child: LinearProgressIndicator()),
-              error: (err, _) => Text('Spiele konnten nicht geladen werden: $err'),
+              error: (err, _) => Text(l10n.gamesLoadError(err)),
             ),
             const SizedBox(height: 16),
             decksAsync.when(
@@ -269,22 +271,22 @@ class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
                     : null;
 
                 if (_selectedGameId == null) {
-                  return const InputDecorator(
+                  return InputDecorator(
                     decoration: InputDecoration(
-                      labelText: 'Deck',
-                      border: OutlineInputBorder(),
+                      labelText: l10n.playedDeck,
+                      border: const OutlineInputBorder(),
                     ),
-                    child: Text('Zuerst ein Kartenspiel wählen'),
+                    child: Text(l10n.chooseGameFirst),
                   );
                 }
 
                 if (filtered.isEmpty) {
-                  return const InputDecorator(
+                  return InputDecorator(
                     decoration: InputDecoration(
-                      labelText: 'Deck',
-                      border: OutlineInputBorder(),
+                      labelText: l10n.playedDeck,
+                      border: const OutlineInputBorder(),
                     ),
-                    child: Text('Keine Decks für dieses TCG'),
+                    child: Text(l10n.noDecksForTcg),
                   );
                 }
 
@@ -292,11 +294,11 @@ class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
                   key: ValueKey('tournament-deck-$_selectedGameId-$selectedDeckId'),
                   initialValue: selectedDeckId,
                   isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Gespieltes Deck',
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    labelText: l10n.playedDeck,
+                    border: const OutlineInputBorder(),
                   ),
-                  hint: const Text('Deck wählen'),
+                  hint: Text(l10n.chooseDeck),
                   items: filtered
                       .map(
                         (deck) => DropdownMenuItem(
@@ -309,7 +311,7 @@ class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
                 );
               },
               loading: () => const SizedBox(height: 4, child: LinearProgressIndicator()),
-              error: (err, _) => Text('Decks konnten nicht geladen werden: $err'),
+              error: (err, _) => Text(l10n.decksLoadError(err)),
             ),
             const SizedBox(height: 16),
             Row(
@@ -319,26 +321,26 @@ class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
                     controller: _placementController,
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: const InputDecoration(
-                      labelText: 'Platz',
+                    decoration: InputDecoration(
+                      labelText: l10n.place,
                       hintText: '8',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                 ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8),
-                  child: Text('von'),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(l10n.from),
                 ),
                 Expanded(
                   child: TextField(
                     controller: _participantsController,
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: const InputDecoration(
-                      labelText: 'Teilnehmern',
+                    decoration: InputDecoration(
+                      labelText: l10n.participants,
                       hintText: '64',
-                      border: OutlineInputBorder(),
+                      border: const OutlineInputBorder(),
                     ),
                   ),
                 ),
@@ -352,13 +354,13 @@ class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
                 side: BorderSide(color: scheme.outline.withValues(alpha: 0.4)),
               ),
               leading: Icon(Icons.event_outlined, color: scheme.primary),
-              title: const Text('Datum'),
+              title: Text(l10n.date),
               subtitle: Text(_dateLabel(_tournamentDate)),
               trailing: const Icon(Icons.chevron_right),
               onTap: _pickDate,
             ),
             const SizedBox(height: 16),
-            const Text('Event-Tags', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            Text(l10n.eventTags, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
             const SizedBox(height: 6),
             Wrap(
               spacing: 8,
@@ -384,9 +386,9 @@ class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
             TextField(
               controller: _notesController,
               maxLines: 3,
-              decoration: const InputDecoration(
-                labelText: 'Notizen (optional)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: l10n.notesOptional,
+                border: const OutlineInputBorder(),
               ),
             ),
           ],
@@ -396,7 +398,7 @@ class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
       actions: [
         TextButton(
           onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-          child: const Text('Abbrechen'),
+          child: Text(l10n.cancel),
         ),
         FilledButton(
           onPressed: _isLoading ? null : _submit,
@@ -406,7 +408,7 @@ class _AddTournamentDialogState extends ConsumerState<AddTournamentDialog> {
                   height: 16,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text(isEditing ? 'Aktualisieren' : 'Speichern'),
+              : Text(l10n.save),
         ),
       ],
     );

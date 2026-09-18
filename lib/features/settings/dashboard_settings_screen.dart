@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../l10n/l10n.dart';
 import '../stats/dashboard_config_model.dart';
 import '../stats/dashboard_widgets.dart';
 import 'app_preferences_service.dart';
@@ -24,6 +25,7 @@ class DashboardSettingsScreen extends ConsumerWidget {
       builder: (ctx) {
         return StatefulBuilder(
           builder: (ctx, setModalState) {
+            final sheetL10n = ctx.l10n;
             return SafeArea(
               child: SizedBox(
                 height: MediaQuery.sizeOf(ctx).height * 0.72,
@@ -37,7 +39,7 @@ class DashboardSettingsScreen extends ConsumerWidget {
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              'Kacheln in „${tab.title}“',
+                              'Kacheln in „${tab.localizedTitle(sheetL10n)}“',
                               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                             ),
                           ),
@@ -68,7 +70,7 @@ class DashboardSettingsScreen extends ConsumerWidget {
                           return CheckboxListTile(
                             key: ValueKey(key),
                             value: selected.contains(key),
-                            title: Text(DashboardWidgetKeys.labelOf(key)),
+                            title: Text(DashboardWidgetKeys.labelOf(key, sheetL10n)),
                             secondary: const Icon(Icons.drag_handle),
                             controlAffinity: ListTileControlAffinity.leading,
                             onChanged: (checked) {
@@ -93,7 +95,7 @@ class DashboardSettingsScreen extends ConsumerWidget {
                             final keys = ordered.where(selected.contains).toList();
                             Navigator.pop(ctx, keys);
                           },
-                          child: const Text('Übernehmen'),
+                          child: Text(sheetL10n.apply),
                         ),
                       ),
                     ),
@@ -119,18 +121,19 @@ class DashboardSettingsScreen extends ConsumerWidget {
   }
 
   Future<void> _confirmReset(BuildContext context, WidgetRef ref) async {
+    final l10n = context.l10n;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Auf Standard zurücksetzen?'),
+        title: Text(l10n.resetDashboardQuestion),
         content: const Text(
           'Allround, Turnier und Minimal werden wiederhergestellt. Eigene Tabs gehen verloren.',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Abbrechen')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.cancel)),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Zurücksetzen'),
+            child: Text(l10n.reset),
           ),
         ],
       ),
@@ -142,6 +145,7 @@ class DashboardSettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final tabs = ref.watch(appPreferencesProvider).dashboardTabs;
     final notifier = ref.read(appPreferencesProvider.notifier);
     final enabledCount = tabs.where((tab) => tab.isEnabled).length;
@@ -149,10 +153,10 @@ class DashboardSettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard konfigurieren'),
+        title: Text(l10n.dashboardConfigTitle),
         actions: [
           IconButton(
-            tooltip: 'Neues Dashboard',
+            tooltip: l10n.customDashboard,
             icon: const Icon(Icons.add),
             onPressed: () => _addCustomTab(context, ref),
           ),
@@ -161,10 +165,10 @@ class DashboardSettingsScreen extends ConsumerWidget {
             onSelected: (value) {
               if (value == 'reset') _confirmReset(context, ref);
             },
-            itemBuilder: (context) => const [
+            itemBuilder: (context) => [
               PopupMenuItem(
                 value: 'reset',
-                child: Text('Auf Standard zurücksetzen'),
+                child: Text(l10n.resetToDefault),
               ),
             ],
           ),
@@ -194,14 +198,17 @@ class DashboardSettingsScreen extends ConsumerWidget {
                         backgroundColor: scheme.primary.withValues(alpha: 0.16),
                         child: Icon(dashboardTabIcon(tab.iconName), color: scheme.primary),
                       ),
-                      title: Text(tab.title, style: const TextStyle(fontWeight: FontWeight.w700)),
+                      title: Text(
+                        tab.localizedTitle(l10n),
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
                       subtitle: Text(
-                        tab.isPreset ? 'Standard-Tab' : 'Eigenes Dashboard',
+                        tab.isPreset ? 'Standard-Tab' : l10n.customDashboard,
                       ),
                       onChanged: (enabled) {
                         if (!enabled && enabledCount <= 1) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Mindestens ein Tab muss aktiv bleiben.')),
+                            SnackBar(content: Text(l10n.atLeastOneTab)),
                           );
                           return;
                         }
@@ -214,13 +221,13 @@ class DashboardSettingsScreen extends ConsumerWidget {
                         key: ValueKey('tab-tag-${tab.id}-${tab.selectedTag}'),
                         initialValue: tab.selectedTag ?? '__all__',
                         isExpanded: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Fokus-Event-Tag',
-                          border: OutlineInputBorder(),
+                        decoration: InputDecoration(
+                          labelText: l10n.focusEventTag,
+                          border: const OutlineInputBorder(),
                           isDense: true,
                         ),
                         items: [
-                          const DropdownMenuItem(value: '__all__', child: Text('Alle Events')),
+                          DropdownMenuItem(value: '__all__', child: Text(l10n.allEvents)),
                           for (final tag in {
                             ...ref.watch(appPreferencesProvider).allAvailableTags,
                             if (tab.selectedTag != null) tab.selectedTag!,
@@ -241,7 +248,9 @@ class DashboardSettingsScreen extends ConsumerWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              tab.sanitizedWidgetKeys.map(DashboardWidgetKeys.labelOf).join(' • '),
+                              tab.sanitizedWidgetKeys
+                                  .map((key) => DashboardWidgetKeys.labelOf(key, l10n))
+                                  .join(' • '),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
@@ -251,13 +260,13 @@ class DashboardSettingsScreen extends ConsumerWidget {
                             ),
                           ),
                           IconButton(
-                            tooltip: 'Kacheln bearbeiten',
+                            tooltip: l10n.edit,
                             icon: const Icon(Icons.edit_outlined),
                             onPressed: () => _editTabWidgets(context, ref, tab),
                           ),
                           if (!tab.isPreset)
                             IconButton(
-                              tooltip: 'Tab löschen',
+                              tooltip: l10n.delete,
                               icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
                               onPressed: () => notifier.deleteDashboardTab(tab.id),
                             ),
@@ -297,8 +306,9 @@ class _CreateDashboardTabDialogState extends ConsumerState<_CreateDashboardTabDi
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return AlertDialog(
-      title: const Text('Eigenes Dashboard'),
+      title: Text(l10n.customDashboard),
       content: SizedBox(
         width: 420,
         child: SingleChildScrollView(
@@ -309,14 +319,14 @@ class _CreateDashboardTabDialogState extends ConsumerState<_CreateDashboardTabDi
               TextField(
                 controller: _titleController,
                 textCapitalization: TextCapitalization.sentences,
-                decoration: const InputDecoration(
-                  labelText: 'Titel',
+                decoration: InputDecoration(
+                  labelText: l10n.tabTitle,
                   hintText: 'z. B. Locals',
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),
-              const Text('Icon', style: TextStyle(fontWeight: FontWeight.w600)),
+              Text(l10n.icon, style: const TextStyle(fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -339,12 +349,12 @@ class _CreateDashboardTabDialogState extends ConsumerState<_CreateDashboardTabDi
                 key: ValueKey('new-tab-tag-$_selectedTag'),
                 initialValue: _selectedTag ?? '__all__',
                 isExpanded: true,
-                decoration: const InputDecoration(
-                  labelText: 'Fokus-Event-Tag (optional)',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: l10n.focusEventTagOptional,
+                  border: const OutlineInputBorder(),
                 ),
                 items: [
-                  const DropdownMenuItem(value: '__all__', child: Text('Alle Events')),
+                  DropdownMenuItem(value: '__all__', child: Text(l10n.allEvents)),
                   for (final tag in ref.watch(appPreferencesProvider).allAvailableTags)
                     DropdownMenuItem(value: tag, child: Text(tag)),
                 ],
@@ -353,13 +363,13 @@ class _CreateDashboardTabDialogState extends ConsumerState<_CreateDashboardTabDi
                 }),
               ),
               const SizedBox(height: 16),
-              const Text('Start-Kacheln', style: TextStyle(fontWeight: FontWeight.w600)),
+              Text(l10n.startTiles, style: const TextStyle(fontWeight: FontWeight.w600)),
               for (final key in DashboardWidgetKeys.all)
                 CheckboxListTile(
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   value: _selectedWidgets.contains(key),
-                  title: Text(DashboardWidgetKeys.labelOf(key)),
+                  title: Text(DashboardWidgetKeys.labelOf(key, l10n)),
                   onChanged: (checked) {
                     setState(() {
                       if (checked == true) {
@@ -375,7 +385,7 @@ class _CreateDashboardTabDialogState extends ConsumerState<_CreateDashboardTabDi
         ),
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Abbrechen')),
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.cancel)),
         FilledButton(
           onPressed: () {
             final title = _titleController.text.trim();
@@ -393,7 +403,7 @@ class _CreateDashboardTabDialogState extends ConsumerState<_CreateDashboardTabDi
               ),
             );
           },
-          child: const Text('Anlegen'),
+          child: Text(l10n.create),
         ),
       ],
     );

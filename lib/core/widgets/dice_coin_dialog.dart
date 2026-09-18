@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import '../../l10n/l10n.dart';
 
 class DiceCoinDialog extends StatefulWidget {
   const DiceCoinDialog({super.key});
@@ -110,7 +111,7 @@ class _DiceCoinDialogState extends State<DiceCoinDialog>
       backgroundColor: _surface,
       surfaceTintColor: Colors.deepPurple.withValues(alpha: 0.2),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: const Text('Auslosen'),
+      title: Text(context.l10n.rollTitle),
       content: SizedBox(
         width: 380,
         child: SingleChildScrollView(
@@ -129,11 +130,11 @@ class _DiceCoinDialogState extends State<DiceCoinDialog>
                   visualDensity: VisualDensity.compact,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                segments: const [
-                  ButtonSegment(value: _RollMode.d20, label: Text('D20')),
-                  ButtonSegment(value: _RollMode.d6, label: Text('D6')),
-                  ButtonSegment(value: _RollMode.coin, label: Text('Münze')),
-                  ButtonSegment(value: _RollMode.multi, label: Text('Multi')),
+                segments: [
+                  ButtonSegment(value: _RollMode.d20, label: Text(context.l10n.d20)),
+                  ButtonSegment(value: _RollMode.d6, label: Text(context.l10n.d6)),
+                  ButtonSegment(value: _RollMode.coin, label: Text(context.l10n.coin)),
+                  ButtonSegment(value: _RollMode.multi, label: Text(context.l10n.multi)),
                 ],
                 selected: {_mode},
                 onSelectionChanged: _busy
@@ -164,7 +165,7 @@ class _DiceCoinDialogState extends State<DiceCoinDialog>
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Schließen'),
+          child: Text(context.l10n.close),
         ),
       ],
     );
@@ -197,7 +198,7 @@ class _DiceCoinDialogState extends State<DiceCoinDialog>
         FilledButton.icon(
           onPressed: _busy ? null : () => _rollSingle(sides),
           icon: const Icon(Icons.casino),
-          label: Text('D$sides würfeln'),
+          label: Text(context.l10n.rollDie(sides)),
         ),
         const SizedBox(height: 10),
         Text(
@@ -236,7 +237,7 @@ class _DiceCoinDialogState extends State<DiceCoinDialog>
         FilledButton.icon(
           onPressed: _busy ? null : _flipCoin,
           icon: const Icon(Icons.sync),
-          label: const Text('Münze werfen'),
+          label: Text(context.l10n.flipCoin),
         ),
         const SizedBox(height: 10),
         Text(
@@ -383,7 +384,7 @@ class _DiceCoinDialogState extends State<DiceCoinDialog>
         FilledButton.icon(
           onPressed: _busy ? null : _rollMulti,
           icon: const Icon(Icons.casino),
-          label: Text('$_multiCount×D$_multiSides würfeln'),
+          label: Text(context.l10n.rollMulti(_multiCount, _multiSides)),
         ),
       ],
     );

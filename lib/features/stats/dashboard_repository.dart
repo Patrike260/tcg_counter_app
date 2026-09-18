@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/constants/supabase_constants.dart';
+import '../../l10n/app_localizations.dart';
 import '../matches/match_model.dart';
 import '../settings/app_preferences_service.dart';
 
@@ -22,6 +23,21 @@ enum DashboardTimeRange {
         return 'Jahr';
       case DashboardTimeRange.allTime:
         return 'Gesamt';
+    }
+  }
+
+  String localizedLabel(AppLocalizations l10n) {
+    switch (this) {
+      case DashboardTimeRange.week:
+        return l10n.rangeWeek;
+      case DashboardTimeRange.month:
+        return l10n.rangeMonth;
+      case DashboardTimeRange.season:
+        return l10n.rangeSeason;
+      case DashboardTimeRange.year:
+        return l10n.rangeYear;
+      case DashboardTimeRange.allTime:
+        return l10n.rangeAllTime;
     }
   }
 

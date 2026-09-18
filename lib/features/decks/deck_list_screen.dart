@@ -4,6 +4,7 @@ import '../../core/theme/tcg_colors.dart';
 import '../../core/utils/deck_list_url.dart';
 import '../../core/utils/game_colors.dart';
 import '../../core/widgets/game_logo.dart';
+import '../../l10n/l10n.dart';
 import '../matches/deck_detail_screen.dart';
 import '../matches/match_repository.dart';
 import 'add_deck_dialog.dart';
@@ -14,15 +15,16 @@ class DeckListScreen extends ConsumerWidget {
   const DeckListScreen({super.key});
 
   void _showDeleteDialog(BuildContext context, WidgetRef ref, Deck deck) {
+    final l10n = context.l10n;
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Deck wirklich löschen?'),
-        content: Text('Das Deck "${deck.name}" und ALLE dazugehörigen Matches werden unwiderruflich gelöscht!'),
+        title: Text(l10n.deleteDeckQuestion),
+        content: Text(l10n.deleteDeckBody(deck.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Abbrechen'),
+            child: Text(l10n.cancel),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -33,11 +35,11 @@ class DeckListScreen extends ConsumerWidget {
               ref.invalidate(deckMatchSummariesProvider);
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Deck "${deck.name}" gelöscht.')),
+                  SnackBar(content: Text(context.l10n.deckDeleted(deck.name))),
                 );
               }
             },
-            child: const Text('Löschen'),
+            child: Text(l10n.delete),
           ),
         ],
       ),
@@ -49,26 +51,27 @@ class DeckListScreen extends ConsumerWidget {
     ref.invalidate(userDecksProvider);
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Deck "${deck.name}" archiviert.')),
+        SnackBar(content: Text(context.l10n.deckArchived(deck.name))),
       );
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
     final decksAsync = ref.watch(userDecksProvider);
     final summariesAsync = ref.watch(deckMatchSummariesProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Meine Decks'),
+        title: Text(l10n.titleMyDecks),
       ),
       body: decksAsync.when(
         data: (decks) {
           if (decks.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
-                'Noch keine Decks angelegt.\nTippe unten rechts auf +, um dein erstes Deck zu erstellen!',
+                l10n.noDecksYet,
                 textAlign: TextAlign.center,
               ),
             );
@@ -114,7 +117,7 @@ class DeckListScreen extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('Fehler: $err')),
+        error: (err, _) => Center(child: Text(l10n.errorWithDetails(err))),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -146,6 +149,7 @@ class _DeckSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     final baseColor = getGameBaseColor(
       deck.gameName,
       fallback: Theme.of(context).colorScheme.primaryContainer,
@@ -196,7 +200,7 @@ class _DeckSummaryCard extends StatelessWidget {
                               border: Border.all(color: baseColor.withValues(alpha: 0.55)),
                             ),
                             child: Text(
-                              deck.gameName ?? 'Unbekannt',
+                              deck.gameName ?? l10n.noTcg,
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -211,8 +215,8 @@ class _DeckSummaryCard extends StatelessWidget {
                               const SizedBox(width: 4),
                               Text(
                                 summariesLoading && summary.totalMatches == 0
-                                    ? '… Matches'
-                                    : '${summary.totalMatches} ${summary.totalMatches == 1 ? 'Match' : 'Matches'}',
+                                    ? '… ${l10n.matchPlural}'
+                                    : '${summary.totalMatches} ${summary.totalMatches == 1 ? l10n.matchSingular : l10n.matchPlural}',
                                 style: const TextStyle(fontSize: 12, color: Colors.white70),
                               ),
                             ],
@@ -234,7 +238,7 @@ class _DeckSummaryCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 if (deck.hasDeckListUrl)
                   IconButton(
-                    tooltip: 'Deckliste öffnen',
+                    tooltip: l10n.viewDecklist,
                     icon: Icon(
                       Icons.open_in_new,
                       color: Theme.of(context).colorScheme.primary,
@@ -243,7 +247,7 @@ class _DeckSummaryCard extends StatelessWidget {
                       final opened = await openDeckListUrl(deck.deckListUrl);
                       if (!opened && context.mounted) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Link konnte nicht geöffnet werden.')),
+                          SnackBar(content: Text(l10n.linkOpenFailed)),
                         );
                       }
                     },
@@ -275,38 +279,41 @@ class _DeckSummaryCard extends StatelessWidget {
                 PopupMenuButton<String>(
                   icon: const Icon(Icons.more_vert, color: Colors.white70),
                   onSelected: onMenuSelected,
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, size: 20),
-                          SizedBox(width: 8),
-                          Text('Bearbeiten'),
-                        ],
+                  itemBuilder: (context) {
+                    final menuL10n = context.l10n;
+                    return [
+                      PopupMenuItem(
+                        value: 'edit',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.edit, size: 20),
+                            const SizedBox(width: 8),
+                            Text(menuL10n.edit),
+                          ],
+                        ),
                       ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'archive',
-                      child: Row(
-                        children: [
-                          Icon(Icons.archive_outlined, size: 20),
-                          SizedBox(width: 8),
-                          Text('Archivieren'),
-                        ],
+                      PopupMenuItem(
+                        value: 'archive',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.archive_outlined, size: 20),
+                            const SizedBox(width: 8),
+                            Text(menuL10n.archive),
+                          ],
+                        ),
                       ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
-                          SizedBox(width: 8),
-                          Text('Löschen', style: TextStyle(color: Colors.redAccent)),
-                        ],
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.delete_outline, size: 20, color: Colors.redAccent),
+                            const SizedBox(width: 8),
+                            Text(menuL10n.delete, style: const TextStyle(color: Colors.redAccent)),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ];
+                  },
                 ),
               ],
             ),
