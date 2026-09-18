@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../l10n/l10n.dart';
 import 'widgets/chakra_tracker_view.dart';
+import 'widgets/dice_coin_view.dart';
 import 'widgets/life_counter_view.dart';
+import 'widgets/riftbound_tracker_view.dart';
 import 'widgets/tournament_timer_view.dart';
 
 class ToolsScreen extends StatelessWidget {
@@ -13,7 +15,7 @@ class ToolsScreen extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
 
     return DefaultTabController(
-      length: 3,
+      length: 5,
       child: Column(
         children: [
           Padding(
@@ -33,8 +35,10 @@ class ToolsScreen extends StatelessWidget {
               unselectedLabelColor: scheme.onSurface.withValues(alpha: 0.55),
               labelPadding: const EdgeInsets.symmetric(horizontal: 4),
               tabs: [
-                Tab(text: l10n.toolsTabChakra),
                 Tab(text: l10n.toolsTabLife),
+                Tab(text: l10n.toolsTabChakra),
+                Tab(text: l10n.toolsTabRiftbound),
+                Tab(text: l10n.toolsTabDice),
                 Tab(text: l10n.toolsTabTimer),
               ],
             ),
@@ -42,8 +46,10 @@ class ToolsScreen extends StatelessWidget {
           const Expanded(
             child: TabBarView(
               children: [
-                ChakraTrackerView(),
                 LifeCounterView(),
+                ChakraTrackerView(),
+                RiftboundTrackerView(),
+                DiceCoinView(),
                 TournamentTimerView(),
               ],
             ),

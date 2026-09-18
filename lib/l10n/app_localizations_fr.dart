@@ -1121,4 +1121,48 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get timerPreset50 => '50 min';
+
+  @override
+  String get toolsTabDice => 'Dés et pièce';
+
+  @override
+  String get toolsTabRiftbound => 'Score Riftbound';
+
+  @override
+  String get coinHeads => 'Face';
+
+  @override
+  String get coinTails => 'Pile';
+
+  @override
+  String get randomStarter => 'Premier joueur aléatoire';
+
+  @override
+  String starterResult(String name) {
+    return '$name commence';
+  }
+
+  @override
+  String get playerOne => 'Joueur 1';
+
+  @override
+  String get playerTwo => 'Joueur 2';
+
+  @override
+  String get riftboundGoal => 'Points pour gagner';
+
+  @override
+  String get riftboundGoal8 => '8 pts';
+
+  @override
+  String get riftboundGoal10 => '10 pts';
+
+  @override
+  String get riftboundWinBadge => 'Victoire !';
+
+  @override
+  String get riftboundPlusBattlefield => '+1 champ de bataille';
+
+  @override
+  String get saveMatch => 'Enregistrer le match';
 }

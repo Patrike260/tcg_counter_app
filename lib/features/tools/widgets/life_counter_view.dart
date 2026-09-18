@@ -2,19 +2,25 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../l10n/l10n.dart';
+import '../../decks/deck_model.dart';
+import '../../decks/deck_repository.dart';
+import '../../matches/add_match_dialog.dart';
 
-class LifeCounterView extends StatefulWidget {
+class LifeCounterView extends ConsumerStatefulWidget {
   const LifeCounterView({super.key});
 
   @override
-  State<LifeCounterView> createState() => _LifeCounterViewState();
+  ConsumerState<LifeCounterView> createState() => _LifeCounterBoardState();
 }
 
-class _LifeCounterViewState extends State<LifeCounterView> {
+class _LifeCounterBoardState extends ConsumerState<LifeCounterView> {
   int _starting = 20;
   int _you = 20;
   int _opponent = 20;
+
+  bool get _gameOver => _you == 0 || _opponent == 0;
 
   void _setPreset(int value) {
     HapticFeedback.mediumImpact();
@@ -35,6 +41,67 @@ class _LifeCounterViewState extends State<LifeCounterView> {
 
   int get _tapStep => _starting >= 1000 ? 100 : 1;
   int get _holdStep => _starting >= 1000 ? 500 : 5;
+
+  Future<void> _saveMatch() async {
+    final l10n = context.l10n;
+    List<Deck> resolved;
+    try {
+      resolved = await ref.read(userDecksProvider.future);
+    } catch (_) {
+      resolved = const [];
+    }
+    if (!mounted) return;
+    if (resolved.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.needDeckForMatch)),
+      );
+      return;
+    }
+
+    final chosen = await showDialog<Deck>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.chooseOwnDeck),
+        content: SizedBox(
+          width: 360,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: resolved.length,
+            itemBuilder: (context, index) {
+              final deck = resolved[index];
+              return ListTile(
+                title: Text(deck.name),
+                subtitle: Text(deck.gameName ?? ''),
+                onTap: () => Navigator.pop(ctx, deck),
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(l10n.cancel),
+          ),
+        ],
+      ),
+    );
+    if (chosen == null || !mounted) return;
+
+    final result = _you == _opponent
+        ? 'draw'
+        : (_you > _opponent ? 'win' : 'loss');
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => AddMatchDialog(
+        deckId: chosen.id,
+        gameId: chosen.gameId,
+        suggestedResult: result,
+        suggestedScore: '$_you-$_opponent',
+        suggestedNotes: 'Life Counter: $_you – $_opponent',
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,15 +124,31 @@ class _LifeCounterViewState extends State<LifeCounterView> {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: SegmentedButton<int>(
-            segments: [
-              ButtonSegment(value: 20, label: Text(l10n.lifePresetMtg)),
-              ButtonSegment(value: 50, label: Text(l10n.lifePresetOp)),
-              ButtonSegment(value: 8000, label: Text(l10n.lifePresetYgo)),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Column(
+            children: [
+              SegmentedButton<int>(
+                segments: [
+                  ButtonSegment(value: 20, label: Text(l10n.lifePresetMtg)),
+                  ButtonSegment(value: 50, label: Text(l10n.lifePresetOp)),
+                  ButtonSegment(value: 8000, label: Text(l10n.lifePresetYgo)),
+                ],
+                selected: {_starting},
+                onSelectionChanged: (values) => _setPreset(values.first),
+              ),
+              if (_gameOver) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: FilledButton.icon(
+                    onPressed: _saveMatch,
+                    icon: const Icon(Icons.save_outlined),
+                    label: Text(l10n.saveMatch),
+                  ),
+                ),
+              ],
             ],
-            selected: {_starting},
-            onSelectionChanged: (values) => _setPreset(values.first),
           ),
         ),
         Expanded(

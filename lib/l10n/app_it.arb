@@ -333,5 +333,19 @@
   "timerPause": "Pausa",
   "timerPreset30": "30 min",
   "timerPreset45": "45 min",
-  "timerPreset50": "50 min"
+  "timerPreset50": "50 min",
+  "toolsTabDice": "Dadi e moneta",
+  "toolsTabRiftbound": "Punteggio Riftbound",
+  "coinHeads": "Testa",
+  "coinTails": "Croce",
+  "randomStarter": "Primo giocatore casuale",
+  "starterResult": "Inizia {name}",
+  "playerOne": "Giocatore 1",
+  "playerTwo": "Giocatore 2",
+  "riftboundGoal": "Punti per vincere",
+  "riftboundGoal8": "8 pt",
+  "riftboundGoal10": "10 pt",
+  "riftboundWinBadge": "Vittoria!",
+  "riftboundPlusBattlefield": "+1 campo di battaglia",
+  "saveMatch": "Salva match"
 }

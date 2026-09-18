@@ -2105,6 +2105,90 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'50 min'**
   String get timerPreset50;
+
+  /// No description provided for @toolsTabDice.
+  ///
+  /// In en, this message translates to:
+  /// **'Dice & coin'**
+  String get toolsTabDice;
+
+  /// No description provided for @toolsTabRiftbound.
+  ///
+  /// In en, this message translates to:
+  /// **'Riftbound Score'**
+  String get toolsTabRiftbound;
+
+  /// No description provided for @coinHeads.
+  ///
+  /// In en, this message translates to:
+  /// **'Heads'**
+  String get coinHeads;
+
+  /// No description provided for @coinTails.
+  ///
+  /// In en, this message translates to:
+  /// **'Tails'**
+  String get coinTails;
+
+  /// No description provided for @randomStarter.
+  ///
+  /// In en, this message translates to:
+  /// **'Random first player'**
+  String get randomStarter;
+
+  /// No description provided for @starterResult.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} goes first'**
+  String starterResult(String name);
+
+  /// No description provided for @playerOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Player 1'**
+  String get playerOne;
+
+  /// No description provided for @playerTwo.
+  ///
+  /// In en, this message translates to:
+  /// **'Player 2'**
+  String get playerTwo;
+
+  /// No description provided for @riftboundGoal.
+  ///
+  /// In en, this message translates to:
+  /// **'Points to win'**
+  String get riftboundGoal;
+
+  /// No description provided for @riftboundGoal8.
+  ///
+  /// In en, this message translates to:
+  /// **'8 pts'**
+  String get riftboundGoal8;
+
+  /// No description provided for @riftboundGoal10.
+  ///
+  /// In en, this message translates to:
+  /// **'10 pts'**
+  String get riftboundGoal10;
+
+  /// No description provided for @riftboundWinBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Victory!'**
+  String get riftboundWinBadge;
+
+  /// No description provided for @riftboundPlusBattlefield.
+  ///
+  /// In en, this message translates to:
+  /// **'+1 battlefield'**
+  String get riftboundPlusBattlefield;
+
+  /// No description provided for @saveMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Save match'**
+  String get saveMatch;
 }
 
 class _AppLocalizationsDelegate

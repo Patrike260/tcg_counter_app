@@ -333,5 +333,19 @@
   "timerPause": "Pause",
   "timerPreset30": "30 Min",
   "timerPreset45": "45 Min",
-  "timerPreset50": "50 Min"
+  "timerPreset50": "50 Min",
+  "toolsTabDice": "Würfel & Münze",
+  "toolsTabRiftbound": "Riftbound Score",
+  "coinHeads": "Kopf",
+  "coinTails": "Zahl",
+  "randomStarter": "Zufälliger Startspieler",
+  "starterResult": "{name} fängt an",
+  "playerOne": "Spieler 1",
+  "playerTwo": "Spieler 2",
+  "riftboundGoal": "Punkte bis zum Sieg",
+  "riftboundGoal8": "8 Pkt",
+  "riftboundGoal10": "10 Pkt",
+  "riftboundWinBadge": "Sieg!",
+  "riftboundPlusBattlefield": "+1 Schlachtfeld",
+  "saveMatch": "Match speichern"
 }

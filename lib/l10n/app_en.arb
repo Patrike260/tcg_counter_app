@@ -568,5 +568,24 @@
   "timerPause": "Pause",
   "timerPreset30": "30 min",
   "timerPreset45": "45 min",
-  "timerPreset50": "50 min"
+  "timerPreset50": "50 min",
+  "toolsTabDice": "Dice & coin",
+  "toolsTabRiftbound": "Riftbound Score",
+  "coinHeads": "Heads",
+  "coinTails": "Tails",
+  "randomStarter": "Random first player",
+  "starterResult": "{name} goes first",
+  "@starterResult": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "playerOne": "Player 1",
+  "playerTwo": "Player 2",
+  "riftboundGoal": "Points to win",
+  "riftboundGoal8": "8 pts",
+  "riftboundGoal10": "10 pts",
+  "riftboundWinBadge": "Victory!",
+  "riftboundPlusBattlefield": "+1 battlefield",
+  "saveMatch": "Save match"
 }
