@@ -31,6 +31,7 @@ class AppPreferencesState {
   final List<DashboardTabConfig> dashboardTabs;
   /// `system`, `de`, `en`, `fr` or `it`.
   final String localeCode;
+  final bool showPromoBanner;
 
   // Die unveränderlichen Standard-Tags
   static const List<String> defaultBaseTags = [
@@ -55,6 +56,7 @@ class AppPreferencesState {
     this.themePreset = AppThemePreset.onePiece,
     this.dashboardTabs = DashboardTabConfig.defaults,
     this.localeCode = 'system',
+    this.showPromoBanner = true,
   });
 
   static const supportedLocaleCodes = ['de', 'en', 'fr', 'it'];
@@ -145,6 +147,7 @@ class AppPreferencesState {
     AppThemePreset? themePreset,
     List<DashboardTabConfig>? dashboardTabs,
     String? localeCode,
+    bool? showPromoBanner,
   }) {
     return AppPreferencesState(
       defaultFormat: defaultFormat ?? this.defaultFormat,
@@ -164,6 +167,7 @@ class AppPreferencesState {
       themePreset: themePreset ?? this.themePreset,
       dashboardTabs: dashboardTabs ?? this.dashboardTabs,
       localeCode: localeCode ?? this.localeCode,
+      showPromoBanner: showPromoBanner ?? this.showPromoBanner,
     );
   }
 }
@@ -183,6 +187,7 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
   static const _legacyKeyThemePreset = 'pref_selected_theme_preset';
   static const _keyDashboardTabs = 'pref_dashboard_tabs_config';
   static const _keyLocaleCode = 'pref_app_locale_code';
+  static const _keyShowPromoBanner = 'pref_show_promo_banner';
 
   @override
   AppPreferencesState build() {
@@ -203,7 +208,14 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
       ),
       dashboardTabs: DashboardTabConfig.decodeList(prefs.getStringList(_keyDashboardTabs)),
       localeCode: prefs.getString(_keyLocaleCode) ?? 'system',
+      showPromoBanner: prefs.getBool(_keyShowPromoBanner) ?? true,
     );
+  }
+
+  Future<void> setShowPromoBanner(bool value) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setBool(_keyShowPromoBanner, value);
+    state = state.copyWith(showPromoBanner: value);
   }
 
   Future<void> setLocaleCode(String code) async {

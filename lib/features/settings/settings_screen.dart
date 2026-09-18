@@ -19,6 +19,7 @@ import 'tool_presets_screen.dart';
 import 'dashboard_settings_screen.dart';
 import 'legal_info_screen.dart';
 import 'language_selection_screen.dart';
+import '../stats/widgets/promo_banner_widget.dart';
 import '../tournaments/tournament_list_screen.dart';
 import '../../l10n/l10n.dart';
 
@@ -289,7 +290,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     title: l10n.dashboardTabsTitle,
                     subtitle: l10n.dashboardTabsSubtitle,
                     onTap: () => _open(const DashboardSettingsScreen()),
-                    showDivider: false,
+                  ),
+                  _SettingsSwitchTile(
+                    icon: Icons.campaign_outlined,
+                    iconColor: Colors.orangeAccent,
+                    title: l10n.promoSettingsTitle,
+                    subtitle: l10n.promoSettingsSubtitle,
+                    value: prefs.showPromoBanner,
+                    onChanged: (value) {
+                      ref.read(appPreferencesProvider.notifier).setShowPromoBanner(value);
+                      if (value) {
+                        ref.read(promoBannerSessionHiddenProvider.notifier).reveal();
+                      }
+                    },
                   ),
                 ],
               ),
@@ -515,6 +528,47 @@ class _SettingsNavTile extends StatelessWidget {
         ),
         if (showDivider) const Divider(height: 1, indent: 72),
       ],
+    );
+  }
+}
+
+class _SettingsSwitchTile extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _SettingsSwitchTile({
+    required this.icon,
+    required this.iconColor,
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SwitchListTile(
+      contentPadding: const EdgeInsets.fromLTRB(16, 4, 12, 4),
+      secondary: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: iconColor.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: iconColor),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.w600),
+      ),
+      subtitle: Text(subtitle),
+      value: value,
+      onChanged: onChanged,
     );
   }
 }

@@ -301,5 +301,13 @@
   "placementOf": "#{place} / {total}",
   "firstPlace": "1. Platz",
   "topPlacement": "Top {place}",
-  "placeNumber": "Platz {place}"
+  "placeNumber": "Platz {place}",
+  "promoBadge": "CARDMARKET PARTNER",
+  "promoHeadline": "Finde Singles & Displays",
+  "promoSubtitle": "Unterstütze die App mit deinem nächsten Deck-Upgrade.",
+  "promoView": "Shoppen",
+  "promoDismiss": "Banner ausblenden",
+  "promoOpenFailed": "Der Partner-Link konnte nicht geöffnet werden.",
+  "promoSettingsTitle": "Partner-Empfehlungen & Banner",
+  "promoSettingsSubtitle": "Unterstütze das Projekt durch dezente Community-Links"
 }

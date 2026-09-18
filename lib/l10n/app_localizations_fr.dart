@@ -1017,4 +1017,30 @@ class AppLocalizationsFr extends AppLocalizations {
   String placeNumber(int place) {
     return 'Place $place';
   }
+
+  @override
+  String get promoBadge => 'CARDMARKET PARTNER';
+
+  @override
+  String get promoHeadline => 'Trouve singles et displays';
+
+  @override
+  String get promoSubtitle =>
+      'Soutiens l’app avec ton prochain upgrade de deck.';
+
+  @override
+  String get promoView => 'Shopper';
+
+  @override
+  String get promoDismiss => 'Masquer la bannière';
+
+  @override
+  String get promoOpenFailed => 'Le lien partenaire n’a pas pu être ouvert.';
+
+  @override
+  String get promoSettingsTitle => 'Recommandations partenaires et bannières';
+
+  @override
+  String get promoSettingsSubtitle =>
+      'Soutiens le projet avec des liens communautaires discrets';
 }

@@ -6,6 +6,7 @@ import '../tournaments/tournament_repository.dart';
 import 'dashboard_config_model.dart';
 import 'dashboard_repository.dart';
 import 'dashboard_widgets.dart';
+import 'widgets/promo_banner_widget.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -123,6 +124,8 @@ class _DashboardTabPane extends ConsumerWidget {
                 if (i > 0) const SizedBox(height: 20),
                 buildDashboardWidget(keys[i], data, context),
               ],
+              const SizedBox(height: 20),
+              const PromoBannerWidget(),
             ],
           ),
         );

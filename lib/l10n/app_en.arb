@@ -520,5 +520,13 @@
     "placeholders": {
       "place": {"type": "int"}
     }
-  }
+  },
+  "promoBadge": "CARDMARKET PARTNER",
+  "promoHeadline": "Find singles & displays",
+  "promoSubtitle": "Support the app with your next deck upgrade.",
+  "promoView": "Shop",
+  "promoDismiss": "Hide banner",
+  "promoOpenFailed": "The partner link could not be opened.",
+  "promoSettingsTitle": "Partner recommendations & banners",
+  "promoSettingsSubtitle": "Support the project with discreet community links"
 }

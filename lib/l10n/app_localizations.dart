@@ -1913,6 +1913,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Place {place}'**
   String placeNumber(int place);
+
+  /// No description provided for @promoBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'CARDMARKET PARTNER'**
+  String get promoBadge;
+
+  /// No description provided for @promoHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'Find singles & displays'**
+  String get promoHeadline;
+
+  /// No description provided for @promoSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Support the app with your next deck upgrade.'**
+  String get promoSubtitle;
+
+  /// No description provided for @promoView.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop'**
+  String get promoView;
+
+  /// No description provided for @promoDismiss.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide banner'**
+  String get promoDismiss;
+
+  /// No description provided for @promoOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'The partner link could not be opened.'**
+  String get promoOpenFailed;
+
+  /// No description provided for @promoSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Partner recommendations & banners'**
+  String get promoSettingsTitle;
+
+  /// No description provided for @promoSettingsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Support the project with discreet community links'**
+  String get promoSettingsSubtitle;
 }
 
 class _AppLocalizationsDelegate
