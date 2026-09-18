@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'features/settings/app_preferences_service.dart';
 
 import 'core/constants/supabase_constants.dart';
-import 'core/theme/app_theme_presets.dart';
+import 'core/theme/app_themes.dart';
 import 'core/widgets/dice_coin_dialog.dart';
 import 'features/auth/auth_repository.dart';
 import 'features/auth/login_screen.dart';
@@ -62,12 +62,14 @@ class MyApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authStateProvider);
 
-    final themePreset = ref.watch(appPreferencesProvider).themePreset;
-    final locale = ref.watch(appPreferencesProvider).localeOverride;
+    final prefs = ref.watch(appPreferencesProvider);
+    final locale = prefs.localeOverride;
 
     return MaterialApp(
       onGenerateTitle: (context) => context.l10n.appTitle,
-      theme: buildAppTheme(themePreset),
+      theme: AppThemes.buildLightTheme(prefs.activePreset),
+      darkTheme: AppThemes.buildDarkTheme(prefs.activePreset),
+      themeMode: prefs.themeMode,
       locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,

@@ -209,7 +209,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Registrandoti accetti i Termini di utilizzo e l’informativa sulla privacy.';
 
   @override
-  String get sectionAppearance => 'ASPETTO';
+  String get sectionAppearance => 'ASPETTO / DESIGN';
 
   @override
   String get sectionSettings => 'IMPOSTAZIONI';
@@ -293,8 +293,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get legalSettingsTitle => 'Termini e privacy';
 
   @override
-  String get legalSettingsSubtitle =>
-      'Consulta termini, disclaimer e impressum';
+  String get legalSettingsSubtitle => 'Impressum, disclaimer e GDPR';
 
   @override
   String get signOutTitle => 'Esci';
@@ -1162,4 +1161,103 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get saveMatch => 'Salva match';
+
+  @override
+  String get displayNameLabel => 'Nome visualizzato';
+
+  @override
+  String get editDisplayNameTitle => 'Cambia nome visualizzato';
+
+  @override
+  String get displayNameHint => 'Nome giocatore';
+
+  @override
+  String get displayNameSaved => 'Nome visualizzato aggiornato.';
+
+  @override
+  String displayNameFailed(Object error) {
+    return 'Impossibile aggiornare il nome: $error';
+  }
+
+  @override
+  String get changePasswordTitle => 'Cambia password';
+
+  @override
+  String get changePasswordSubtitle =>
+      'Imposta una nuova password per l’account';
+
+  @override
+  String get newPassword => 'Nuova password';
+
+  @override
+  String get confirmPassword => 'Conferma password';
+
+  @override
+  String get passwordTooShort => 'La password deve avere almeno 6 caratteri.';
+
+  @override
+  String get passwordsMismatch => 'Le password non coincidono.';
+
+  @override
+  String get passwordUpdated => 'Password aggiornata.';
+
+  @override
+  String passwordUpdateFailed(Object error) {
+    return 'Impossibile aggiornare la password: $error';
+  }
+
+  @override
+  String get legalTrademarksTitle => 'Marchi e diritto d’autore';
+
+  @override
+  String get legalTrademarksBody =>
+      'Tutti i marchi, nomi di giochi, loghi e trademark citati (tra cui Pokémon, Magic: The Gathering, Yu-Gi-Oh!, One Piece, Naruto Mythos, Riftbound) sono marchi registrati dei rispettivi titolari. Questa app è un progetto fan non ufficiale e non ha alcun rapporto commerciale o ufficiale con i titolari dei diritti.';
+
+  @override
+  String get legalPrivacyStructuredTitle => 'Informativa sulla privacy (GDPR)';
+
+  @override
+  String get legalPrivacyStructuredBody =>
+      'Trattiamo i dati dell’account (e-mail, statistiche di gioco, mazzi e match) tramite Supabase solo per fornire l’app. Hai diritto di accesso, esportazione (backup JSON/CSV nelle impostazioni) e cancellazione completa dell’account dalle impostazioni. Nessuna cessione a terzi per pubblicità.';
+
+  @override
+  String get legalAffiliateTitle => 'Affiliazione e partner';
+
+  @override
+  String get legalAffiliateBody =>
+      'L’app contiene link di raccomandazione e affiliazione (ad es. Cardmarket). Gli acquisti tramite questi link possono generarci una commissione o un credito pubblicitario, senza costi extra per te.';
+
+  @override
+  String get legalContactStructuredTitle => 'Contatti e impressum';
+
+  @override
+  String get legalContactStructuredBody =>
+      'Per supporto e richieste legali usa il repository del progetto:\nhttps://github.com/Patrike260/tcg_counter_app';
+
+  @override
+  String get legalGithub => 'Repository GitHub';
+
+  @override
+  String get themeModeLabel => 'Modalità';
+
+  @override
+  String get themeModeSystem => 'Sistema';
+
+  @override
+  String get themeModeLight => 'Chiaro';
+
+  @override
+  String get themeModeDark => 'Scuro';
+
+  @override
+  String get presetCyberpunk => 'Cyberpunk';
+
+  @override
+  String get presetPaper => 'Paper Manga';
+
+  @override
+  String get presetCrimson => 'Crimson';
+
+  @override
+  String get presetCell => 'Cell Green';
 }

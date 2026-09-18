@@ -209,7 +209,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'By registering you accept our Terms of Use & Privacy Policy.';
 
   @override
-  String get sectionAppearance => 'APPEARANCE';
+  String get sectionAppearance => 'APPEARANCE / DESIGN';
 
   @override
   String get sectionSettings => 'SETTINGS';
@@ -295,7 +295,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get legalSettingsTitle => 'Terms of use & privacy';
 
   @override
-  String get legalSettingsSubtitle => 'View terms, disclaimer and imprint';
+  String get legalSettingsSubtitle => 'Imprint, disclaimer and GDPR';
 
   @override
   String get signOutTitle => 'Sign out';
@@ -1162,4 +1162,102 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveMatch => 'Save match';
+
+  @override
+  String get displayNameLabel => 'Display name';
+
+  @override
+  String get editDisplayNameTitle => 'Change display name';
+
+  @override
+  String get displayNameHint => 'Player name';
+
+  @override
+  String get displayNameSaved => 'Display name updated.';
+
+  @override
+  String displayNameFailed(Object error) {
+    return 'Could not update display name: $error';
+  }
+
+  @override
+  String get changePasswordTitle => 'Change password';
+
+  @override
+  String get changePasswordSubtitle => 'Set a new password for this account';
+
+  @override
+  String get newPassword => 'New password';
+
+  @override
+  String get confirmPassword => 'Confirm password';
+
+  @override
+  String get passwordTooShort => 'Password must be at least 6 characters.';
+
+  @override
+  String get passwordsMismatch => 'Passwords do not match.';
+
+  @override
+  String get passwordUpdated => 'Password updated.';
+
+  @override
+  String passwordUpdateFailed(Object error) {
+    return 'Could not update password: $error';
+  }
+
+  @override
+  String get legalTrademarksTitle => 'Trademarks & copyright';
+
+  @override
+  String get legalTrademarksBody =>
+      'All mentioned brand names, game titles, logos and trademarks (including Pokémon, Magic: The Gathering, Yu-Gi-Oh!, One Piece, Naruto Mythos, Riftbound) are registered trademarks of their respective owners. This app is an unofficial fan project and is not affiliated with, endorsed by, or commercially connected to the rights holders.';
+
+  @override
+  String get legalPrivacyStructuredTitle => 'Privacy policy (GDPR)';
+
+  @override
+  String get legalPrivacyStructuredBody =>
+      'We process account data (email address, match records, decks and related play statistics) via Supabase solely to provide the app. You have the right to access your data, export it (JSON/CSV backup in Settings) and delete your account completely from Settings. Data is not sold to third parties for advertising.';
+
+  @override
+  String get legalAffiliateTitle => 'Affiliate & partner notice';
+
+  @override
+  String get legalAffiliateBody =>
+      'This app contains referral and partner links (for example to Cardmarket). Purchases made through these links may earn us a commission or advertising credit, at no extra cost to you.';
+
+  @override
+  String get legalContactStructuredTitle => 'Contact & imprint';
+
+  @override
+  String get legalContactStructuredBody =>
+      'For support and legal inquiries please use the project repository:\nhttps://github.com/Patrike260/tcg_counter_app';
+
+  @override
+  String get legalGithub => 'GitHub repository';
+
+  @override
+  String get themeModeLabel => 'Mode';
+
+  @override
+  String get themeModeSystem => 'System';
+
+  @override
+  String get themeModeLight => 'Light';
+
+  @override
+  String get themeModeDark => 'Dark';
+
+  @override
+  String get presetCyberpunk => 'Cyberpunk';
+
+  @override
+  String get presetPaper => 'Paper Manga';
+
+  @override
+  String get presetCrimson => 'Crimson';
+
+  @override
+  String get presetCell => 'Cell Green';
 }

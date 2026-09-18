@@ -209,7 +209,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Mit der Registrierung akzeptierst du unsere Nutzungsbedingungen & Datenschutzrichtlinien.';
 
   @override
-  String get sectionAppearance => 'ERSCHEINUNGSBILD';
+  String get sectionAppearance => 'ERSCHEINUNGSBILD / DESIGN';
 
   @override
   String get sectionSettings => 'EINSTELLUNGEN';
@@ -299,7 +299,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get legalSettingsTitle => 'Nutzungsbedingungen & Datenschutz';
 
   @override
-  String get legalSettingsSubtitle => 'AGB, Disclaimer und Impressum einsehen';
+  String get legalSettingsSubtitle => 'Impressum, Disclaimer und DSGVO';
 
   @override
   String get signOutTitle => 'Abmelden';
@@ -1172,4 +1172,103 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get saveMatch => 'Match speichern';
+
+  @override
+  String get displayNameLabel => 'Anzeigename';
+
+  @override
+  String get editDisplayNameTitle => 'Anzeigename ändern';
+
+  @override
+  String get displayNameHint => 'Spielername';
+
+  @override
+  String get displayNameSaved => 'Anzeigename gespeichert.';
+
+  @override
+  String displayNameFailed(Object error) {
+    return 'Anzeigename konnte nicht geändert werden: $error';
+  }
+
+  @override
+  String get changePasswordTitle => 'Passwort ändern';
+
+  @override
+  String get changePasswordSubtitle => 'Neues Passwort für dieses Konto setzen';
+
+  @override
+  String get newPassword => 'Neues Passwort';
+
+  @override
+  String get confirmPassword => 'Passwort bestätigen';
+
+  @override
+  String get passwordTooShort =>
+      'Das Passwort muss mindestens 6 Zeichen haben.';
+
+  @override
+  String get passwordsMismatch => 'Die Passwörter stimmen nicht überein.';
+
+  @override
+  String get passwordUpdated => 'Passwort aktualisiert.';
+
+  @override
+  String passwordUpdateFailed(Object error) {
+    return 'Passwort konnte nicht geändert werden: $error';
+  }
+
+  @override
+  String get legalTrademarksTitle => 'Marken- & Urheberrechts-Disclaimer';
+
+  @override
+  String get legalTrademarksBody =>
+      'Alle erwähnten Markennamen, Spielbezeichnungen, Logos und Trademarks (u. a. Pokémon, Magic: The Gathering, Yu-Gi-Oh!, One Piece, Naruto Mythos, Riftbound) sind eingetragene Warenzeichen ihrer jeweiligen Eigentümer. Diese App ist ein inoffizielles Fan-Projekt und steht in keiner geschäftlichen oder offiziellen Verbindung zu den Rechteinhabern.';
+
+  @override
+  String get legalPrivacyStructuredTitle => 'Datenschutzerklärung (DSGVO)';
+
+  @override
+  String get legalPrivacyStructuredBody =>
+      'Zur Bereitstellung der App-Funktionen verarbeiten wir Kontodaten (E-Mail-Adresse, Spielstände, Decks und Matches) über Supabase. Du hast das Recht auf Auskunft, Datenexport (JSON/CSV-Backup in den Einstellungen) und die vollständige Löschung deines Accounts direkt in den Einstellungen. Es erfolgt keine Weitergabe an Dritte zu Werbezwecken.';
+
+  @override
+  String get legalAffiliateTitle => 'Affiliate- & Partner-Hinweis';
+
+  @override
+  String get legalAffiliateBody =>
+      'Diese App enthält Empfehlungs- und Partnerlinks (z. B. zu Cardmarket). Bei Käufen über diese Links erhalten wir gegebenenfalls eine Provision oder Werbegutschrift, ohne dass für den Nutzer zusätzliche Kosten entstehen.';
+
+  @override
+  String get legalContactStructuredTitle => 'Kontakt & Impressum';
+
+  @override
+  String get legalContactStructuredBody =>
+      'Für Support und rechtliche Anfragen nutze das Projekt-Repository:\nhttps://github.com/Patrike260/tcg_counter_app';
+
+  @override
+  String get legalGithub => 'GitHub-Repository';
+
+  @override
+  String get themeModeLabel => 'Modus';
+
+  @override
+  String get themeModeSystem => 'System';
+
+  @override
+  String get themeModeLight => 'Hell';
+
+  @override
+  String get themeModeDark => 'Dunkel';
+
+  @override
+  String get presetCyberpunk => 'Cyberpunk';
+
+  @override
+  String get presetPaper => 'Paper Manga';
+
+  @override
+  String get presetCrimson => 'Crimson';
+
+  @override
+  String get presetCell => 'Cell Green';
 }

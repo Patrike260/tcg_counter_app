@@ -41,9 +41,18 @@ class Deck {
       name: json['name'] as String,
       notes: json['notes'] as String?,
       isActive: json['is_active'] as bool? ?? true,
-      gameName: json['games'] != null ? json['games']['name'] as String? : null,
+      gameName: _readGameName(json),
       deckListUrl: json['deck_list_url'] as String?,
     );
+  }
+
+  static String? _readGameName(Map<String, dynamic> json) {
+    final nested = json['games'];
+    if (nested is Map && nested['name'] is String) {
+      return nested['name'] as String;
+    }
+    final flat = json['game_name'];
+    return flat is String ? flat : null;
   }
 
   bool get hasDeckListUrl => (deckListUrl ?? '').trim().isNotEmpty;
@@ -57,6 +66,8 @@ class Deck {
       'notes': notes,
       'is_active': isActive,
       'deck_list_url': deckListUrl,
+      'game_name': gameName,
+      if (gameName != null) 'games': {'name': gameName},
     };
   }
 }

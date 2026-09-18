@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/app_theme_presets.dart';
+import '../../core/theme/app_themes.dart';
 import '../stats/dashboard_config_model.dart';
 import '../tools/tool_preset_model.dart';
 
@@ -28,6 +29,8 @@ class AppPreferencesState {
   final String dashboardTimeRange;
   final String? dashboardGameId;
   final AppThemePreset themePreset;
+  final ThemeMode themeMode;
+  final String activePreset;
   final List<DashboardTabConfig> dashboardTabs;
   /// `system`, `de`, `en`, `fr` or `it`.
   final String localeCode;
@@ -54,6 +57,8 @@ class AppPreferencesState {
     this.dashboardTimeRange = 'month',
     this.dashboardGameId,
     this.themePreset = AppThemePreset.onePiece,
+    this.themeMode = ThemeMode.system,
+    this.activePreset = AppThemeKeys.cyberpunk,
     this.dashboardTabs = DashboardTabConfig.defaults,
     this.localeCode = 'system',
     this.showPromoBanner = true,
@@ -145,6 +150,8 @@ class AppPreferencesState {
     String? dashboardTimeRange,
     Object? dashboardGameId = _copyWithUnset,
     AppThemePreset? themePreset,
+    ThemeMode? themeMode,
+    String? activePreset,
     List<DashboardTabConfig>? dashboardTabs,
     String? localeCode,
     bool? showPromoBanner,
@@ -165,6 +172,8 @@ class AppPreferencesState {
           ? this.dashboardGameId
           : dashboardGameId as String?,
       themePreset: themePreset ?? this.themePreset,
+      themeMode: themeMode ?? this.themeMode,
+      activePreset: activePreset ?? this.activePreset,
       dashboardTabs: dashboardTabs ?? this.dashboardTabs,
       localeCode: localeCode ?? this.localeCode,
       showPromoBanner: showPromoBanner ?? this.showPromoBanner,
@@ -185,6 +194,8 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
   static const _keyDashboardGameId = 'pref_dashboard_game_id';
   static const _keyThemePreset = 'pref_app_theme_preset';
   static const _legacyKeyThemePreset = 'pref_selected_theme_preset';
+  static const _keyThemeMode = 'pref_theme_mode';
+  static const _keyActivePreset = 'pref_theme_preset';
   static const _keyDashboardTabs = 'pref_dashboard_tabs_config';
   static const _keyLocaleCode = 'pref_app_locale_code';
   static const _keyShowPromoBanner = 'pref_show_promo_banner';
@@ -206,6 +217,8 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
       themePreset: parseAppThemePreset(
         prefs.getString(_keyThemePreset) ?? prefs.getString(_legacyKeyThemePreset),
       ),
+      themeMode: parseThemeMode(prefs.getString(_keyThemeMode)),
+      activePreset: AppThemeKeys.normalize(prefs.getString(_keyActivePreset)),
       dashboardTabs: DashboardTabConfig.decodeList(prefs.getStringList(_keyDashboardTabs)),
       localeCode: prefs.getString(_keyLocaleCode) ?? 'system',
       showPromoBanner: prefs.getBool(_keyShowPromoBanner) ?? true,
@@ -326,6 +339,19 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
     final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setString(_keyThemePreset, preset.name);
     state = state.copyWith(themePreset: preset);
+  }
+
+  Future<void> setThemeMode(ThemeMode mode) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setString(_keyThemeMode, themeModeStorage(mode));
+    state = state.copyWith(themeMode: mode);
+  }
+
+  Future<void> setActivePreset(String presetKey) async {
+    final normalized = AppThemeKeys.normalize(presetKey);
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setString(_keyActivePreset, normalized);
+    state = state.copyWith(activePreset: normalized);
   }
 
   Future<void> setDashboardGameId(String? gameId) async {

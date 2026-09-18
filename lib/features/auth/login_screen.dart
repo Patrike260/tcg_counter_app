@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../settings/legal_info_screen.dart';
+import '../settings/legal_screen.dart';
 import '../../l10n/l10n.dart';
 import 'auth_repository.dart';
 
@@ -147,7 +147,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const LegalInfoScreen()),
+                      MaterialPageRoute(builder: (_) => const LegalScreen()),
                     );
                   },
                   child: Text(

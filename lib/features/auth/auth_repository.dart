@@ -22,6 +22,27 @@ class AuthRepository {
   Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
   User? get currentUser => _client.auth.currentUser;
 
+  String? get displayName {
+    final user = currentUser;
+    if (user == null) return null;
+    final meta = user.userMetadata;
+    final raw = meta?['display_name'] ?? meta?['full_name'] ?? meta?['name'];
+    if (raw is String && raw.trim().isNotEmpty) return raw.trim();
+    return user.email;
+  }
+
+  Future<void> updateDisplayName(String newName) async {
+    await _client.auth.updateUser(
+      UserAttributes(data: {'display_name': newName.trim()}),
+    );
+  }
+
+  Future<void> updatePassword(String newPassword) async {
+    await _client.auth.updateUser(
+      UserAttributes(password: newPassword),
+    );
+  }
+
   // E-Mail & Passwort Registrierung
   Future<AuthResponse> signUp({
     required String email,

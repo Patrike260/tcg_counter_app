@@ -116,7 +116,7 @@ class DeckListScreen extends ConsumerWidget {
             },
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => _buildLoadingSkeleton(context),
         error: (err, _) => Center(child: Text(l10n.errorWithDetails(err))),
       ),
       floatingActionButton: FloatingActionButton(
@@ -128,6 +128,14 @@ class DeckListScreen extends ConsumerWidget {
         },
         child: const Icon(Icons.add),
       ),
+    );
+  }
+
+  Widget _buildLoadingSkeleton(BuildContext context) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(12),
+      itemCount: 4,
+      itemBuilder: (_, _) => const _DeckSkeletonCard(),
     );
   }
 }
@@ -318,6 +326,127 @@ class _DeckSummaryCard extends StatelessWidget {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DeckSkeletonCard extends StatefulWidget {
+  const _DeckSkeletonCard();
+
+  @override
+  State<_DeckSkeletonCard> createState() => _DeckSkeletonCardState();
+}
+
+class _DeckSkeletonCardState extends State<_DeckSkeletonCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _pulse;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulse = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulse.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final fill = scheme.onSurface.withValues(alpha: 0.08);
+    final badge = scheme.onSurface.withValues(alpha: 0.12);
+
+    return AnimatedBuilder(
+      animation: _pulse,
+      builder: (context, child) {
+        return Opacity(
+          opacity: 0.45 + (_pulse.value * 0.4),
+          child: child,
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: scheme.surface,
+          border: Border.all(color: scheme.outline.withValues(alpha: 0.18)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: badge,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 16,
+                    width: 160,
+                    decoration: BoxDecoration(
+                      color: fill,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Container(
+                        height: 22,
+                        width: 72,
+                        decoration: BoxDecoration(
+                          color: badge,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        height: 12,
+                        width: 88,
+                        decoration: BoxDecoration(
+                          color: fill,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    height: 10,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: fill,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Container(
+              width: 48,
+              height: 40,
+              decoration: BoxDecoration(
+                color: badge,
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ],
         ),
       ),
     );

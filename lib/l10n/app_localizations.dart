@@ -477,7 +477,7 @@ abstract class AppLocalizations {
   /// No description provided for @sectionAppearance.
   ///
   /// In en, this message translates to:
-  /// **'APPEARANCE'**
+  /// **'APPEARANCE / DESIGN'**
   String get sectionAppearance;
 
   /// No description provided for @sectionSettings.
@@ -645,7 +645,7 @@ abstract class AppLocalizations {
   /// No description provided for @legalSettingsSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'View terms, disclaimer and imprint'**
+  /// **'Imprint, disclaimer and GDPR'**
   String get legalSettingsSubtitle;
 
   /// No description provided for @signOutTitle.
@@ -2189,6 +2189,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save match'**
   String get saveMatch;
+
+  /// No description provided for @displayNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Display name'**
+  String get displayNameLabel;
+
+  /// No description provided for @editDisplayNameTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change display name'**
+  String get editDisplayNameTitle;
+
+  /// No description provided for @displayNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Player name'**
+  String get displayNameHint;
+
+  /// No description provided for @displayNameSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Display name updated.'**
+  String get displayNameSaved;
+
+  /// No description provided for @displayNameFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update display name: {error}'**
+  String displayNameFailed(Object error);
+
+  /// No description provided for @changePasswordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get changePasswordTitle;
+
+  /// No description provided for @changePasswordSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a new password for this account'**
+  String get changePasswordSubtitle;
+
+  /// No description provided for @newPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get newPassword;
+
+  /// No description provided for @confirmPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm password'**
+  String get confirmPassword;
+
+  /// No description provided for @passwordTooShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Password must be at least 6 characters.'**
+  String get passwordTooShort;
+
+  /// No description provided for @passwordsMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Passwords do not match.'**
+  String get passwordsMismatch;
+
+  /// No description provided for @passwordUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Password updated.'**
+  String get passwordUpdated;
+
+  /// No description provided for @passwordUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not update password: {error}'**
+  String passwordUpdateFailed(Object error);
+
+  /// No description provided for @legalTrademarksTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Trademarks & copyright'**
+  String get legalTrademarksTitle;
+
+  /// No description provided for @legalTrademarksBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All mentioned brand names, game titles, logos and trademarks (including Pokémon, Magic: The Gathering, Yu-Gi-Oh!, One Piece, Naruto Mythos, Riftbound) are registered trademarks of their respective owners. This app is an unofficial fan project and is not affiliated with, endorsed by, or commercially connected to the rights holders.'**
+  String get legalTrademarksBody;
+
+  /// No description provided for @legalPrivacyStructuredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy (GDPR)'**
+  String get legalPrivacyStructuredTitle;
+
+  /// No description provided for @legalPrivacyStructuredBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We process account data (email address, match records, decks and related play statistics) via Supabase solely to provide the app. You have the right to access your data, export it (JSON/CSV backup in Settings) and delete your account completely from Settings. Data is not sold to third parties for advertising.'**
+  String get legalPrivacyStructuredBody;
+
+  /// No description provided for @legalAffiliateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Affiliate & partner notice'**
+  String get legalAffiliateTitle;
+
+  /// No description provided for @legalAffiliateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This app contains referral and partner links (for example to Cardmarket). Purchases made through these links may earn us a commission or advertising credit, at no extra cost to you.'**
+  String get legalAffiliateBody;
+
+  /// No description provided for @legalContactStructuredTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact & imprint'**
+  String get legalContactStructuredTitle;
+
+  /// No description provided for @legalContactStructuredBody.
+  ///
+  /// In en, this message translates to:
+  /// **'For support and legal inquiries please use the project repository:\nhttps://github.com/Patrike260/tcg_counter_app'**
+  String get legalContactStructuredBody;
+
+  /// No description provided for @legalGithub.
+  ///
+  /// In en, this message translates to:
+  /// **'GitHub repository'**
+  String get legalGithub;
+
+  /// No description provided for @themeModeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Mode'**
+  String get themeModeLabel;
+
+  /// No description provided for @themeModeSystem.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get themeModeSystem;
+
+  /// No description provided for @themeModeLight.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get themeModeLight;
+
+  /// No description provided for @themeModeDark.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get themeModeDark;
+
+  /// No description provided for @presetCyberpunk.
+  ///
+  /// In en, this message translates to:
+  /// **'Cyberpunk'**
+  String get presetCyberpunk;
+
+  /// No description provided for @presetPaper.
+  ///
+  /// In en, this message translates to:
+  /// **'Paper Manga'**
+  String get presetPaper;
+
+  /// No description provided for @presetCrimson.
+  ///
+  /// In en, this message translates to:
+  /// **'Crimson'**
+  String get presetCrimson;
+
+  /// No description provided for @presetCell.
+  ///
+  /// In en, this message translates to:
+  /// **'Cell Green'**
+  String get presetCell;
 }
 
 class _AppLocalizationsDelegate
