@@ -528,5 +528,45 @@
   "promoDismiss": "Hide banner",
   "promoOpenFailed": "The partner link could not be opened.",
   "promoSettingsTitle": "Partner recommendations & banners",
-  "promoSettingsSubtitle": "Support the project with discreet community links"
+  "promoSettingsSubtitle": "Support the project with discreet community links",
+  "toolsTabChakra": "Chakra (Naruto)",
+  "toolsTabLife": "Life Counter",
+  "toolsTabTimer": "Round timer",
+  "chakraReadyLabel": "Available chakra (Ready)",
+  "chakraReadyRatio": "{available} / {total} Ready",
+  "@chakraReadyRatio": {
+    "placeholders": {
+      "available": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
+  "chakraTappedHint": "{tapped} tapped",
+  "@chakraTappedHint": {
+    "placeholders": {
+      "tapped": {"type": "int"}
+    }
+  },
+  "chakraPay1": "Pay 1 chakra",
+  "chakraPay2": "Pay 2 chakra",
+  "chakraEndTurn": "End round / New turn",
+  "chakraRefreshOnly": "Refresh only",
+  "chakraDeckTitle": "Chakra deck",
+  "chakraDeckRemaining": "{remaining} / 12 left",
+  "@chakraDeckRemaining": {
+    "placeholders": {
+      "remaining": {"type": "int"}
+    }
+  },
+  "chakraZoneMax": "Chakra zone max",
+  "chakraResetTurn1": "Reset to turn 1",
+  "lifeYou": "You",
+  "lifeOpponent": "Opponent",
+  "lifePresetMtg": "20 MTG",
+  "lifePresetOp": "50 OP",
+  "lifePresetYgo": "8000 YGO",
+  "timerStart": "Start",
+  "timerPause": "Pause",
+  "timerPreset30": "30 min",
+  "timerPreset45": "45 min",
+  "timerPreset50": "50 min"
 }

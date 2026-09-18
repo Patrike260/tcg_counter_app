@@ -1961,6 +1961,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Support the project with discreet community links'**
   String get promoSettingsSubtitle;
+
+  /// No description provided for @toolsTabChakra.
+  ///
+  /// In en, this message translates to:
+  /// **'Chakra (Naruto)'**
+  String get toolsTabChakra;
+
+  /// No description provided for @toolsTabLife.
+  ///
+  /// In en, this message translates to:
+  /// **'Life Counter'**
+  String get toolsTabLife;
+
+  /// No description provided for @toolsTabTimer.
+  ///
+  /// In en, this message translates to:
+  /// **'Round timer'**
+  String get toolsTabTimer;
+
+  /// No description provided for @chakraReadyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Available chakra (Ready)'**
+  String get chakraReadyLabel;
+
+  /// No description provided for @chakraReadyRatio.
+  ///
+  /// In en, this message translates to:
+  /// **'{available} / {total} Ready'**
+  String chakraReadyRatio(int available, int total);
+
+  /// No description provided for @chakraTappedHint.
+  ///
+  /// In en, this message translates to:
+  /// **'{tapped} tapped'**
+  String chakraTappedHint(int tapped);
+
+  /// No description provided for @chakraPay1.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay 1 chakra'**
+  String get chakraPay1;
+
+  /// No description provided for @chakraPay2.
+  ///
+  /// In en, this message translates to:
+  /// **'Pay 2 chakra'**
+  String get chakraPay2;
+
+  /// No description provided for @chakraEndTurn.
+  ///
+  /// In en, this message translates to:
+  /// **'End round / New turn'**
+  String get chakraEndTurn;
+
+  /// No description provided for @chakraRefreshOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh only'**
+  String get chakraRefreshOnly;
+
+  /// No description provided for @chakraDeckTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chakra deck'**
+  String get chakraDeckTitle;
+
+  /// No description provided for @chakraDeckRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{remaining} / 12 left'**
+  String chakraDeckRemaining(int remaining);
+
+  /// No description provided for @chakraZoneMax.
+  ///
+  /// In en, this message translates to:
+  /// **'Chakra zone max'**
+  String get chakraZoneMax;
+
+  /// No description provided for @chakraResetTurn1.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to turn 1'**
+  String get chakraResetTurn1;
+
+  /// No description provided for @lifeYou.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get lifeYou;
+
+  /// No description provided for @lifeOpponent.
+  ///
+  /// In en, this message translates to:
+  /// **'Opponent'**
+  String get lifeOpponent;
+
+  /// No description provided for @lifePresetMtg.
+  ///
+  /// In en, this message translates to:
+  /// **'20 MTG'**
+  String get lifePresetMtg;
+
+  /// No description provided for @lifePresetOp.
+  ///
+  /// In en, this message translates to:
+  /// **'50 OP'**
+  String get lifePresetOp;
+
+  /// No description provided for @lifePresetYgo.
+  ///
+  /// In en, this message translates to:
+  /// **'8000 YGO'**
+  String get lifePresetYgo;
+
+  /// No description provided for @timerStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get timerStart;
+
+  /// No description provided for @timerPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get timerPause;
+
+  /// No description provided for @timerPreset30.
+  ///
+  /// In en, this message translates to:
+  /// **'30 min'**
+  String get timerPreset30;
+
+  /// No description provided for @timerPreset45.
+  ///
+  /// In en, this message translates to:
+  /// **'45 min'**
+  String get timerPreset45;
+
+  /// No description provided for @timerPreset50.
+  ///
+  /// In en, this message translates to:
+  /// **'50 min'**
+  String get timerPreset50;
 }
 
 class _AppLocalizationsDelegate

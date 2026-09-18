@@ -1040,4 +1040,82 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get promoSettingsSubtitle =>
       'Sostieni il progetto con link community discreti';
+
+  @override
+  String get toolsTabChakra => 'Chakra (Naruto)';
+
+  @override
+  String get toolsTabLife => 'Life Counter';
+
+  @override
+  String get toolsTabTimer => 'Timer round';
+
+  @override
+  String get chakraReadyLabel => 'Chakra disponibile (Ready)';
+
+  @override
+  String chakraReadyRatio(int available, int total) {
+    return '$available / $total Ready';
+  }
+
+  @override
+  String chakraTappedHint(int tapped) {
+    return '$tapped tappati';
+  }
+
+  @override
+  String get chakraPay1 => 'Paga 1 chakra';
+
+  @override
+  String get chakraPay2 => 'Paga 2 chakra';
+
+  @override
+  String get chakraEndTurn => 'Fine round / Nuovo turno';
+
+  @override
+  String get chakraRefreshOnly => 'Refresh only';
+
+  @override
+  String get chakraDeckTitle => 'Chakra-deck';
+
+  @override
+  String chakraDeckRemaining(int remaining) {
+    return '$remaining / 12 rimasti';
+  }
+
+  @override
+  String get chakraZoneMax => 'Zona chakra max';
+
+  @override
+  String get chakraResetTurn1 => 'Reset al turno 1';
+
+  @override
+  String get lifeYou => 'Tu';
+
+  @override
+  String get lifeOpponent => 'Avversario';
+
+  @override
+  String get lifePresetMtg => '20 MTG';
+
+  @override
+  String get lifePresetOp => '50 OP';
+
+  @override
+  String get lifePresetYgo => '8000 YGO';
+
+  @override
+  String get timerStart => 'Start';
+
+  @override
+  String get timerPause => 'Pausa';
+
+  @override
+  String get timerPreset30 => '30 min';
+
+  @override
+  String get timerPreset45 => '45 min';
+
+  @override
+  String get timerPreset50 => '50 min';
 }
