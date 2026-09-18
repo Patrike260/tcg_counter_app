@@ -1260,4 +1260,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get presetCell => 'Cell Green';
+
+  @override
+  String get deckWinRateNew => 'New';
+
+  @override
+  String deckWinRateBadge(int percent, int count) {
+    return '$percent% • ${count}G';
+  }
 }

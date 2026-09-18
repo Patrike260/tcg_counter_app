@@ -9,7 +9,14 @@ class DeckMatchSummary {
 
   const DeckMatchSummary({this.totalMatches = 0, this.wins = 0});
 
+  factory DeckMatchSummary.fromMatches(List<MatchRecord> matches) {
+    final wins = matches.where((match) => match.result == 'win').length;
+    return DeckMatchSummary(totalMatches: matches.length, wins: wins);
+  }
+
   double get winRate => totalMatches > 0 ? (wins / totalMatches) * 100 : 0.0;
+
+  int get winRatePercent => winRate.round();
 }
 
 final matchRepositoryProvider = Provider<MatchRepository>((ref) {

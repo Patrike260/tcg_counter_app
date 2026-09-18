@@ -622,5 +622,13 @@
   "presetCyberpunk": "Cyberpunk",
   "presetPaper": "Paper Manga",
   "presetCrimson": "Crimson",
-  "presetCell": "Cell Green"
+  "presetCell": "Cell Green",
+  "deckWinRateNew": "New",
+  "deckWinRateBadge": "{percent}% • {count}G",
+  "@deckWinRateBadge": {
+    "placeholders": {
+      "percent": {"type": "int"},
+      "count": {"type": "int"}
+    }
+  }
 }

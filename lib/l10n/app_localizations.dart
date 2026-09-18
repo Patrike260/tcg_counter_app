@@ -2369,6 +2369,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Cell Green'**
   String get presetCell;
+
+  /// No description provided for @deckWinRateNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New'**
+  String get deckWinRateNew;
+
+  /// No description provided for @deckWinRateBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'{percent}% • {count}G'**
+  String deckWinRateBadge(int percent, int count);
 }
 
 class _AppLocalizationsDelegate

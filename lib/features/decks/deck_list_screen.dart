@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/theme/tcg_colors.dart';
 import '../../core/utils/deck_list_url.dart';
 import '../../core/utils/game_colors.dart';
 import '../../core/widgets/game_logo.dart';
@@ -32,6 +31,7 @@ class DeckListScreen extends ConsumerWidget {
               Navigator.of(ctx).pop();
               await ref.read(deckRepositoryProvider).deleteDeck(deck.id);
               ref.invalidate(userDecksProvider);
+              ref.invalidate(deckMatchesProvider(deck.id));
               ref.invalidate(deckMatchSummariesProvider);
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -60,7 +60,6 @@ class DeckListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final decksAsync = ref.watch(userDecksProvider);
-    final summariesAsync = ref.watch(deckMatchSummariesProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -81,14 +80,8 @@ class DeckListScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(12),
             itemBuilder: (context, index) {
               final deck = decks[index];
-              final summary = summariesAsync.maybeWhen(
-                data: (map) => map[deck.id] ?? const DeckMatchSummary(),
-                orElse: () => const DeckMatchSummary(),
-              );
-              return _DeckSummaryCard(
+              return _DeckOverviewCard(
                 deck: deck,
-                summary: summary,
-                summariesLoading: summariesAsync.isLoading,
                 onTap: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
@@ -140,32 +133,25 @@ class DeckListScreen extends ConsumerWidget {
   }
 }
 
-class _DeckSummaryCard extends StatelessWidget {
+class _DeckOverviewCard extends ConsumerWidget {
   final Deck deck;
-  final DeckMatchSummary summary;
-  final bool summariesLoading;
   final VoidCallback onTap;
   final ValueChanged<String> onMenuSelected;
 
-  const _DeckSummaryCard({
+  const _DeckOverviewCard({
     required this.deck,
-    required this.summary,
-    required this.summariesLoading,
     required this.onTap,
     required this.onMenuSelected,
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final matchesAsync = ref.watch(deckMatchesProvider(deck.id));
     final baseColor = getGameBaseColor(
       deck.gameName,
       fallback: Theme.of(context).colorScheme.primaryContainer,
     );
-    final winRateColor = TcgColors.winRateColor(summary.winRate, summary.totalMatches);
-    final winRateLabel = summary.totalMatches == 0
-        ? '–'
-        : '${summary.winRate.toStringAsFixed(0)}%';
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
@@ -177,7 +163,7 @@ class _DeckSummaryCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 14, 4, 14),
+            padding: const EdgeInsets.fromLTRB(14, 12, 0, 12),
             child: Row(
               children: [
                 GameLogo(gameName: deck.gameName, size: 48),
@@ -188,6 +174,8 @@ class _DeckSummaryCard extends StatelessWidget {
                     children: [
                       Text(
                         deck.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -195,41 +183,23 @@ class _DeckSummaryCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 6),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 6,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.28),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: baseColor.withValues(alpha: 0.55)),
-                            ),
-                            child: Text(
-                              deck.gameName ?? l10n.noTcg,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.28),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: baseColor.withValues(alpha: 0.55)),
+                        ),
+                        child: Text(
+                          deck.gameName ?? l10n.noTcg,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
                           ),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.sports_esports_outlined, size: 16, color: Colors.white70),
-                              const SizedBox(width: 4),
-                              Text(
-                                summariesLoading && summary.totalMatches == 0
-                                    ? '… ${l10n.matchPlural}'
-                                    : '${summary.totalMatches} ${summary.totalMatches == 1 ? l10n.matchSingular : l10n.matchPlural}',
-                                style: const TextStyle(fontSize: 12, color: Colors.white70),
-                              ),
-                            ],
-                          ),
-                        ],
+                        ),
                       ),
                       if (deck.notes != null && deck.notes!.isNotEmpty) ...[
                         const SizedBox(height: 6),
@@ -237,15 +207,38 @@ class _DeckSummaryCard extends StatelessWidget {
                           deck.notes!,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.55)),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withValues(alpha: 0.55),
+                          ),
                         ),
                       ],
                     ],
                   ),
                 ),
                 const SizedBox(width: 8),
+                matchesAsync.when(
+                  data: (matches) => _DeckWinRateChip(
+                    summary: DeckMatchSummary.fromMatches(matches),
+                    loading: false,
+                  ),
+                  loading: () => const _DeckWinRateChip(
+                    summary: DeckMatchSummary(),
+                    loading: true,
+                  ),
+                  error: (_, _) => const _DeckWinRateChip(
+                    summary: DeckMatchSummary(),
+                    loading: false,
+                  ),
+                ),
                 if (deck.hasDeckListUrl)
                   IconButton(
+                    visualDensity: VisualDensity.compact,
+                    style: IconButton.styleFrom(
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      minimumSize: const Size(36, 36),
+                      padding: const EdgeInsets.all(4),
+                    ),
                     tooltip: l10n.viewDecklist,
                     icon: Icon(
                       Icons.open_in_new,
@@ -260,31 +253,10 @@ class _DeckSummaryCard extends StatelessWidget {
                       }
                     },
                   ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: winRateColor.withValues(alpha: 0.7)),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        winRateLabel,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: winRateColor,
-                        ),
-                      ),
-                      Text(
-                        'WR',
-                        style: TextStyle(fontSize: 10, color: winRateColor.withValues(alpha: 0.9)),
-                      ),
-                    ],
-                  ),
-                ),
                 PopupMenuButton<String>(
+                  padding: EdgeInsets.zero,
+                  iconSize: 22,
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                   icon: const Icon(Icons.more_vert, color: Colors.white70),
                   onSelected: onMenuSelected,
                   itemBuilder: (context) {
@@ -324,6 +296,74 @@ class _DeckSummaryCard extends StatelessWidget {
                   },
                 ),
               ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DeckWinRateChip extends StatelessWidget {
+  final DeckMatchSummary summary;
+  final bool loading;
+
+  const _DeckWinRateChip({
+    required this.summary,
+    required this.loading,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final total = summary.totalMatches;
+    final percent = summary.winRatePercent;
+
+    late final Color background;
+    late final Color foreground;
+    late final String label;
+
+    if (loading && total == 0) {
+      background = Colors.blueGrey.withValues(alpha: 0.35);
+      foreground = Colors.white70;
+      label = '…';
+    } else if (total == 0) {
+      background = Colors.blueGrey.withValues(alpha: 0.38);
+      foreground = Colors.white70;
+      label = l10n.deckWinRateNew;
+    } else if (percent >= 55) {
+      background = const Color(0xFF2E7D32);
+      foreground = Colors.white;
+      label = l10n.deckWinRateBadge(percent, total);
+    } else if (percent >= 45) {
+      background = const Color(0xFFEF6C00);
+      foreground = Colors.white;
+      label = l10n.deckWinRateBadge(percent, total);
+    } else {
+      background = const Color(0xFFC62828);
+      foreground = Colors.white;
+      label = l10n.deckWinRateBadge(percent, total);
+    }
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 96),
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          decoration: BoxDecoration(
+            color: background,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: foreground,
+              height: 1.1,
             ),
           ),
         ),
