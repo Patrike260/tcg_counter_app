@@ -21,6 +21,7 @@ class Deck {
   final bool isActive;
   final String? gameName;
   final String? deckListUrl;
+  final DateTime createdAt;
 
   Deck({
     required this.id,
@@ -31,7 +32,8 @@ class Deck {
     this.isActive = true,
     this.gameName,
     this.deckListUrl,
-  });
+    DateTime? createdAt,
+  }) : createdAt = createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
 
   factory Deck.fromJson(Map<String, dynamic> json) {
     return Deck(
@@ -43,6 +45,8 @@ class Deck {
       isActive: json['is_active'] as bool? ?? true,
       gameName: _readGameName(json),
       deckListUrl: json['deck_list_url'] as String?,
+      createdAt: DateTime.tryParse(json['created_at'] as String? ?? '') ??
+          DateTime.fromMillisecondsSinceEpoch(0),
     );
   }
 
@@ -67,6 +71,7 @@ class Deck {
       'is_active': isActive,
       'deck_list_url': deckListUrl,
       'game_name': gameName,
+      'created_at': createdAt.toIso8601String(),
       if (gameName != null) 'games': {'name': gameName},
     };
   }

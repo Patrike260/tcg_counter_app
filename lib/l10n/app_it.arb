@@ -399,5 +399,15 @@
   "lifePresetStartLp": "LP iniziali",
   "lifePresetStepSmall": "Tap (±)",
   "lifePresetStepLarge": "Pressione lunga (±)",
-  "lifePresetInvalid": "Inserisci un nome e numeri maggiori di 0."
+  "lifePresetInvalid": "Inserisci un nome e numeri maggiori di 0.",
+  "deckSortNewest": "Recenti",
+  "deckSortGrouped": "Per TCG",
+  "deckSortCustom": "Ordina",
+  "deckGroupHeader": "{game} ({count} mazzi)",
+  "@deckGroupHeader": {
+    "placeholders": {
+      "game": {"type": "String"},
+      "count": {"type": "int"}
+    }
+  }
 }

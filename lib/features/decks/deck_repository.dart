@@ -38,7 +38,7 @@ class DeckRepository {
     try {
       var query = _client
           .from('decks')
-          .select('id, user_id, game_id, name, notes, is_active, deck_list_url, games(name)');
+          .select('id, user_id, game_id, name, notes, is_active, deck_list_url, created_at, games(name)');
 
       if (activeOnly) {
         query = query.eq('is_active', true);

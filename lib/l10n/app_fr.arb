@@ -399,5 +399,15 @@
   "lifePresetStartLp": "LP de départ",
   "lifePresetStepSmall": "Toucher (±)",
   "lifePresetStepLarge": "Appui long (±)",
-  "lifePresetInvalid": "Saisissez un nom et des nombres supérieurs à 0."
+  "lifePresetInvalid": "Saisissez un nom et des nombres supérieurs à 0.",
+  "deckSortNewest": "Récents",
+  "deckSortGrouped": "Par TCG",
+  "deckSortCustom": "Ordre",
+  "deckGroupHeader": "{game} ({count} decks)",
+  "@deckGroupHeader": {
+    "placeholders": {
+      "game": {"type": "String"},
+      "count": {"type": "int"}
+    }
+  }
 }

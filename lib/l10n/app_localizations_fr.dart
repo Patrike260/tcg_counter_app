@@ -1316,4 +1316,18 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get lifePresetInvalid =>
       'Saisissez un nom et des nombres supérieurs à 0.';
+
+  @override
+  String get deckSortNewest => 'Récents';
+
+  @override
+  String get deckSortGrouped => 'Par TCG';
+
+  @override
+  String get deckSortCustom => 'Ordre';
+
+  @override
+  String deckGroupHeader(String game, int count) {
+    return '$game ($count decks)';
+  }
 }

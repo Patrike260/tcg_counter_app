@@ -644,5 +644,15 @@
   "lifePresetStartLp": "Starting LP",
   "lifePresetStepSmall": "Tap step (±)",
   "lifePresetStepLarge": "Long-press (±)",
-  "lifePresetInvalid": "Enter a name and numbers greater than 0."
+  "lifePresetInvalid": "Enter a name and numbers greater than 0.",
+  "deckSortNewest": "Newest",
+  "deckSortGrouped": "By TCG",
+  "deckSortCustom": "Reorder",
+  "deckGroupHeader": "{game} ({count} decks)",
+  "@deckGroupHeader": {
+    "placeholders": {
+      "game": {"type": "String"},
+      "count": {"type": "int"}
+    }
+  }
 }

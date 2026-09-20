@@ -6,6 +6,7 @@ import '../../core/widgets/game_logo.dart';
 import '../../l10n/l10n.dart';
 import '../matches/deck_detail_screen.dart';
 import '../matches/match_repository.dart';
+import '../settings/app_preferences_service.dart';
 import 'add_deck_dialog.dart';
 import 'deck_model.dart';
 import 'deck_repository.dart';
@@ -60,57 +61,67 @@ class DeckListScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
     final decksAsync = ref.watch(userDecksProvider);
+    final prefs = ref.watch(appPreferencesProvider);
+    final sortMode = prefs.deckSortMode;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.titleMyDecks),
       ),
-      body: decksAsync.when(
-        data: (decks) {
-          if (decks.isEmpty) {
-            return Center(
-              child: Text(
-                l10n.noDecksYet,
-                textAlign: TextAlign.center,
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: SegmentedButton<String>(
+                showSelectedIcon: false,
+                segments: [
+                  ButtonSegment(
+                    value: 'newest',
+                    icon: const Icon(Icons.schedule, size: 18),
+                    label: Text(l10n.deckSortNewest),
+                    tooltip: l10n.deckSortNewest,
+                  ),
+                  ButtonSegment(
+                    value: 'grouped',
+                    icon: const Icon(Icons.grid_view, size: 18),
+                    label: Text(l10n.deckSortGrouped),
+                    tooltip: l10n.deckSortGrouped,
+                  ),
+                  ButtonSegment(
+                    value: 'custom',
+                    icon: const Icon(Icons.reorder, size: 18),
+                    label: Text(l10n.deckSortCustom),
+                    tooltip: l10n.deckSortCustom,
+                  ),
+                ],
+                selected: {sortMode},
+                onSelectionChanged: (values) {
+                  if (values.isEmpty) return;
+                  ref.read(appPreferencesProvider.notifier).setDeckSortMode(values.first);
+                },
               ),
-            );
-          }
-          return ListView.builder(
-            itemCount: decks.length,
-            padding: const EdgeInsets.all(12),
-            itemBuilder: (context, index) {
-              final deck = decks[index];
-              return _DeckOverviewCard(
-                deck: deck,
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => DeckDetailScreen(deck: deck),
+            ),
+          ),
+          Expanded(
+            child: decksAsync.when(
+              data: (decks) {
+                if (decks.isEmpty) {
+                  return Center(
+                    child: Text(
+                      l10n.noDecksYet,
+                      textAlign: TextAlign.center,
                     ),
                   );
-                },
-                onMenuSelected: (value) {
-                  switch (value) {
-                    case 'edit':
-                      showDialog(
-                        context: context,
-                        builder: (_) => AddDeckDialog(deck: deck),
-                      );
-                      break;
-                    case 'archive':
-                      _archiveDeck(context, ref, deck);
-                      break;
-                    case 'delete':
-                      _showDeleteDialog(context, ref, deck);
-                      break;
-                  }
-                },
-              );
-            },
-          );
-        },
-        loading: () => _buildLoadingSkeleton(context),
-        error: (err, _) => Center(child: Text(l10n.errorWithDetails(err))),
+                }
+                return _buildDeckList(context, ref, decks, prefs);
+              },
+              loading: () => _buildLoadingSkeleton(context),
+              error: (err, _) => Center(child: Text(l10n.errorWithDetails(err))),
+            ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -124,6 +135,153 @@ class DeckListScreen extends ConsumerWidget {
     );
   }
 
+  Widget _buildDeckList(
+    BuildContext context,
+    WidgetRef ref,
+    List<Deck> decks,
+    AppPreferencesState prefs,
+  ) {
+    switch (prefs.deckSortMode) {
+      case 'grouped':
+        return _buildGroupedList(context, ref, decks);
+      case 'custom':
+        return _buildCustomList(context, ref, decks, prefs.customDeckOrder);
+      default:
+        return _buildNewestList(context, ref, decks);
+    }
+  }
+
+  Widget _buildNewestList(BuildContext context, WidgetRef ref, List<Deck> decks) {
+    final sorted = _sortNewest(decks);
+    return ListView.builder(
+      itemCount: sorted.length,
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 88),
+      itemBuilder: (context, index) => _cardFor(context, ref, sorted[index]),
+    );
+  }
+
+  Widget _buildGroupedList(BuildContext context, WidgetRef ref, List<Deck> decks) {
+    final l10n = context.l10n;
+    final grouped = <String, List<Deck>>{};
+    for (final deck in _sortNewest(decks)) {
+      final key = (deck.gameName ?? '').trim().isEmpty ? l10n.noTcg : deck.gameName!.trim();
+      grouped.putIfAbsent(key, () => []).add(deck);
+    }
+    final games = grouped.keys.toList()..sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 88),
+      itemCount: games.length,
+      itemBuilder: (context, index) {
+        final game = games[index];
+        final items = grouped[game]!;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 12, 4, 6),
+              child: Text(
+                l10n.deckGroupHeader(game, items.length),
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
+                ),
+              ),
+            ),
+            for (final deck in items) _cardFor(context, ref, deck),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildCustomList(
+    BuildContext context,
+    WidgetRef ref,
+    List<Deck> decks,
+    List<String> savedOrder,
+  ) {
+    final ordered = _applyCustomOrder(decks, savedOrder);
+    return ReorderableListView.builder(
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 88),
+      buildDefaultDragHandles: false,
+      itemCount: ordered.length,
+      onReorderItem: (oldIndex, newIndex) {
+        final ids = ordered.map((deck) => deck.id).toList();
+        final moved = ids.removeAt(oldIndex);
+        ids.insert(newIndex, moved);
+        ref.read(appPreferencesProvider.notifier).setCustomDeckOrder(ids);
+      },
+      itemBuilder: (context, index) {
+        final deck = ordered[index];
+        return KeyedSubtree(
+          key: ValueKey(deck.id),
+          child: _cardFor(context, ref, deck, dragIndex: index),
+        );
+      },
+    );
+  }
+
+  Widget _cardFor(
+    BuildContext context,
+    WidgetRef ref,
+    Deck deck, {
+    int? dragIndex,
+  }) {
+    return _DeckBoardCard(
+      deck: deck,
+      dragIndex: dragIndex,
+      onTap: () {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => DeckDetailScreen(deck: deck),
+          ),
+        );
+      },
+      onMenuSelected: (value) {
+        switch (value) {
+          case 'edit':
+            showDialog(
+              context: context,
+              builder: (_) => AddDeckDialog(deck: deck),
+            );
+            break;
+          case 'archive':
+            _archiveDeck(context, ref, deck);
+            break;
+          case 'delete':
+            _showDeleteDialog(context, ref, deck);
+            break;
+        }
+      },
+    );
+  }
+
+  List<Deck> _sortNewest(List<Deck> decks) {
+    final sorted = [...decks];
+    sorted.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return sorted;
+  }
+
+  List<Deck> _applyCustomOrder(List<Deck> decks, List<String> order) {
+    final byId = {for (final deck in decks) deck.id: deck};
+    final seen = <String>{};
+    final result = <Deck>[];
+    for (final deck in _sortNewest(decks)) {
+      if (!order.contains(deck.id)) {
+        result.add(deck);
+        seen.add(deck.id);
+      }
+    }
+    for (final id in order) {
+      final deck = byId[id];
+      if (deck != null && seen.add(deck.id)) {
+        result.add(deck);
+      }
+    }
+    return result;
+  }
+
   Widget _buildLoadingSkeleton(BuildContext context) {
     return ListView.builder(
       padding: const EdgeInsets.all(12),
@@ -133,20 +291,23 @@ class DeckListScreen extends ConsumerWidget {
   }
 }
 
-class _DeckOverviewCard extends ConsumerWidget {
+class _DeckBoardCard extends ConsumerWidget {
   final Deck deck;
   final VoidCallback onTap;
   final ValueChanged<String> onMenuSelected;
+  final int? dragIndex;
 
-  const _DeckOverviewCard({
+  const _DeckBoardCard({
     required this.deck,
     required this.onTap,
     required this.onMenuSelected,
+    this.dragIndex,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final dragHandleIndex = dragIndex;
     final matchesAsync = ref.watch(deckMatchesProvider(deck.id));
     final baseColor = getGameBaseColor(
       deck.gameName,
@@ -252,6 +413,14 @@ class _DeckOverviewCard extends ConsumerWidget {
                         );
                       }
                     },
+                  ),
+                if (dragHandleIndex != null)
+                  ReorderableDragStartListener(
+                    index: dragHandleIndex,
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 2),
+                      child: Icon(Icons.drag_handle, color: Colors.white70),
+                    ),
                   ),
                 PopupMenuButton<String>(
                   padding: EdgeInsets.zero,

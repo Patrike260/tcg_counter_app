@@ -2465,6 +2465,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a name and numbers greater than 0.'**
   String get lifePresetInvalid;
+
+  /// No description provided for @deckSortNewest.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest'**
+  String get deckSortNewest;
+
+  /// No description provided for @deckSortGrouped.
+  ///
+  /// In en, this message translates to:
+  /// **'By TCG'**
+  String get deckSortGrouped;
+
+  /// No description provided for @deckSortCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Reorder'**
+  String get deckSortCustom;
+
+  /// No description provided for @deckGroupHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'{game} ({count} decks)'**
+  String deckGroupHeader(String game, int count);
 }
 
 class _AppLocalizationsDelegate

@@ -38,6 +38,8 @@ class AppPreferencesState {
   /// `system`, `de`, `en`, `fr` or `it`.
   final String localeCode;
   final bool showPromoBanner;
+  final String deckSortMode;
+  final List<String> customDeckOrder;
 
   // Die unveränderlichen Standard-Tags
   static const List<String> defaultBaseTags = [
@@ -67,6 +69,8 @@ class AppPreferencesState {
     this.dashboardTabs = DashboardTabConfig.defaults,
     this.localeCode = 'system',
     this.showPromoBanner = true,
+    this.deckSortMode = 'newest',
+    this.customDeckOrder = const [],
   });
 
   static const supportedLocaleCodes = ['de', 'en', 'fr', 'it'];
@@ -174,6 +178,8 @@ class AppPreferencesState {
     List<DashboardTabConfig>? dashboardTabs,
     String? localeCode,
     bool? showPromoBanner,
+    String? deckSortMode,
+    List<String>? customDeckOrder,
   }) {
     return AppPreferencesState(
       defaultFormat: defaultFormat ?? this.defaultFormat,
@@ -198,6 +204,8 @@ class AppPreferencesState {
       dashboardTabs: dashboardTabs ?? this.dashboardTabs,
       localeCode: localeCode ?? this.localeCode,
       showPromoBanner: showPromoBanner ?? this.showPromoBanner,
+      deckSortMode: deckSortMode ?? this.deckSortMode,
+      customDeckOrder: customDeckOrder ?? this.customDeckOrder,
     );
   }
 }
@@ -222,6 +230,8 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
   static const _keyDashboardTabs = 'pref_dashboard_tabs_config';
   static const _keyLocaleCode = 'pref_app_locale_code';
   static const _keyShowPromoBanner = 'pref_show_promo_banner';
+  static const _keyDeckSortMode = 'pref_deck_sort_mode';
+  static const _keyCustomDeckOrder = 'pref_custom_deck_order';
 
   @override
   AppPreferencesState build() {
@@ -248,6 +258,8 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
       dashboardTabs: DashboardTabConfig.decodeList(prefs.getStringList(_keyDashboardTabs)),
       localeCode: prefs.getString(_keyLocaleCode) ?? 'system',
       showPromoBanner: prefs.getBool(_keyShowPromoBanner) ?? true,
+      deckSortMode: _normalizeDeckSortMode(prefs.getString(_keyDeckSortMode)),
+      customDeckOrder: prefs.getStringList(_keyCustomDeckOrder) ?? const [],
     );
   }
 
@@ -255,6 +267,19 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
     final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setBool(_keyShowPromoBanner, value);
     state = state.copyWith(showPromoBanner: value);
+  }
+
+  Future<void> setDeckSortMode(String mode) async {
+    final normalized = _normalizeDeckSortMode(mode);
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setString(_keyDeckSortMode, normalized);
+    state = state.copyWith(deckSortMode: normalized);
+  }
+
+  Future<void> setCustomDeckOrder(List<String> deckIds) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setStringList(_keyCustomDeckOrder, deckIds);
+    state = state.copyWith(customDeckOrder: deckIds);
   }
 
   Future<void> setLocaleCode(String code) async {
@@ -534,5 +559,15 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
 
   Future<void> resetToDefaultPresets() async {
     await _persistToolPresets(List<ToolPreset>.from(ToolPreset.defaults));
+  }
+}
+
+String _normalizeDeckSortMode(String? raw) {
+  switch (raw) {
+    case 'grouped':
+    case 'custom':
+      return raw!;
+    default:
+      return 'newest';
   }
 }

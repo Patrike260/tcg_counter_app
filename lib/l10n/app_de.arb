@@ -399,5 +399,15 @@
   "lifePresetStartLp": "Start-LP",
   "lifePresetStepSmall": "Tipp (±)",
   "lifePresetStepLarge": "Long-Press (±)",
-  "lifePresetInvalid": "Bitte Name und gültige Zahlen größer 0 eingeben."
+  "lifePresetInvalid": "Bitte Name und gültige Zahlen größer 0 eingeben.",
+  "deckSortNewest": "Neueste",
+  "deckSortGrouped": "Nach TCG",
+  "deckSortCustom": "Sortieren",
+  "deckGroupHeader": "{game} ({count} Decks)",
+  "@deckGroupHeader": {
+    "placeholders": {
+      "game": {"type": "String"},
+      "count": {"type": "int"}
+    }
+  }
 }
