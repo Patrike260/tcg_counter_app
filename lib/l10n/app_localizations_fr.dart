@@ -1330,4 +1330,34 @@ class AppLocalizationsFr extends AppLocalizations {
   String deckGroupHeader(String game, int count) {
     return '$game ($count decks)';
   }
+
+  @override
+  String get toolsTabCyberpunk => 'Gig Dice';
+
+  @override
+  String get gigPool => 'Non lancés';
+
+  @override
+  String get gigCenter => 'Plateau central';
+
+  @override
+  String get gigStreetCred => 'Street Cred';
+
+  @override
+  String get gigNewRound => 'Nouveau round';
+
+  @override
+  String get gigAdjustValue => 'Ajuster la valeur';
+
+  @override
+  String get gigSteal => 'Voler';
+
+  @override
+  String get gigRemove => 'Retirer / dépenser';
+
+  @override
+  String get gigStolen => 'STOLEN';
+
+  @override
+  String get gigCredShort => 'CRED';
 }

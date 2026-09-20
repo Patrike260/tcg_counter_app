@@ -654,5 +654,15 @@
       "game": {"type": "String"},
       "count": {"type": "int"}
     }
-  }
+  },
+  "toolsTabCyberpunk": "Gig Dice",
+  "gigPool": "Unrolled",
+  "gigCenter": "Center board",
+  "gigStreetCred": "Street Cred",
+  "gigNewRound": "New round",
+  "gigAdjustValue": "Adjust value",
+  "gigSteal": "Steal",
+  "gigRemove": "Remove / spend",
+  "gigStolen": "STOLEN",
+  "gigCredShort": "CRED"
 }

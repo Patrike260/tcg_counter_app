@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../l10n/l10n.dart';
 import 'widgets/chakra_tracker_view.dart';
+import 'widgets/cyberpunk_tracker_view.dart';
 import 'widgets/dice_coin_view.dart';
 import 'widgets/digimon_memory_view.dart';
 import 'widgets/life_counter_view.dart';
@@ -15,7 +16,7 @@ class ToolsScreen extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
 
     return DefaultTabController(
-      length: 5,
+      length: 6,
       child: Column(
         children: [
           Padding(
@@ -38,6 +39,7 @@ class ToolsScreen extends StatelessWidget {
                 Tab(text: l10n.toolsTabLife),
                 Tab(text: l10n.toolsTabChakra),
                 Tab(text: l10n.toolsTabDigimon),
+                Tab(text: l10n.toolsTabCyberpunk),
                 Tab(text: l10n.toolsTabDice),
                 Tab(text: l10n.toolsTabTimer),
               ],
@@ -49,6 +51,7 @@ class ToolsScreen extends StatelessWidget {
                 LifeCounterView(),
                 ChakraTrackerView(),
                 DigimonMemoryView(),
+                CyberpunkTrackerView(),
                 DiceCoinView(),
                 TournamentTimerView(),
               ],

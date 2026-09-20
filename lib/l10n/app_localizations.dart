@@ -2489,6 +2489,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{game} ({count} decks)'**
   String deckGroupHeader(String game, int count);
+
+  /// No description provided for @toolsTabCyberpunk.
+  ///
+  /// In en, this message translates to:
+  /// **'Gig Dice'**
+  String get toolsTabCyberpunk;
+
+  /// No description provided for @gigPool.
+  ///
+  /// In en, this message translates to:
+  /// **'Unrolled'**
+  String get gigPool;
+
+  /// No description provided for @gigCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Center board'**
+  String get gigCenter;
+
+  /// No description provided for @gigStreetCred.
+  ///
+  /// In en, this message translates to:
+  /// **'Street Cred'**
+  String get gigStreetCred;
+
+  /// No description provided for @gigNewRound.
+  ///
+  /// In en, this message translates to:
+  /// **'New round'**
+  String get gigNewRound;
+
+  /// No description provided for @gigAdjustValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust value'**
+  String get gigAdjustValue;
+
+  /// No description provided for @gigSteal.
+  ///
+  /// In en, this message translates to:
+  /// **'Steal'**
+  String get gigSteal;
+
+  /// No description provided for @gigRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove / spend'**
+  String get gigRemove;
+
+  /// No description provided for @gigStolen.
+  ///
+  /// In en, this message translates to:
+  /// **'STOLEN'**
+  String get gigStolen;
+
+  /// No description provided for @gigCredShort.
+  ///
+  /// In en, this message translates to:
+  /// **'CRED'**
+  String get gigCredShort;
 }
 
 class _AppLocalizationsDelegate
