@@ -145,84 +145,201 @@ class _LifeTapBoardState extends ConsumerState<LifeCounterView> {
       });
     }
 
-    return Column(
-      children: [
-        Expanded(
-          child: RotatedBox(
-            quarterTurns: 2,
-            child: _LifeTapSeat(
-              name: l10n.lifeOpponent,
-              life: _opponent,
-              accent: scheme.tertiary,
-              tapStep: preset.safeSmall,
-              holdStep: preset.safeLarge,
-              onChange: _adjustOpponent,
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
-          child: Column(
+    return OrientationBuilder(
+      builder: (context, orientation) {
+        final p1 = _LifeTapSeat(
+          name: l10n.lifeYou,
+          life: _you,
+          accent: scheme.primary,
+          tapStep: preset.safeSmall,
+          holdStep: preset.safeLarge,
+          onChange: _adjustYou,
+        );
+        final p2 = _LifeTapSeat(
+          name: l10n.lifeOpponent,
+          life: _opponent,
+          accent: scheme.tertiary,
+          tapStep: preset.safeSmall,
+          holdStep: preset.safeLarge,
+          onChange: _adjustOpponent,
+        );
+
+        if (orientation == Orientation.landscape) {
+          return Row(
             children: [
-              SizedBox(
-                height: 44,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: [
-                    for (final item in prefs.lifePresets)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: FilterChip(
-                          selected: item.id == preset.id,
-                          label: Text(_presetLabel(item, l10n)),
-                          onSelected: (_) {
-                            ref
-                                .read(appPreferencesProvider.notifier)
-                                .setActiveLifePresetId(item.id);
-                          },
-                          onDeleted: item.isBuiltIn
-                              ? null
-                              : () {
-                                  ref
-                                      .read(appPreferencesProvider.notifier)
-                                      .deleteCustomLifePreset(item.id);
-                                },
+              Expanded(child: p1),
+              _LifeLandscapeRail(
+                presets: prefs.lifePresets,
+                activeId: preset.id,
+                labelOf: (item) => _presetLabel(item, l10n),
+                onSelect: (id) {
+                  ref.read(appPreferencesProvider.notifier).setActiveLifePresetId(id);
+                },
+                onDelete: (id) {
+                  ref.read(appPreferencesProvider.notifier).deleteCustomLifePreset(id);
+                },
+                onAdd: _createPreset,
+                onReset: () => _applyPreset(preset, resetLife: true),
+                gameOver: _gameOver,
+                onSave: _saveMatch,
+              ),
+              Expanded(
+                child: RotatedBox(quarterTurns: 2, child: p2),
+              ),
+            ],
+          );
+        }
+
+        return Column(
+          children: [
+            Expanded(child: RotatedBox(quarterTurns: 2, child: p2)),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        tooltip: l10n.reset,
+                        onPressed: () => _applyPreset(preset, resetLife: true),
+                        icon: const Icon(Icons.restart_alt_rounded),
+                      ),
+                      Expanded(
+                        child: SizedBox(
+                    height: 44,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        for (final item in prefs.lifePresets)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: FilterChip(
+                              selected: item.id == preset.id,
+                              label: Text(_presetLabel(item, l10n)),
+                              onSelected: (_) {
+                                ref
+                                    .read(appPreferencesProvider.notifier)
+                                    .setActiveLifePresetId(item.id);
+                              },
+                              onDeleted: item.isBuiltIn
+                                  ? null
+                                  : () {
+                                      ref
+                                          .read(appPreferencesProvider.notifier)
+                                          .deleteCustomLifePreset(item.id);
+                                    },
+                            ),
+                          ),
+                        ActionChip(
+                          avatar: const Icon(Icons.add, size: 18),
+                          label: Text(l10n.lifePresetAdd),
+                          onPressed: _createPreset,
+                        ),
+                      ],
+                    ),
                         ),
                       ),
-                    ActionChip(
-                      avatar: const Icon(Icons.add, size: 18),
-                      label: Text(l10n.lifePresetAdd),
-                      onPressed: _createPreset,
+                    ],
+                  ),
+                  if (_gameOver) ...[
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: FilledButton.icon(
+                        onPressed: _saveMatch,
+                        icon: const Icon(Icons.save_outlined),
+                        label: Text(l10n.saveMatch),
+                      ),
                     ),
                   ],
-                ),
+                ],
               ),
-              if (_gameOver) ...[
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: FilledButton.icon(
-                    onPressed: _saveMatch,
-                    icon: const Icon(Icons.save_outlined),
-                    label: Text(l10n.saveMatch),
+            ),
+            Expanded(child: p1),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _LifeLandscapeRail extends StatelessWidget {
+  final List<LifePreset> presets;
+  final String activeId;
+  final String Function(LifePreset) labelOf;
+  final ValueChanged<String> onSelect;
+  final ValueChanged<String> onDelete;
+  final VoidCallback onAdd;
+  final VoidCallback onReset;
+  final bool gameOver;
+  final VoidCallback onSave;
+
+  const _LifeLandscapeRail({
+    required this.presets,
+    required this.activeId,
+    required this.labelOf,
+    required this.onSelect,
+    required this.onDelete,
+    required this.onAdd,
+    required this.onReset,
+    required this.gameOver,
+    required this.onSave,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return SizedBox(
+      width: 92,
+      child: Column(
+        children: [
+          IconButton(
+            tooltip: l10n.reset,
+            onPressed: onReset,
+            icon: const Icon(Icons.restart_alt_rounded),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              children: [
+                for (final item in presets)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: FilterChip(
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      selected: item.id == activeId,
+                      label: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          labelOf(item),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      onSelected: (_) => onSelect(item.id),
+                      onDeleted: item.isBuiltIn ? null : () => onDelete(item.id),
+                    ),
                   ),
+                ActionChip(
+                  avatar: const Icon(Icons.add, size: 16),
+                  label: Text(l10n.lifePresetAdd),
+                  onPressed: onAdd,
                 ),
               ],
-            ],
+            ),
           ),
-        ),
-        Expanded(
-          child: _LifeTapSeat(
-            name: l10n.lifeYou,
-            life: _you,
-            accent: scheme.primary,
-            tapStep: preset.safeSmall,
-            holdStep: preset.safeLarge,
-            onChange: _adjustYou,
-          ),
-        ),
-      ],
+          if (gameOver)
+            IconButton.filled(
+              tooltip: l10n.saveMatch,
+              onPressed: onSave,
+              icon: const Icon(Icons.save_outlined),
+            ),
+        ],
+      ),
     );
   }
 }

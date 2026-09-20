@@ -50,75 +50,135 @@ class _NarutoTouchTableState extends State<ChakraTrackerView> {
     final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
 
-    return Column(
-      children: [
-        Expanded(
-          child: RotatedBox(
-            quarterTurns: 2,
-            child: _MythosTapSeat(
-              name: l10n.playerTwo,
-              score: _playerTwo,
-              accent: scheme.tertiary,
-              chakraLabel: l10n.chakraCounterLabel,
-              pointsLabel: l10n.chakraPointsLabel,
-              onChakra: (delta) => _nudgeChakra(_playerTwo, delta),
-              onPoints: (delta) => _nudgePoints(_playerTwo, delta),
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
+    Widget seat({
+      required String name,
+      required _NarutoTouchScore score,
+      required Color accent,
+      required bool stackBlocks,
+    }) {
+      return _MythosSeatPane(
+        name: name,
+        score: score,
+        accent: accent,
+        chakraLabel: l10n.chakraCounterLabel,
+        pointsLabel: l10n.chakraPointsLabel,
+        stackBlocks: stackBlocks,
+        onChakra: (delta) => _nudgeChakra(score, delta),
+        onPoints: (delta) => _nudgePoints(score, delta),
+      );
+    }
+
+    final resetStrip = IconButton.outlined(
+      tooltip: l10n.chakraResetBoard,
+      onPressed: _resetBoard,
+      icon: const Icon(Icons.restart_alt_rounded),
+    );
+
+    return OrientationBuilder(
+      builder: (context, orientation) {
+        if (orientation == Orientation.landscape) {
+          return Row(
             children: [
-              const Expanded(child: Divider()),
-              IconButton.outlined(
-                tooltip: l10n.chakraResetBoard,
-                onPressed: _resetBoard,
-                icon: const Icon(Icons.restart_alt_rounded),
+              Expanded(
+                child: seat(
+                  name: l10n.playerOne,
+                  score: _playerOne,
+                  accent: scheme.primary,
+                  stackBlocks: true,
+                ),
               ),
-              const Expanded(child: Divider()),
+              resetStrip,
+              Expanded(
+                child: RotatedBox(
+                  quarterTurns: 2,
+                  child: seat(
+                    name: l10n.playerTwo,
+                    score: _playerTwo,
+                    accent: scheme.tertiary,
+                    stackBlocks: true,
+                  ),
+                ),
+              ),
             ],
-          ),
-        ),
-        Expanded(
-          child: _MythosTapSeat(
-            name: l10n.playerOne,
-            score: _playerOne,
-            accent: scheme.primary,
-            chakraLabel: l10n.chakraCounterLabel,
-            pointsLabel: l10n.chakraPointsLabel,
-            onChakra: (delta) => _nudgeChakra(_playerOne, delta),
-            onPoints: (delta) => _nudgePoints(_playerOne, delta),
-          ),
-        ),
-      ],
+          );
+        }
+
+        return Column(
+          children: [
+            Expanded(
+              child: RotatedBox(
+                quarterTurns: 2,
+                child: seat(
+                  name: l10n.playerTwo,
+                  score: _playerTwo,
+                  accent: scheme.tertiary,
+                  stackBlocks: false,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  const Expanded(child: Divider()),
+                  resetStrip,
+                  const Expanded(child: Divider()),
+                ],
+              ),
+            ),
+            Expanded(
+              child: seat(
+                name: l10n.playerOne,
+                score: _playerOne,
+                accent: scheme.primary,
+                stackBlocks: false,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
 
-class _MythosTapSeat extends StatelessWidget {
+class _MythosSeatPane extends StatelessWidget {
   final String name;
   final _NarutoTouchScore score;
   final Color accent;
   final String chakraLabel;
   final String pointsLabel;
+  final bool stackBlocks;
   final ValueChanged<int> onChakra;
   final ValueChanged<int> onPoints;
 
-  const _MythosTapSeat({
+  const _MythosSeatPane({
     required this.name,
     required this.score,
     required this.accent,
     required this.chakraLabel,
     required this.pointsLabel,
+    required this.stackBlocks,
     required this.onChakra,
     required this.onPoints,
   });
 
   @override
   Widget build(BuildContext context) {
+    final chakra = _MythosTapBlock(
+      title: chakraLabel,
+      value: score.chakra,
+      accent: accent,
+      onDelta: onChakra,
+    );
+    final points = _MythosTapBlock(
+      title: pointsLabel,
+      value: score.points,
+      accent: Theme.of(context).colorScheme.secondary,
+      onDelta: onPoints,
+    );
+
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 4, 10, 8),
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 8),
       child: Column(
         children: [
           Text(
@@ -127,27 +187,21 @@ class _MythosTapSeat extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Expanded(
-            child: Row(
-              children: [
-                Expanded(
-                  child: _MythosTapBlock(
-                    title: chakraLabel,
-                    value: score.chakra,
-                    accent: accent,
-                    onDelta: onChakra,
+            child: stackBlocks
+                ? Column(
+                    children: [
+                      Expanded(child: chakra),
+                      const SizedBox(height: 8),
+                      Expanded(child: points),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      Expanded(child: chakra),
+                      const SizedBox(width: 8),
+                      Expanded(child: points),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: _MythosTapBlock(
-                    title: pointsLabel,
-                    value: score.points,
-                    accent: Theme.of(context).colorScheme.secondary,
-                    onDelta: onPoints,
-                  ),
-                ),
-              ],
-            ),
           ),
         ],
       ),
