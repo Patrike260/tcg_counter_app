@@ -1,77 +1,47 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../l10n/l10n.dart';
-
-const _kReadyBlue = Color(0xFF00B0FF);
-const _kTappedGray = Color(0xFF90A4AE);
-const int _kChakraDeckSize = 12;
 
 class ChakraTrackerView extends StatefulWidget {
   const ChakraTrackerView({super.key});
 
   @override
-  State<ChakraTrackerView> createState() => _MythosChakraBoardState();
+  State<ChakraTrackerView> createState() => _NarutoTouchTableState();
 }
 
-class _MythosChakraBoardState extends State<ChakraTrackerView> {
-  int totalChakra = 1;
-  int availableChakra = 1;
-  int remainingDeck = 11;
+class _NarutoTouchScore {
+  int chakra = 0;
+  int points = 0;
 
-  int get _tapped => (totalChakra - availableChakra).clamp(0, totalChakra);
+  void reset() {
+    chakra = 0;
+    points = 0;
+  }
+}
 
-  void _pay(int cost) {
-    if (availableChakra < 1) return;
-    HapticFeedback.selectionClick();
+class _NarutoTouchTableState extends State<ChakraTrackerView> {
+  final _playerOne = _NarutoTouchScore();
+  final _playerTwo = _NarutoTouchScore();
+
+  void _nudgeChakra(_NarutoTouchScore player, int delta) {
     setState(() {
-      availableChakra = (availableChakra - cost).clamp(0, totalChakra);
+      player.chakra = (player.chakra + delta).clamp(0, 99999);
     });
   }
 
-  void _endTurn() {
+  void _nudgePoints(_NarutoTouchScore player, int delta) {
+    setState(() {
+      player.points = (player.points + delta).clamp(0, 99999);
+    });
+  }
+
+  void _resetBoard() {
     HapticFeedback.mediumImpact();
     setState(() {
-      if (totalChakra < _kChakraDeckSize) {
-        totalChakra += 1;
-      }
-      if (remainingDeck > 0) {
-        remainingDeck -= 1;
-      }
-      availableChakra = totalChakra;
-    });
-  }
-
-  void _refreshOnly() {
-    HapticFeedback.selectionClick();
-    setState(() => availableChakra = totalChakra);
-  }
-
-  void _adjustDeck(int delta) {
-    HapticFeedback.selectionClick();
-    setState(() {
-      remainingDeck = (remainingDeck + delta).clamp(0, _kChakraDeckSize);
-    });
-  }
-
-  void _adjustZoneMax(int delta) {
-    HapticFeedback.selectionClick();
-    setState(() {
-      final next = (totalChakra + delta).clamp(1, _kChakraDeckSize);
-      if (next > totalChakra) {
-        availableChakra = (availableChakra + (next - totalChakra)).clamp(0, next);
-      } else {
-        availableChakra = availableChakra.clamp(0, next);
-      }
-      totalChakra = next;
-    });
-  }
-
-  void _resetTurnOne() {
-    HapticFeedback.mediumImpact();
-    setState(() {
-      totalChakra = 1;
-      availableChakra = 1;
-      remainingDeck = 11;
+      _playerOne.reset();
+      _playerTwo.reset();
     });
   }
 
@@ -80,213 +50,260 @@ class _MythosChakraBoardState extends State<ChakraTrackerView> {
     final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+    return Column(
       children: [
-        Container(
-          padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                _kReadyBlue.withValues(alpha: 0.18),
-                scheme.surface,
-              ],
+        Expanded(
+          child: RotatedBox(
+            quarterTurns: 2,
+            child: _MythosTapSeat(
+              name: l10n.playerTwo,
+              score: _playerTwo,
+              accent: scheme.tertiary,
+              chakraLabel: l10n.chakraCounterLabel,
+              pointsLabel: l10n.chakraPointsLabel,
+              onChakra: (delta) => _nudgeChakra(_playerTwo, delta),
+              onPoints: (delta) => _nudgePoints(_playerTwo, delta),
             ),
-            border: Border.all(color: _kReadyBlue.withValues(alpha: 0.45)),
           ),
-          child: Column(
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
             children: [
-              Text(
-                l10n.chakraReadyLabel,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: scheme.onSurface.withValues(alpha: 0.75),
-                ),
+              const Expanded(child: Divider()),
+              IconButton.outlined(
+                tooltip: l10n.chakraResetBoard,
+                onPressed: _resetBoard,
+                icon: const Icon(Icons.restart_alt_rounded),
               ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: 168,
-                height: 168,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
-                      width: 168,
-                      height: 168,
-                      child: CircularProgressIndicator(
-                        value: totalChakra == 0 ? 0 : 1,
-                        strokeWidth: 12,
-                        color: _kTappedGray.withValues(alpha: 0.45),
-                        backgroundColor: scheme.surfaceContainerHighest,
-                      ),
-                    ),
-                    SizedBox(
-                      width: 168,
-                      height: 168,
-                      child: CircularProgressIndicator(
-                        value: totalChakra == 0
-                            ? 0
-                            : availableChakra / totalChakra,
-                        strokeWidth: 12,
-                        color: _kReadyBlue,
-                        backgroundColor: Colors.transparent,
-                      ),
-                    ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          l10n.chakraReadyRatio(availableChakra, totalChakra),
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                            color: _kReadyBlue,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          l10n.chakraTappedHint(_tapped),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: _kTappedGray,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              const Expanded(child: Divider()),
             ],
           ),
         ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(
-              child: FilledButton(
-                onPressed: availableChakra >= 1 ? () => _pay(1) : null,
-                style: FilledButton.styleFrom(
-                  backgroundColor: scheme.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                child: Text(l10n.chakraPay1),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: FilledButton.tonal(
-                onPressed: availableChakra >= 2 ? () => _pay(2) : null,
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                child: Text(l10n.chakraPay2),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 18),
-        FilledButton.icon(
-          onPressed: _endTurn,
-          icon: const Icon(Icons.skip_next_rounded),
-          style: FilledButton.styleFrom(
-            backgroundColor: _kReadyBlue,
-            foregroundColor: Colors.black,
-            padding: const EdgeInsets.symmetric(vertical: 16),
+        Expanded(
+          child: _MythosTapSeat(
+            name: l10n.playerOne,
+            score: _playerOne,
+            accent: scheme.primary,
+            chakraLabel: l10n.chakraCounterLabel,
+            pointsLabel: l10n.chakraPointsLabel,
+            onChakra: (delta) => _nudgeChakra(_playerOne, delta),
+            onPoints: (delta) => _nudgePoints(_playerOne, delta),
           ),
-          label: Text(
-            l10n.chakraEndTurn,
-            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-          ),
-        ),
-        const SizedBox(height: 8),
-        OutlinedButton.icon(
-          onPressed: _refreshOnly,
-          icon: const Icon(Icons.autorenew_rounded),
-          label: Text(l10n.chakraRefreshOnly),
-        ),
-        const SizedBox(height: 20),
-        _AdjustBar(
-          title: l10n.chakraDeckTitle,
-          valueLabel: l10n.chakraDeckRemaining(remainingDeck),
-          onMinus: remainingDeck > 0 ? () => _adjustDeck(-1) : null,
-          onPlus: remainingDeck < _kChakraDeckSize ? () => _adjustDeck(1) : null,
-        ),
-        const SizedBox(height: 10),
-        _AdjustBar(
-          title: l10n.chakraZoneMax,
-          valueLabel: '$totalChakra / $_kChakraDeckSize',
-          onMinus: totalChakra > 1 ? () => _adjustZoneMax(-1) : null,
-          onPlus: totalChakra < _kChakraDeckSize ? () => _adjustZoneMax(1) : null,
-        ),
-        const SizedBox(height: 14),
-        TextButton.icon(
-          onPressed: _resetTurnOne,
-          icon: const Icon(Icons.restart_alt_rounded),
-          label: Text(l10n.chakraResetTurn1),
         ),
       ],
     );
   }
 }
 
-class _AdjustBar extends StatelessWidget {
-  final String title;
-  final String valueLabel;
-  final VoidCallback? onMinus;
-  final VoidCallback? onPlus;
+class _MythosTapSeat extends StatelessWidget {
+  final String name;
+  final _NarutoTouchScore score;
+  final Color accent;
+  final String chakraLabel;
+  final String pointsLabel;
+  final ValueChanged<int> onChakra;
+  final ValueChanged<int> onPoints;
 
-  const _AdjustBar({
-    required this.title,
-    required this.valueLabel,
-    required this.onMinus,
-    required this.onPlus,
+  const _MythosTapSeat({
+    required this.name,
+    required this.score,
+    required this.accent,
+    required this.chakraLabel,
+    required this.pointsLabel,
+    required this.onChakra,
+    required this.onPoints,
   });
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        color: scheme.surface,
-        border: Border.all(color: scheme.outline.withValues(alpha: 0.28)),
-      ),
-      child: Row(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 4, 10, 8),
+      child: Column(
         children: [
+          Text(
+            name,
+            style: TextStyle(fontWeight: FontWeight.w800, color: accent),
+          ),
+          const SizedBox(height: 4),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: Row(
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.w800),
+                Expanded(
+                  child: _MythosTapBlock(
+                    title: chakraLabel,
+                    value: score.chakra,
+                    accent: accent,
+                    onDelta: onChakra,
+                  ),
                 ),
-                Text(
-                  valueLabel,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: scheme.onSurface.withValues(alpha: 0.65),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _MythosTapBlock(
+                    title: pointsLabel,
+                    value: score.points,
+                    accent: Theme.of(context).colorScheme.secondary,
+                    onDelta: onPoints,
                   ),
                 ),
               ],
             ),
           ),
-          IconButton.filledTonal(
-            onPressed: onMinus,
-            icon: const Icon(Icons.remove),
-          ),
-          IconButton.filledTonal(
-            onPressed: onPlus,
-            icon: const Icon(Icons.add),
-          ),
         ],
+      ),
+    );
+  }
+}
+
+class _MythosTapBlock extends StatefulWidget {
+  final String title;
+  final int value;
+  final Color accent;
+  final ValueChanged<int> onDelta;
+
+  const _MythosTapBlock({
+    required this.title,
+    required this.value,
+    required this.accent,
+    required this.onDelta,
+  });
+
+  @override
+  State<_MythosTapBlock> createState() => _MythosTapBlockState();
+}
+
+class _MythosTapBlockState extends State<_MythosTapBlock> {
+  String? _flash;
+  Timer? _flashTimer;
+
+  @override
+  void dispose() {
+    _flashTimer?.cancel();
+    super.dispose();
+  }
+
+  void _apply(int delta) {
+    if (delta < 0 && widget.value <= 0) return;
+    HapticFeedback.selectionClick();
+    widget.onDelta(delta);
+    setState(() => _flash = delta > 0 ? '+1' : '-1');
+    _flashTimer?.cancel();
+    _flashTimer = Timer(const Duration(milliseconds: 380), () {
+      if (mounted) setState(() => _flash = null);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: widget.accent.withValues(alpha: 0.16),
+          border: Border.all(color: widget.accent.withValues(alpha: 0.45)),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => _apply(-1),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 14),
+                          child: Text(
+                            '−',
+                            style: TextStyle(
+                              fontSize: 34,
+                              fontWeight: FontWeight.w300,
+                              color: scheme.onSurface.withValues(alpha: 0.28),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => _apply(1),
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 14),
+                          child: Text(
+                            '+',
+                            style: TextStyle(
+                              fontSize: 34,
+                              fontWeight: FontWeight.w300,
+                              color: scheme.onSurface.withValues(alpha: 0.28),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            IgnorePointer(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                child: Column(
+                  children: [
+                    Text(
+                      widget.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: widget.accent,
+                      ),
+                    ),
+                    Expanded(
+                      child: Center(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            '${widget.value}',
+                            style: TextStyle(
+                              fontSize: 56,
+                              fontWeight: FontWeight.w900,
+                              height: 1,
+                              color: scheme.onSurface,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    AnimatedOpacity(
+                      opacity: _flash == null ? 0 : 1,
+                      duration: const Duration(milliseconds: 160),
+                      child: Text(
+                        _flash ?? ' ',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: (_flash ?? '').startsWith('-')
+                              ? Colors.redAccent
+                              : Colors.greenAccent,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

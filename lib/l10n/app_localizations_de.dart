@@ -1133,9 +1133,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get toolsTabDice => 'Würfel & Münze';
 
   @override
-  String get toolsTabRiftbound => 'Riftbound Score';
-
-  @override
   String get coinHeads => 'Kopf';
 
   @override
@@ -1154,21 +1151,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get playerTwo => 'Spieler 2';
-
-  @override
-  String get riftboundGoal => 'Punkte bis zum Sieg';
-
-  @override
-  String get riftboundGoal8 => '8 Pkt';
-
-  @override
-  String get riftboundGoal10 => '10 Pkt';
-
-  @override
-  String get riftboundWinBadge => 'Sieg!';
-
-  @override
-  String get riftboundPlusBattlefield => '+1 Schlachtfeld';
 
   @override
   String get saveMatch => 'Match speichern';
@@ -1279,4 +1261,65 @@ class AppLocalizationsDe extends AppLocalizations {
   String deckWinRateBadge(int percent, int count) {
     return '$percent% • ${count}G';
   }
+
+  @override
+  String get chakraPoolLabel => 'Chakra gezahlt / Pool';
+
+  @override
+  String get chakraPointsLabel => 'Punkte';
+
+  @override
+  String get chakraResetBoard => 'Board zurücksetzen';
+
+  @override
+  String get toolsTabDigimon => 'Digimon Memory';
+
+  @override
+  String get digimonTurnP1 => 'Zug: Spieler 1';
+
+  @override
+  String get digimonTurnP2 => 'Zug: Spieler 2';
+
+  @override
+  String get digimonTurnPass => 'Turn Pass';
+
+  @override
+  String get digimonSpend => 'Memory ausgeben';
+
+  @override
+  String get digimonCorrect => 'Korrektur';
+
+  @override
+  String get digimonResetZero => 'Reset auf 0';
+
+  @override
+  String get chakraCounterLabel => 'Chakra';
+
+  @override
+  String get lifePresetMtg60 => 'Magic 60-Card';
+
+  @override
+  String get lifePresetCommander => 'Commander';
+
+  @override
+  String get lifePresetYgoName => 'Yu-Gi-Oh!';
+
+  @override
+  String get lifePresetAdd => 'Preset anlegen';
+
+  @override
+  String get lifePresetName => 'Name';
+
+  @override
+  String get lifePresetStartLp => 'Start-LP';
+
+  @override
+  String get lifePresetStepSmall => 'Tipp (±)';
+
+  @override
+  String get lifePresetStepLarge => 'Long-Press (±)';
+
+  @override
+  String get lifePresetInvalid =>
+      'Bitte Name und gültige Zahlen größer 0 eingeben.';
 }

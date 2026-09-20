@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme/app_theme_presets.dart';
 import '../../core/theme/app_themes.dart';
 import '../stats/dashboard_config_model.dart';
+import '../tools/life_preset_model.dart';
 import '../tools/tool_preset_model.dart';
 
 const _copyWithUnset = Object();
@@ -26,6 +27,8 @@ class AppPreferencesState {
   final List<String> customTags;
   final List<String> hiddenGameIds;
   final List<ToolPreset> toolPresets;
+  final List<LifePreset> customLifePresets;
+  final String activeLifePresetId;
   final String dashboardTimeRange;
   final String? dashboardGameId;
   final AppThemePreset themePreset;
@@ -54,6 +57,8 @@ class AppPreferencesState {
     this.customTags = const [],
     this.hiddenGameIds = const [],
     this.toolPresets = ToolPreset.defaults,
+    this.customLifePresets = const [],
+    this.activeLifePresetId = 'mtg60',
     this.dashboardTimeRange = 'month',
     this.dashboardGameId,
     this.themePreset = AppThemePreset.onePiece,
@@ -138,6 +143,18 @@ class AppPreferencesState {
     return [dashboardTabs.isNotEmpty ? dashboardTabs.first : DashboardTabConfig.defaults.first];
   }
 
+  List<LifePreset> get lifePresets => [
+        ...LifePreset.defaults,
+        ...customLifePresets,
+      ];
+
+  LifePreset get resolvedLifePreset {
+    for (final preset in lifePresets) {
+      if (preset.id == activeLifePresetId) return preset;
+    }
+    return LifePreset.defaults.first;
+  }
+
   AppPreferencesState copyWith({
     String? defaultFormat,
     String? defaultTurnOrder,
@@ -147,6 +164,8 @@ class AppPreferencesState {
     List<String>? customTags,
     List<String>? hiddenGameIds,
     List<ToolPreset>? toolPresets,
+    List<LifePreset>? customLifePresets,
+    String? activeLifePresetId,
     String? dashboardTimeRange,
     Object? dashboardGameId = _copyWithUnset,
     AppThemePreset? themePreset,
@@ -167,6 +186,8 @@ class AppPreferencesState {
       customTags: customTags ?? this.customTags,
       hiddenGameIds: hiddenGameIds ?? this.hiddenGameIds,
       toolPresets: toolPresets ?? this.toolPresets,
+      customLifePresets: customLifePresets ?? this.customLifePresets,
+      activeLifePresetId: activeLifePresetId ?? this.activeLifePresetId,
       dashboardTimeRange: dashboardTimeRange ?? this.dashboardTimeRange,
       dashboardGameId: identical(dashboardGameId, _copyWithUnset)
           ? this.dashboardGameId
@@ -190,6 +211,8 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
   static const _keyCustomTags = 'pref_custom_tags';
   static const _keyHiddenGameIds = 'pref_hidden_game_ids';
   static const _keyToolPresets = 'pref_tool_presets';
+  static const _keyCustomLifePresets = 'pref_life_presets';
+  static const _keyActiveLifePreset = 'pref_active_life_preset';
   static const _keyDashboardTimeRange = 'pref_dashboard_time_range';
   static const _keyDashboardGameId = 'pref_dashboard_game_id';
   static const _keyThemePreset = 'pref_app_theme_preset';
@@ -212,6 +235,9 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
       customTags: prefs.getStringList(_keyCustomTags) ?? const [],
       hiddenGameIds: prefs.getStringList(_keyHiddenGameIds) ?? const [],
       toolPresets: ToolPreset.decodeList(prefs.getStringList(_keyToolPresets)),
+      customLifePresets:
+          LifePreset.decodeCustomList(prefs.getStringList(_keyCustomLifePresets)),
+      activeLifePresetId: prefs.getString(_keyActiveLifePreset) ?? 'mtg60',
       dashboardTimeRange: prefs.getString(_keyDashboardTimeRange) ?? 'month',
       dashboardGameId: prefs.getString(_keyDashboardGameId),
       themePreset: parseAppThemePreset(
@@ -456,6 +482,35 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
     final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setStringList(_keyToolPresets, ToolPreset.encodeList(presets));
     state = state.copyWith(toolPresets: presets);
+  }
+
+  Future<void> addCustomLifePreset(LifePreset preset) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    final next = [...state.customLifePresets, preset];
+    await prefs.setStringList(_keyCustomLifePresets, LifePreset.encodeList(next));
+    await prefs.setString(_keyActiveLifePreset, preset.id);
+    state = state.copyWith(
+      customLifePresets: next,
+      activeLifePresetId: preset.id,
+    );
+  }
+
+  Future<void> deleteCustomLifePreset(String id) async {
+    final next = state.customLifePresets.where((item) => item.id != id).toList();
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setStringList(_keyCustomLifePresets, LifePreset.encodeList(next));
+    final active = state.activeLifePresetId == id ? 'mtg60' : state.activeLifePresetId;
+    await prefs.setString(_keyActiveLifePreset, active);
+    state = state.copyWith(
+      customLifePresets: next,
+      activeLifePresetId: active,
+    );
+  }
+
+  Future<void> setActiveLifePresetId(String id) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setString(_keyActiveLifePreset, id);
+    state = state.copyWith(activeLifePresetId: id);
   }
 
   Future<void> addToolPreset(ToolPreset preset) async {

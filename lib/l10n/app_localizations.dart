@@ -2112,12 +2112,6 @@ abstract class AppLocalizations {
   /// **'Dice & coin'**
   String get toolsTabDice;
 
-  /// No description provided for @toolsTabRiftbound.
-  ///
-  /// In en, this message translates to:
-  /// **'Riftbound Score'**
-  String get toolsTabRiftbound;
-
   /// No description provided for @coinHeads.
   ///
   /// In en, this message translates to:
@@ -2153,36 +2147,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Player 2'**
   String get playerTwo;
-
-  /// No description provided for @riftboundGoal.
-  ///
-  /// In en, this message translates to:
-  /// **'Points to win'**
-  String get riftboundGoal;
-
-  /// No description provided for @riftboundGoal8.
-  ///
-  /// In en, this message translates to:
-  /// **'8 pts'**
-  String get riftboundGoal8;
-
-  /// No description provided for @riftboundGoal10.
-  ///
-  /// In en, this message translates to:
-  /// **'10 pts'**
-  String get riftboundGoal10;
-
-  /// No description provided for @riftboundWinBadge.
-  ///
-  /// In en, this message translates to:
-  /// **'Victory!'**
-  String get riftboundWinBadge;
-
-  /// No description provided for @riftboundPlusBattlefield.
-  ///
-  /// In en, this message translates to:
-  /// **'+1 battlefield'**
-  String get riftboundPlusBattlefield;
 
   /// No description provided for @saveMatch.
   ///
@@ -2381,6 +2345,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{percent}% • {count}G'**
   String deckWinRateBadge(int percent, int count);
+
+  /// No description provided for @chakraPoolLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Chakra paid / pool'**
+  String get chakraPoolLabel;
+
+  /// No description provided for @chakraPointsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Points'**
+  String get chakraPointsLabel;
+
+  /// No description provided for @chakraResetBoard.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset board'**
+  String get chakraResetBoard;
+
+  /// No description provided for @toolsTabDigimon.
+  ///
+  /// In en, this message translates to:
+  /// **'Digimon Memory'**
+  String get toolsTabDigimon;
+
+  /// No description provided for @digimonTurnP1.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn: Player 1'**
+  String get digimonTurnP1;
+
+  /// No description provided for @digimonTurnP2.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn: Player 2'**
+  String get digimonTurnP2;
+
+  /// No description provided for @digimonTurnPass.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn Pass'**
+  String get digimonTurnPass;
+
+  /// No description provided for @digimonSpend.
+  ///
+  /// In en, this message translates to:
+  /// **'Spend memory'**
+  String get digimonSpend;
+
+  /// No description provided for @digimonCorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual adjust'**
+  String get digimonCorrect;
+
+  /// No description provided for @digimonResetZero.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to 0'**
+  String get digimonResetZero;
+
+  /// No description provided for @chakraCounterLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Chakra'**
+  String get chakraCounterLabel;
+
+  /// No description provided for @lifePresetMtg60.
+  ///
+  /// In en, this message translates to:
+  /// **'Magic 60-Card'**
+  String get lifePresetMtg60;
+
+  /// No description provided for @lifePresetCommander.
+  ///
+  /// In en, this message translates to:
+  /// **'Commander'**
+  String get lifePresetCommander;
+
+  /// No description provided for @lifePresetYgoName.
+  ///
+  /// In en, this message translates to:
+  /// **'Yu-Gi-Oh!'**
+  String get lifePresetYgoName;
+
+  /// No description provided for @lifePresetAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add preset'**
+  String get lifePresetAdd;
+
+  /// No description provided for @lifePresetName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get lifePresetName;
+
+  /// No description provided for @lifePresetStartLp.
+  ///
+  /// In en, this message translates to:
+  /// **'Starting LP'**
+  String get lifePresetStartLp;
+
+  /// No description provided for @lifePresetStepSmall.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap step (±)'**
+  String get lifePresetStepSmall;
+
+  /// No description provided for @lifePresetStepLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'Long-press (±)'**
+  String get lifePresetStepLarge;
+
+  /// No description provided for @lifePresetInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a name and numbers greater than 0.'**
+  String get lifePresetInvalid;
 }
 
 class _AppLocalizationsDelegate

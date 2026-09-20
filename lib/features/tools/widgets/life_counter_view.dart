@@ -7,27 +7,31 @@ import '../../../l10n/l10n.dart';
 import '../../decks/deck_model.dart';
 import '../../decks/deck_repository.dart';
 import '../../matches/add_match_dialog.dart';
+import '../../settings/app_preferences_service.dart';
+import '../life_preset_model.dart';
 
 class LifeCounterView extends ConsumerStatefulWidget {
   const LifeCounterView({super.key});
 
   @override
-  ConsumerState<LifeCounterView> createState() => _LifeCounterBoardState();
+  ConsumerState<LifeCounterView> createState() => _LifeTapBoardState();
 }
 
-class _LifeCounterBoardState extends ConsumerState<LifeCounterView> {
-  int _starting = 20;
+class _LifeTapBoardState extends ConsumerState<LifeCounterView> {
+  String? _appliedPresetId;
   int _you = 20;
   int _opponent = 20;
 
   bool get _gameOver => _you == 0 || _opponent == 0;
 
-  void _setPreset(int value) {
-    HapticFeedback.mediumImpact();
+  void _applyPreset(LifePreset preset, {required bool resetLife}) {
+    HapticFeedback.selectionClick();
     setState(() {
-      _starting = value;
-      _you = value;
-      _opponent = value;
+      _appliedPresetId = preset.id;
+      if (resetLife) {
+        _you = preset.safeStart;
+        _opponent = preset.safeStart;
+      }
     });
   }
 
@@ -38,9 +42,6 @@ class _LifeCounterBoardState extends ConsumerState<LifeCounterView> {
   void _adjustOpponent(int delta) {
     setState(() => _opponent = (_opponent + delta).clamp(0, 99999));
   }
-
-  int get _tapStep => _starting >= 1000 ? 100 : 1;
-  int get _holdStep => _starting >= 1000 ? 500 : 5;
 
   Future<void> _saveMatch() async {
     final l10n = context.l10n;
@@ -103,38 +104,98 @@ class _LifeCounterBoardState extends ConsumerState<LifeCounterView> {
     );
   }
 
+  Future<void> _createPreset() async {
+    final created = await showDialog<LifePreset>(
+      context: context,
+      builder: (_) => const _AddLifePresetDialog(),
+    );
+    if (created == null || !mounted) return;
+    await ref.read(appPreferencesProvider.notifier).addCustomLifePreset(created);
+    _applyPreset(created, resetLife: true);
+  }
+
+  String _presetLabel(LifePreset preset, AppLocalizations l10n) {
+    switch (preset.id) {
+      case 'mtg60':
+        return l10n.lifePresetMtg60;
+      case 'commander':
+        return l10n.lifePresetCommander;
+      case 'ygo':
+        return l10n.lifePresetYgoName;
+      default:
+        return preset.name;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
+    final prefs = ref.watch(appPreferencesProvider);
+    final preset = prefs.resolvedLifePreset;
+
+    if (_appliedPresetId == null) {
+      _appliedPresetId = preset.id;
+      _you = preset.safeStart;
+      _opponent = preset.safeStart;
+    } else if (_appliedPresetId != preset.id) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _applyPreset(preset, resetLife: true);
+      });
+    }
 
     return Column(
       children: [
         Expanded(
           child: RotatedBox(
             quarterTurns: 2,
-            child: _LifeSeat(
+            child: _LifeTapSeat(
               name: l10n.lifeOpponent,
               life: _opponent,
               accent: scheme.tertiary,
-              tapStep: _tapStep,
-              holdStep: _holdStep,
+              tapStep: preset.safeSmall,
+              holdStep: preset.safeLarge,
               onChange: _adjustOpponent,
             ),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.fromLTRB(10, 4, 10, 4),
           child: Column(
             children: [
-              SegmentedButton<int>(
-                segments: [
-                  ButtonSegment(value: 20, label: Text(l10n.lifePresetMtg)),
-                  ButtonSegment(value: 50, label: Text(l10n.lifePresetOp)),
-                  ButtonSegment(value: 8000, label: Text(l10n.lifePresetYgo)),
-                ],
-                selected: {_starting},
-                onSelectionChanged: (values) => _setPreset(values.first),
+              SizedBox(
+                height: 44,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    for (final item in prefs.lifePresets)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: FilterChip(
+                          selected: item.id == preset.id,
+                          label: Text(_presetLabel(item, l10n)),
+                          onSelected: (_) {
+                            ref
+                                .read(appPreferencesProvider.notifier)
+                                .setActiveLifePresetId(item.id);
+                          },
+                          onDeleted: item.isBuiltIn
+                              ? null
+                              : () {
+                                  ref
+                                      .read(appPreferencesProvider.notifier)
+                                      .deleteCustomLifePreset(item.id);
+                                },
+                        ),
+                      ),
+                    ActionChip(
+                      avatar: const Icon(Icons.add, size: 18),
+                      label: Text(l10n.lifePresetAdd),
+                      onPressed: _createPreset,
+                    ),
+                  ],
+                ),
               ),
               if (_gameOver) ...[
                 const SizedBox(height: 8),
@@ -152,12 +213,12 @@ class _LifeCounterBoardState extends ConsumerState<LifeCounterView> {
           ),
         ),
         Expanded(
-          child: _LifeSeat(
+          child: _LifeTapSeat(
             name: l10n.lifeYou,
             life: _you,
             accent: scheme.primary,
-            tapStep: _tapStep,
-            holdStep: _holdStep,
+            tapStep: preset.safeSmall,
+            holdStep: preset.safeLarge,
             onChange: _adjustYou,
           ),
         ),
@@ -166,7 +227,7 @@ class _LifeCounterBoardState extends ConsumerState<LifeCounterView> {
   }
 }
 
-class _LifeSeat extends StatefulWidget {
+class _LifeTapSeat extends StatefulWidget {
   final String name;
   final int life;
   final Color accent;
@@ -174,7 +235,7 @@ class _LifeSeat extends StatefulWidget {
   final int holdStep;
   final ValueChanged<int> onChange;
 
-  const _LifeSeat({
+  const _LifeTapSeat({
     required this.name,
     required this.life,
     required this.accent,
@@ -184,10 +245,10 @@ class _LifeSeat extends StatefulWidget {
   });
 
   @override
-  State<_LifeSeat> createState() => _LifeSeatState();
+  State<_LifeTapSeat> createState() => _LifeTapSeatState();
 }
 
-class _LifeSeatState extends State<_LifeSeat> {
+class _LifeTapSeatState extends State<_LifeTapSeat> {
   String? _flash;
   Timer? _flashTimer;
 
@@ -220,7 +281,7 @@ class _LifeSeatState extends State<_LifeSeat> {
             Row(
               children: [
                 Expanded(
-                  child: _TouchZone(
+                  child: _LifeTapZone(
                     label: '-${widget.tapStep}',
                     align: Alignment.centerLeft,
                     onTap: () => _apply(-widget.tapStep),
@@ -228,7 +289,7 @@ class _LifeSeatState extends State<_LifeSeat> {
                   ),
                 ),
                 Expanded(
-                  child: _TouchZone(
+                  child: _LifeTapZone(
                     label: '+${widget.tapStep}',
                     align: Alignment.centerRight,
                     onTap: () => _apply(widget.tapStep),
@@ -248,13 +309,16 @@ class _LifeSeatState extends State<_LifeSeat> {
                       color: widget.accent,
                     ),
                   ),
-                  Text(
-                    '${widget.life}',
-                    style: TextStyle(
-                      fontSize: widget.life >= 1000 ? 56 : 72,
-                      fontWeight: FontWeight.w900,
-                      height: 1,
-                      color: Theme.of(context).colorScheme.onSurface,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      '${widget.life}',
+                      style: TextStyle(
+                        fontSize: widget.life >= 1000 ? 56 : 72,
+                        fontWeight: FontWeight.w900,
+                        height: 1,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                     ),
                   ),
                   AnimatedOpacity(
@@ -281,13 +345,13 @@ class _LifeSeatState extends State<_LifeSeat> {
   }
 }
 
-class _TouchZone extends StatelessWidget {
+class _LifeTapZone extends StatelessWidget {
   final String label;
   final Alignment align;
   final VoidCallback onTap;
   final VoidCallback onLongPress;
 
-  const _TouchZone({
+  const _LifeTapZone({
     required this.label,
     required this.align,
     required this.onTap,
@@ -316,6 +380,101 @@ class _TouchZone extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _AddLifePresetDialog extends StatefulWidget {
+  const _AddLifePresetDialog();
+
+  @override
+  State<_AddLifePresetDialog> createState() => _AddLifePresetDialogState();
+}
+
+class _AddLifePresetDialogState extends State<_AddLifePresetDialog> {
+  final _name = TextEditingController();
+  final _start = TextEditingController(text: '20');
+  final _small = TextEditingController(text: '1');
+  final _large = TextEditingController(text: '5');
+  String? _error;
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _start.dispose();
+    _small.dispose();
+    _large.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final l10n = context.l10n;
+    final name = _name.text.trim();
+    final start = int.tryParse(_start.text.trim());
+    final small = int.tryParse(_small.text.trim());
+    final large = int.tryParse(_large.text.trim());
+    if (name.isEmpty || start == null || start < 1 || small == null || small < 1 || large == null || large < 1) {
+      setState(() => _error = l10n.lifePresetInvalid);
+      return;
+    }
+    Navigator.pop(
+      context,
+      LifePreset(
+        id: 'custom_${DateTime.now().millisecondsSinceEpoch}',
+        name: name,
+        startingLife: start,
+        stepSmall: small,
+        stepLarge: large < small ? small : large,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    return AlertDialog(
+      title: Text(l10n.lifePresetAdd),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _name,
+              decoration: InputDecoration(labelText: l10n.lifePresetName),
+              textCapitalization: TextCapitalization.words,
+            ),
+            TextField(
+              controller: _start,
+              decoration: InputDecoration(labelText: l10n.lifePresetStartLp),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _small,
+              decoration: InputDecoration(labelText: l10n.lifePresetStepSmall),
+              keyboardType: TextInputType.number,
+            ),
+            TextField(
+              controller: _large,
+              decoration: InputDecoration(labelText: l10n.lifePresetStepLarge),
+              keyboardType: TextInputType.number,
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: _submit,
+          child: Text(l10n.create),
+        ),
+      ],
     );
   }
 }
