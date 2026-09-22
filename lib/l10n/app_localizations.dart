@@ -282,6 +282,12 @@ abstract class AppLocalizations {
   /// **'Coin & dice'**
   String get tooltipDiceCoin;
 
+  /// No description provided for @tooltipRotateView.
+  ///
+  /// In en, this message translates to:
+  /// **'Rotate view / landscape'**
+  String get tooltipRotateView;
+
   /// No description provided for @noTcg.
   ///
   /// In en, this message translates to:

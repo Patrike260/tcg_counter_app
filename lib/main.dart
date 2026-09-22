@@ -110,6 +110,23 @@ class _MainNavigationHostState extends ConsumerState<MainNavigationHost> {
   ];
 
   @override
+  void dispose() {
+    unlockToolOrientations();
+    super.dispose();
+  }
+
+  void _selectTab(int index) {
+    final leavingTools = _currentIndex == 2 && index != 2;
+    setState(() => _currentIndex = index);
+    if (leavingTools) {
+      unlockToolOrientations();
+    }
+    if (index == 0) {
+      ref.invalidate(dashboardDataProvider);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final titles = [
@@ -136,6 +153,7 @@ class _MainNavigationHostState extends ConsumerState<MainNavigationHost> {
             const SizedBox(width: 12),
           ],
           const RoundTimerCapsule(),
+          if (_currentIndex == 2) const ToolsRotateButton(),
           IconButton(
             tooltip: l10n.tooltipDiceCoin,
             icon: const Icon(Icons.casino_outlined),
@@ -154,12 +172,7 @@ class _MainNavigationHostState extends ConsumerState<MainNavigationHost> {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          setState(() => _currentIndex = index);
-          if (index == 0) {
-            ref.invalidate(dashboardDataProvider);
-          }
-        },
+        onDestinationSelected: _selectTab,
         destinations: [
           NavigationDestination(
             icon: const Icon(Icons.dashboard_outlined),

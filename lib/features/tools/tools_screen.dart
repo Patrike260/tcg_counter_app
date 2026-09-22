@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../l10n/l10n.dart';
 import 'widgets/chakra_tracker_view.dart';
 import 'widgets/cyberpunk_tracker_view.dart';
@@ -6,8 +7,53 @@ import 'widgets/dice_coin_view.dart';
 import 'widgets/digimon_memory_view.dart';
 import 'widgets/life_counter_view.dart';
 
-class ToolsScreen extends StatelessWidget {
+Future<void> unlockToolOrientations() {
+  return SystemChrome.setPreferredOrientations(DeviceOrientation.values);
+}
+
+Future<void> toggleToolTableOrientation(BuildContext context) async {
+  final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+  if (isPortrait) {
+    await SystemChrome.setPreferredOrientations(const [
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.landscapeRight,
+    ]);
+  } else {
+    await SystemChrome.setPreferredOrientations(const [
+      DeviceOrientation.portraitUp,
+    ]);
+  }
+}
+
+class ToolsRotateButton extends StatelessWidget {
+  const ToolsRotateButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final isPortrait = MediaQuery.of(context).orientation == Orientation.portrait;
+    return IconButton(
+      tooltip: context.l10n.tooltipRotateView,
+      icon: Icon(
+        isPortrait ? Icons.stay_current_landscape : Icons.stay_current_portrait,
+      ),
+      onPressed: () => toggleToolTableOrientation(context),
+    );
+  }
+}
+
+class ToolsScreen extends StatefulWidget {
   const ToolsScreen({super.key});
+
+  @override
+  State<ToolsScreen> createState() => _ToolsScreenState();
+}
+
+class _ToolsScreenState extends State<ToolsScreen> {
+  @override
+  void dispose() {
+    unlockToolOrientations();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

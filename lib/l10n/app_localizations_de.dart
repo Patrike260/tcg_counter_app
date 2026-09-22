@@ -110,6 +110,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tooltipDiceCoin => 'Münze & Würfel';
 
   @override
+  String get tooltipRotateView => 'Ansicht drehen / Querformat';
+
+  @override
   String get noTcg => 'Kein TCG';
 
   @override
