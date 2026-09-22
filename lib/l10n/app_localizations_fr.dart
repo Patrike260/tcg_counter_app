@@ -194,6 +194,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get continueWithGoogle => 'Continuer avec Google';
 
   @override
+  String get continueWithDiscord => 'Se connecter avec Discord';
+
+  @override
+  String get continueWithGithub => 'Se connecter avec GitHub';
+
+  @override
   String get enterEmailPassword => 'Veuillez saisir e-mail et mot de passe.';
 
   @override
@@ -202,6 +208,16 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String googleLoginFailed(Object error) {
     return 'Connexion Google échouée : $error';
+  }
+
+  @override
+  String discordLoginFailed(Object error) {
+    return 'Connexion Discord échouée : $error';
+  }
+
+  @override
+  String githubLoginFailed(Object error) {
+    return 'Connexion GitHub échouée : $error';
   }
 
   @override
@@ -215,10 +231,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get sectionSettings => 'RÉGLAGES';
 
   @override
+  String get sectionToolsTimer => 'OUTILS ET MINUTEUR';
+
+  @override
   String get sectionContent => 'GESTION ET CONTENU';
 
   @override
   String get sectionBackup => 'DONNÉES ET SAUVEGARDE';
+
+  @override
+  String get sectionSupport => 'SUPPORT ET FEEDBACK';
 
   @override
   String get sectionAccount => 'COMPTE ET INFOS';
@@ -252,6 +274,20 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get toolPresetsSubtitle => 'Life counter, joueurs et minuteur';
+
+  @override
+  String get timerSoundTitle => 'Signal sonore à la fin du temps';
+
+  @override
+  String get timerSoundSubtitle =>
+      'Bip système court lorsque le minuteur atteint 00:00';
+
+  @override
+  String get timerVibrationTitle => 'Alarme vibrante à la fin du temps';
+
+  @override
+  String get timerVibrationSubtitle =>
+      'Retour haptique sur les appareils compatibles';
 
   @override
   String get tournamentsTitle => 'Tournois et événements';
@@ -1019,30 +1055,42 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get promoBadge => 'CARDMARKET PARTNER';
-
-  @override
-  String get promoHeadline => 'Trouve singles et displays';
-
-  @override
-  String get promoSubtitle =>
-      'Soutiens l’app avec ton prochain upgrade de deck.';
-
-  @override
-  String get promoView => 'Shopper';
-
-  @override
-  String get promoDismiss => 'Masquer la bannière';
-
-  @override
   String get promoOpenFailed => 'Le lien partenaire n’a pas pu être ouvert.';
 
   @override
-  String get promoSettingsTitle => 'Recommandations partenaires et bannières';
+  String get supportCardmarketTitle => 'Cartes et accessoires sur Cardmarket';
 
   @override
-  String get promoSettingsSubtitle =>
-      'Soutiens le projet avec des liens communautaires discrets';
+  String get supportCardmarketSubtitle =>
+      'Soutiens l’app lors de ton prochain achat';
+
+  @override
+  String get supportCoffeeTitle => 'Offre-moi un café';
+
+  @override
+  String get supportCoffeeSubtitle =>
+      'Soutiens le développement via Buy Me a Coffee';
+
+  @override
+  String get supportGithubStarTitle => 'Évaluer le projet GitHub';
+
+  @override
+  String get supportGithubStarSubtitle =>
+      'Donne une étoile (Star) au projet sur GitHub';
+
+  @override
+  String get supportDiscordTitle => 'Communauté et retours sur Discord';
+
+  @override
+  String get supportDiscordSubtitle =>
+      'Échange avec d’autres joueurs ou partage tes idées';
+
+  @override
+  String get supportGithubIssueTitle => 'Créer une issue GitHub';
+
+  @override
+  String get supportGithubIssueSubtitle =>
+      'Signaler un bug ou demander une fonctionnalité';
 
   @override
   String get toolsTabChakra => 'Chakra (Naruto)';
@@ -1121,6 +1169,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get timerPreset50 => '50 min';
+
+  @override
+  String get timerAddFive => '+5 min de prolongation';
 
   @override
   String get toolsTabDice => 'Dés et pièce';
@@ -1360,4 +1411,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get gigCredShort => 'CRED';
+
+  @override
+  String get gigGigs => 'Gigs';
 }

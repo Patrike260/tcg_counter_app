@@ -194,6 +194,12 @@ class AppLocalizationsIt extends AppLocalizations {
   String get continueWithGoogle => 'Continua con Google';
 
   @override
+  String get continueWithDiscord => 'Accedi con Discord';
+
+  @override
+  String get continueWithGithub => 'Accedi con GitHub';
+
+  @override
   String get enterEmailPassword => 'Inserisci e-mail e password.';
 
   @override
@@ -202,6 +208,16 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String googleLoginFailed(Object error) {
     return 'Accesso Google non riuscito: $error';
+  }
+
+  @override
+  String discordLoginFailed(Object error) {
+    return 'Accesso Discord non riuscito: $error';
+  }
+
+  @override
+  String githubLoginFailed(Object error) {
+    return 'Accesso GitHub non riuscito: $error';
   }
 
   @override
@@ -215,10 +231,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get sectionSettings => 'IMPOSTAZIONI';
 
   @override
+  String get sectionToolsTimer => 'STRUMENTI E TIMER';
+
+  @override
   String get sectionContent => 'GESTIONE E CONTENUTI';
 
   @override
   String get sectionBackup => 'DATI E BACKUP';
+
+  @override
+  String get sectionSupport => 'SUPPORTO E FEEDBACK';
 
   @override
   String get sectionAccount => 'ACCOUNT E INFO';
@@ -252,6 +274,21 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get toolPresetsSubtitle => 'Life counter, giocatori e timer';
+
+  @override
+  String get timerSoundTitle => 'Segnale acustico allo scadere del tempo';
+
+  @override
+  String get timerSoundSubtitle =>
+      'Bip di sistema breve quando il timer arriva a 00:00';
+
+  @override
+  String get timerVibrationTitle =>
+      'Allarme a vibrazione allo scadere del tempo';
+
+  @override
+  String get timerVibrationSubtitle =>
+      'Feedback aptico sui dispositivi supportati';
 
   @override
   String get tournamentsTitle => 'Tornei ed eventi';
@@ -1015,30 +1052,42 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get promoBadge => 'CARDMARKET PARTNER';
-
-  @override
-  String get promoHeadline => 'Trova singles e display';
-
-  @override
-  String get promoSubtitle =>
-      'Sostieni l’app con il tuo prossimo upgrade del mazzo.';
-
-  @override
-  String get promoView => 'Acquista';
-
-  @override
-  String get promoDismiss => 'Nascondi banner';
-
-  @override
   String get promoOpenFailed => 'Impossibile aprire il link partner.';
 
   @override
-  String get promoSettingsTitle => 'Consigli partner e banner';
+  String get supportCardmarketTitle => 'Carte e accessori su Cardmarket';
 
   @override
-  String get promoSettingsSubtitle =>
-      'Sostieni il progetto con link community discreti';
+  String get supportCardmarketSubtitle =>
+      'Sostieni l’app con il tuo prossimo acquisto';
+
+  @override
+  String get supportCoffeeTitle => 'Offrimi un caffè';
+
+  @override
+  String get supportCoffeeSubtitle =>
+      'Sostieni lo sviluppo tramite Buy Me a Coffee';
+
+  @override
+  String get supportGithubStarTitle => 'Valuta il progetto su GitHub';
+
+  @override
+  String get supportGithubStarSubtitle =>
+      'Assegna una stella (Star) all’app su GitHub';
+
+  @override
+  String get supportDiscordTitle => 'Community e feedback su Discord';
+
+  @override
+  String get supportDiscordSubtitle =>
+      'Confrontati con altri giocatori o condividi idee';
+
+  @override
+  String get supportGithubIssueTitle => 'Crea una issue su GitHub';
+
+  @override
+  String get supportGithubIssueSubtitle =>
+      'Segnala un bug o richiedi una funzionalità';
 
   @override
   String get toolsTabChakra => 'Chakra (Naruto)';
@@ -1117,6 +1166,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get timerPreset50 => '50 min';
+
+  @override
+  String get timerAddFive => '+5 min di recupero';
 
   @override
   String get toolsTabDice => 'Dadi e moneta';
@@ -1354,4 +1406,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gigCredShort => 'CRED';
+
+  @override
+  String get gigGigs => 'Gigs';
 }

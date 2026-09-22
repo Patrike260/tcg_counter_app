@@ -5,7 +5,6 @@ import 'widgets/cyberpunk_tracker_view.dart';
 import 'widgets/dice_coin_view.dart';
 import 'widgets/digimon_memory_view.dart';
 import 'widgets/life_counter_view.dart';
-import 'widgets/tournament_timer_view.dart';
 
 class ToolsScreen extends StatelessWidget {
   const ToolsScreen({super.key});
@@ -16,7 +15,7 @@ class ToolsScreen extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
 
     return DefaultTabController(
-      length: 6,
+      length: 5,
       child: Column(
         children: [
           Padding(
@@ -41,7 +40,6 @@ class ToolsScreen extends StatelessWidget {
                 Tab(text: l10n.toolsTabDigimon),
                 Tab(text: l10n.toolsTabCyberpunk),
                 Tab(text: l10n.toolsTabDice),
-                Tab(text: l10n.toolsTabTimer),
               ],
             ),
           ),
@@ -53,7 +51,6 @@ class ToolsScreen extends StatelessWidget {
                 DigimonMemoryView(),
                 CyberpunkTrackerView(),
                 DiceCoinView(),
-                TournamentTimerView(),
               ],
             ),
           ),

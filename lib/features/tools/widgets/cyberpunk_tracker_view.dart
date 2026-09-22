@@ -2,15 +2,17 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../l10n/l10n.dart';
+import '../round_timer_service.dart';
 
+const _kHudBg = Color(0xFF0A0E14);
+const _kHudBorder = Color(0xFF1E2638);
 const _kGigCyan = Color(0xFF00E5FF);
-const _kGigPink = Color(0xFFFF2A85);
+const _kGigGreen = Color(0xFFB6FF3C);
 const _kGigYellow = Color(0xFFFFF176);
-const _kGigPanel = Color(0xFF12131C);
-const _kPolySides = [4, 6, 8, 10, 12, 20];
-const _kUnlockSides = [4, 6, 8, 10, 12];
-const _kDieSize = 58.0;
+const _kPolySides = [4, 6, 8, 10, 12, 6, 20];
+const _kDieSize = 56.0;
 
 class GigDie {
   final String id;
@@ -33,17 +35,19 @@ class GigDie {
 
   bool get isStolen => currentPlayer != originalPlayer;
 
-  Color get originColor => originalPlayer == 1 ? _kGigCyan : _kGigPink;
+  Color get originColor => originalPlayer == 1 ? _kGigCyan : _kGigGreen;
+
+  bool get isD20 => sides == 20;
 }
 
-class CyberpunkTrackerView extends StatefulWidget {
+class CyberpunkTrackerView extends ConsumerStatefulWidget {
   const CyberpunkTrackerView({super.key});
 
   @override
-  State<CyberpunkTrackerView> createState() => _FacetGigTableState();
+  ConsumerState<CyberpunkTrackerView> createState() => _CyberHudBoardState();
 }
 
-class _FacetGigTableState extends State<CyberpunkTrackerView> {
+class _CyberHudBoardState extends ConsumerState<CyberpunkTrackerView> {
   final _random = Random();
   int _seq = 0;
   late List<GigDie> _dice;
@@ -71,15 +75,16 @@ class _FacetGigTableState extends State<CyberpunkTrackerView> {
     ];
   }
 
-  bool _d20Locked(int player) {
-    return _kUnlockSides.any((sides) {
-      return _dice.any(
-        (die) =>
-            die.originalPlayer == player &&
-            die.sides == sides &&
-            !die.isRolled,
-      );
-    });
+  int get _gigsPerPlayer => _kPolySides.length;
+
+  bool _d20Locked(int originalPlayer) {
+    return _dice.any(
+      (die) =>
+          die.originalPlayer == originalPlayer &&
+          !die.isD20 &&
+          !die.isRolled &&
+          !die.isSpent,
+    );
   }
 
   List<GigDie> _poolOf(int player) {
@@ -100,6 +105,10 @@ class _FacetGigTableState extends State<CyberpunkTrackerView> {
     return _boardOf(player).fold<int>(0, (sum, die) => sum + die.value);
   }
 
+  int _gigsRolled(int player) {
+    return _boardOf(player).length;
+  }
+
   void _resetRound() {
     HapticFeedback.mediumImpact();
     setState(() => _dice = _buildStartDice());
@@ -107,7 +116,7 @@ class _FacetGigTableState extends State<CyberpunkTrackerView> {
 
   void _rollDie(GigDie die) {
     if (die.isRolled || die.isSpent) return;
-    if (die.sides == 20 && _d20Locked(die.originalPlayer)) return;
+    if (die.isD20 && _d20Locked(die.originalPlayer)) return;
     HapticFeedback.mediumImpact();
     setState(() {
       die.value = _random.nextInt(die.sides) + 1;
@@ -134,402 +143,231 @@ class _FacetGigTableState extends State<CyberpunkTrackerView> {
     });
   }
 
-  Future<void> _openBoardDie(BuildContext context, GigDie die) async {
-    final l10n = context.l10n;
-    await showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: _kGigPanel,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return SafeArea(
-          child: StatefulBuilder(
-            builder: (context, setSheet) {
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 42,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: die.originColor.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(99),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    PolyhedralDiceWidget(
-                      sides: die.sides,
-                      label: '${die.value}',
-                      color: die.originColor,
-                      stolen: die.isStolen,
-                      size: 64,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      l10n.gigAdjustValue,
-                      style: const TextStyle(fontWeight: FontWeight.w800),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        IconButton.filledTonal(
-                          onPressed: die.value > 1
-                              ? () {
-                                  _nudgeValue(die, -1);
-                                  setSheet(() {});
-                                }
-                              : null,
-                          icon: const Icon(Icons.remove),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 18),
-                          child: Text(
-                            '${die.value}',
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.w900,
-                              color: die.originColor,
-                            ),
-                          ),
-                        ),
-                        IconButton.filledTonal(
-                          onPressed: die.value < die.sides
-                              ? () {
-                                  _nudgeValue(die, 1);
-                                  setSheet(() {});
-                                }
-                              : null,
-                          icon: const Icon(Icons.add),
-                        ),
-                      ],
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.swap_horiz, color: _kGigPink),
-                      title: Text(l10n.gigSteal),
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        _stealDie(die);
-                      },
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                      title: Text(l10n.gigRemove),
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        _spendDie(die);
-                      },
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        );
-      },
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final clock = ref.watch(roundTimerProvider);
 
-    return OrientationBuilder(
-      builder: (context, orientation) {
-        final landscape = orientation == Orientation.landscape;
-        if (landscape) {
-          return ColoredBox(
-            color: _kGigPanel.withValues(alpha: 0.42),
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(6, 4, 6, 4),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _GigSeatHalf(
-                      playerLabel: l10n.playerOne,
-                      poolTitle: l10n.gigPool,
-                      accent: _kGigCyan,
-                      cred: _streetCred(1),
-                      pool: _poolOf(1),
-                      board: _boardOf(1),
-                      d20Locked: _d20Locked(1),
-                      onRoll: _rollDie,
-                      onTapDie: (die) => _openBoardDie(context, die),
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: l10n.gigNewRound,
-                    onPressed: _resetRound,
-                    icon: const Icon(Icons.restart_alt_rounded, color: _kGigYellow),
-                  ),
-                  Expanded(
-                    child: RotatedBox(
-                      quarterTurns: 2,
-                      child: _GigSeatHalf(
-                        playerLabel: l10n.playerTwo,
-                        poolTitle: l10n.gigPool,
-                        accent: _kGigPink,
-                        cred: _streetCred(2),
-                        pool: _poolOf(2),
-                        board: _boardOf(2),
-                        d20Locked: _d20Locked(2),
-                        onRoll: _rollDie,
-                        onTapDie: (die) => _openBoardDie(context, die),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+    return ColoredBox(
+      color: _kHudBg,
+      child: OrientationBuilder(
+        builder: (context, orientation) {
+          final landscape = orientation == Orientation.landscape;
+          final p1 = _HudSeat(
+            name: l10n.playerOne,
+            accent: _kGigCyan,
+            landscape: landscape,
+            cred: _streetCred(1),
+            gigsRolled: _gigsRolled(1),
+            gigsTotal: _gigsPerPlayer,
+            clockLabel: clock.clockLabel,
+            overtime: clock.isOvertime,
+            pool: _poolOf(1),
+            board: _boardOf(1),
+            d20Locked: _d20Locked(1),
+            onRoll: _rollDie,
+            onNudge: _nudgeValue,
+            onSteal: _stealDie,
+            onSpend: _spendDie,
           );
-        }
+          final p2 = _HudSeat(
+            name: l10n.playerTwo,
+            accent: _kGigGreen,
+            landscape: landscape,
+            cred: _streetCred(2),
+            gigsRolled: _gigsRolled(2),
+            gigsTotal: _gigsPerPlayer,
+            clockLabel: clock.clockLabel,
+            overtime: clock.isOvertime,
+            pool: _poolOf(2),
+            board: _boardOf(2),
+            d20Locked: _d20Locked(2),
+            onRoll: _rollDie,
+            onNudge: _nudgeValue,
+            onSteal: _stealDie,
+            onSpend: _spendDie,
+          );
 
-        return ColoredBox(
-          color: _kGigPanel.withValues(alpha: 0.42),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
-            child: Row(
+          if (landscape) {
+            return Row(
               children: [
-                _SideGigField(
-                  playerLabel: l10n.playerOne,
-                  poolTitle: l10n.gigPool,
-                  accent: _kGigCyan,
-                  cred: _streetCred(1),
-                  pool: _poolOf(1),
-                  d20Locked: _d20Locked(1),
-                  onRoll: _rollDie,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  flex: 4,
-                  child: _CenterGigField(
-                    title: l10n.gigCenter,
-                    playerOneLabel: l10n.playerOne,
-                    playerTwoLabel: l10n.playerTwo,
-                    playerOneDice: _boardOf(1),
-                    playerTwoDice: _boardOf(2),
-                    playerOneCred: _streetCred(1),
-                    playerTwoCred: _streetCred(2),
-                    onTapDie: (die) => _openBoardDie(context, die),
-                    onReset: _resetRound,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                _SideGigField(
-                  playerLabel: l10n.playerTwo,
-                  poolTitle: l10n.gigPool,
-                  accent: _kGigPink,
-                  cred: _streetCred(2),
-                  pool: _poolOf(2),
-                  d20Locked: _d20Locked(2),
-                  onRoll: _rollDie,
-                ),
+                Expanded(child: p1),
+                _HudSpine(landscape: true, onReset: _resetRound, label: l10n.gigNewRound),
+                Expanded(child: RotatedBox(quarterTurns: 2, child: p2)),
               ],
-            ),
-          ),
-        );
-      },
+            );
+          }
+
+          return Column(
+            children: [
+              Expanded(child: RotatedBox(quarterTurns: 2, child: p2)),
+              _HudSpine(landscape: false, onReset: _resetRound, label: l10n.gigNewRound),
+              Expanded(child: p1),
+            ],
+          );
+        },
+      ),
     );
   }
 }
 
-class _GigSeatHalf extends StatelessWidget {
-  final String playerLabel;
-  final String poolTitle;
+class _HudSpine extends StatelessWidget {
+  final bool landscape;
+  final VoidCallback onReset;
+  final String label;
+
+  const _HudSpine({
+    required this.landscape,
+    required this.onReset,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final line = Container(
+      color: _kHudBorder,
+      width: landscape ? 1 : double.infinity,
+      height: landscape ? double.infinity : 1,
+    );
+    return landscape
+        ? SizedBox(
+            width: 42,
+            child: Column(
+              children: [
+                Expanded(child: line),
+                IconButton(
+                  tooltip: label,
+                  onPressed: onReset,
+                  icon: const Icon(Icons.restart_alt_rounded, color: _kGigYellow, size: 18),
+                ),
+                Expanded(child: line),
+              ],
+            ),
+          )
+        : SizedBox(
+            height: 36,
+            child: Row(
+              children: [
+                Expanded(child: line),
+                IconButton(
+                  tooltip: label,
+                  onPressed: onReset,
+                  icon: const Icon(Icons.restart_alt_rounded, color: _kGigYellow, size: 18),
+                ),
+                Expanded(child: line),
+              ],
+            ),
+          );
+  }
+}
+
+class _HudSeat extends StatelessWidget {
+  final String name;
   final Color accent;
+  final bool landscape;
   final int cred;
+  final int gigsRolled;
+  final int gigsTotal;
+  final String clockLabel;
+  final bool overtime;
   final List<GigDie> pool;
   final List<GigDie> board;
   final bool d20Locked;
   final ValueChanged<GigDie> onRoll;
-  final ValueChanged<GigDie> onTapDie;
+  final void Function(GigDie die, int delta) onNudge;
+  final ValueChanged<GigDie> onSteal;
+  final ValueChanged<GigDie> onSpend;
 
-  const _GigSeatHalf({
-    required this.playerLabel,
-    required this.poolTitle,
+  const _HudSeat({
+    required this.name,
     required this.accent,
+    required this.landscape,
     required this.cred,
+    required this.gigsRolled,
+    required this.gigsTotal,
+    required this.clockLabel,
+    required this.overtime,
     required this.pool,
     required this.board,
     required this.d20Locked,
     required this.onRoll,
-    required this.onTapDie,
+    required this.onNudge,
+    required this.onSteal,
+    required this.onSpend,
   });
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final dieSize = (constraints.maxHeight / 8).clamp(36.0, 60.0);
-        return Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: accent.withValues(alpha: 0.6)),
-            color: _kGigPanel.withValues(alpha: 0.82),
-          ),
-          padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
-          child: Column(
-            children: [
-              Text(
-                playerLabel,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontWeight: FontWeight.w800, color: accent, fontSize: 12),
-              ),
-              _CredBadge(value: cred, accent: accent),
-              const SizedBox(height: 4),
-              Expanded(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Text(
-                            poolTitle,
-                            style: TextStyle(fontSize: 10, color: accent.withValues(alpha: 0.75)),
-                          ),
-                          const SizedBox(height: 4),
-                          Expanded(
-                            child: SingleChildScrollView(
-                              child: Wrap(
-                                spacing: 6,
-                                runSpacing: 6,
-                                alignment: WrapAlignment.center,
-                                children: [
-                                  for (final die in pool)
-                                    PolyhedralDiceWidget(
-                                      sides: die.sides,
-                                      label: 'D${die.sides}',
-                                      color: die.originColor,
-                                      locked: die.sides == 20 && d20Locked,
-                                      size: dieSize,
-                                      onTap: () => onRoll(die),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          Text(
-                            context.l10n.gigCenter,
-                            style: TextStyle(fontSize: 10, color: accent.withValues(alpha: 0.75)),
-                          ),
-                          const SizedBox(height: 4),
-                          Expanded(
-                            child: board.isEmpty
-                                ? Center(
-                                    child: Text(
-                                      '—',
-                                      style: TextStyle(color: accent.withValues(alpha: 0.35)),
-                                    ),
-                                  )
-                                : SingleChildScrollView(
-                                    child: Wrap(
-                                      spacing: 6,
-                                      runSpacing: 6,
-                                      alignment: WrapAlignment.center,
-                                      children: [
-                                        for (final die in board)
-                                          PolyhedralDiceWidget(
-                                            sides: die.sides,
-                                            label: '${die.value}',
-                                            color: die.originColor,
-                                            stolen: die.isStolen,
-                                            size: dieSize,
-                                            onTap: () => onTapDie(die),
-                                          ),
-                                      ],
-                                    ),
-                                  ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _SideGigField extends StatelessWidget {
-  final String playerLabel;
-  final String poolTitle;
-  final Color accent;
-  final int cred;
-  final List<GigDie> pool;
-  final bool d20Locked;
-  final ValueChanged<GigDie> onRoll;
-
-  const _SideGigField({
-    required this.playerLabel,
-    required this.poolTitle,
-    required this.accent,
-    required this.cred,
-    required this.pool,
-    required this.d20Locked,
-    required this.onRoll,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      flex: 2,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: accent.withValues(alpha: 0.6)),
-          color: _kGigPanel.withValues(alpha: 0.78),
-        ),
-        padding: const EdgeInsets.fromLTRB(6, 8, 6, 8),
+    final l10n = context.l10n;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: _kHudBg,
+        border: Border.all(color: _kHudBorder),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
         child: Column(
           children: [
-            Text(
-              playerLabel,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontWeight: FontWeight.w800, color: accent, fontSize: 12),
-            ),
-            const SizedBox(height: 4),
-            _CredBadge(value: cred, accent: accent),
-            const SizedBox(height: 4),
-            Text(
-              poolTitle,
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 10, color: accent.withValues(alpha: 0.75)),
+            _StatusStrip(
+              name: name,
+              accent: accent,
+              cred: cred,
+              gigsRolled: gigsRolled,
+              gigsTotal: gigsTotal,
+              clockLabel: clockLabel,
+              overtime: overtime,
+              credLabel: l10n.gigStreetCred,
+              gigsLabel: l10n.gigGigs,
             ),
             const SizedBox(height: 6),
             Expanded(
-              child: ListView(
-                children: [
-                  for (final die in pool)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Center(
-                        child: PolyhedralDiceWidget(
-                          sides: die.sides,
-                          label: 'D${die.sides}',
-                          color: die.originColor,
-                          locked: die.sides == 20 && d20Locked,
-                          onTap: () => onRoll(die),
+              child: landscape
+                  ? Row(
+                      children: [
+                        SizedBox(
+                          width: 92,
+                          child: _PoolRack(
+                            title: l10n.gigPool,
+                            accent: accent,
+                            pool: pool,
+                            d20Locked: d20Locked,
+                            onRoll: onRoll,
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: _ActiveField(
+                            accent: accent,
+                            board: board,
+                            onNudge: onNudge,
+                            onSteal: onSteal,
+                            onSpend: onSpend,
+                          ),
+                        ),
+                      ],
+                    )
+                  : Column(
+                      children: [
+                        Expanded(
+                          child: _ActiveField(
+                            accent: accent,
+                            board: board,
+                            onNudge: onNudge,
+                            onSteal: onSteal,
+                            onSpend: onSpend,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        _PoolRack(
+                          title: l10n.gigPool,
+                          accent: accent,
+                          pool: pool,
+                          d20Locked: d20Locked,
+                          onRoll: onRoll,
+                          horizontal: true,
+                        ),
+                      ],
                     ),
-                ],
-              ),
             ),
           ],
         ),
@@ -538,70 +376,314 @@ class _SideGigField extends StatelessWidget {
   }
 }
 
-class _CenterGigField extends StatelessWidget {
-  final String title;
-  final String playerOneLabel;
-  final String playerTwoLabel;
-  final List<GigDie> playerOneDice;
-  final List<GigDie> playerTwoDice;
-  final int playerOneCred;
-  final int playerTwoCred;
-  final ValueChanged<GigDie> onTapDie;
-  final VoidCallback onReset;
+class _StatusStrip extends StatelessWidget {
+  final String name;
+  final Color accent;
+  final int cred;
+  final int gigsRolled;
+  final int gigsTotal;
+  final String clockLabel;
+  final bool overtime;
+  final String credLabel;
+  final String gigsLabel;
 
-  const _CenterGigField({
-    required this.title,
-    required this.playerOneLabel,
-    required this.playerTwoLabel,
-    required this.playerOneDice,
-    required this.playerTwoDice,
-    required this.playerOneCred,
-    required this.playerTwoCred,
-    required this.onTapDie,
-    required this.onReset,
+  const _StatusStrip({
+    required this.name,
+    required this.accent,
+    required this.cred,
+    required this.gigsRolled,
+    required this.gigsTotal,
+    required this.clockLabel,
+    required this.overtime,
+    required this.credLabel,
+    required this.gigsLabel,
   });
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.l10n;
+    final clockColor = overtime ? Colors.redAccent : accent.withValues(alpha: 0.85);
     return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _kGigYellow.withValues(alpha: 0.5)),
-        color: _kGigPanel,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: accent.withValues(alpha: 0.35)),
+        color: accent.withValues(alpha: 0.06),
       ),
-      padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              name.toUpperCase(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: accent,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.2,
+                fontSize: 13,
+                shadows: [Shadow(color: accent.withValues(alpha: 0.55), blurRadius: 10)],
+              ),
+            ),
+          ),
+          _KpiChip(label: credLabel, value: '$cred', accent: accent),
+          const SizedBox(width: 8),
+          _KpiChip(label: gigsLabel, value: '$gigsRolled / $gigsTotal', accent: accent),
+          const SizedBox(width: 8),
+          _KpiChip(
+            label: context.l10n.roundTimer,
+            value: clockLabel,
+            accent: clockColor,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _KpiChip extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color accent;
+
+  const _KpiChip({
+    required this.label,
+    required this.value,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            fontSize: 8,
+            letterSpacing: 0.8,
+            fontWeight: FontWeight.w700,
+            color: accent.withValues(alpha: 0.65),
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w900,
+            height: 1.05,
+            color: accent,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PoolRack extends StatelessWidget {
+  final String title;
+  final Color accent;
+  final List<GigDie> pool;
+  final bool d20Locked;
+  final ValueChanged<GigDie> onRoll;
+  final bool horizontal;
+
+  const _PoolRack({
+    required this.title,
+    required this.accent,
+    required this.pool,
+    required this.d20Locked,
+    required this.onRoll,
+    this.horizontal = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tiles = [
+      for (final die in pool)
+        PolyhedralDiceWidget(
+          sides: die.sides,
+          label: 'D${die.sides}',
+          color: die.originColor,
+          locked: die.isD20 && d20Locked,
+          size: horizontal ? 44 : 40,
+          onTap: () => onRoll(die),
+        ),
+    ];
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(6, 5, 6, 6),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _kHudBorder),
+      ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            title,
-            style: const TextStyle(
+            title.toUpperCase(),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 9,
               fontWeight: FontWeight.w800,
-              color: _kGigYellow,
+              letterSpacing: 1,
+              color: accent.withValues(alpha: 0.7),
             ),
+          ),
+          const SizedBox(height: 6),
+          if (horizontal)
+            SizedBox(
+              height: 52,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  for (final tile in tiles)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: tile,
+                    ),
+                ],
+              ),
+            )
+          else
+            Expanded(
+              child: SingleChildScrollView(
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  alignment: WrapAlignment.center,
+                  children: tiles,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ActiveField extends StatelessWidget {
+  final Color accent;
+  final List<GigDie> board;
+  final void Function(GigDie die, int delta) onNudge;
+  final ValueChanged<GigDie> onSteal;
+  final ValueChanged<GigDie> onSpend;
+
+  const _ActiveField({
+    required this.accent,
+    required this.board,
+    required this.onNudge,
+    required this.onSteal,
+    required this.onSpend,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: accent.withValues(alpha: 0.22)),
+      ),
+      child: board.isEmpty
+          ? Center(
+              child: Text(
+                '—',
+                style: TextStyle(color: accent.withValues(alpha: 0.28), fontSize: 28),
+              ),
+            )
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                final dieSize = (min(constraints.maxHeight, constraints.maxWidth) / 3.4)
+                    .clamp(42.0, 72.0);
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.all(6),
+                  child: Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      for (final die in board)
+                        _ActiveDieCard(
+                          die: die,
+                          size: dieSize,
+                          onNudge: onNudge,
+                          onSteal: onSteal,
+                          onSpend: onSpend,
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+    );
+  }
+}
+
+class _ActiveDieCard extends StatelessWidget {
+  final GigDie die;
+  final double size;
+  final void Function(GigDie die, int delta) onNudge;
+  final ValueChanged<GigDie> onSteal;
+  final ValueChanged<GigDie> onSpend;
+
+  const _ActiveDieCard({
+    required this.die,
+    required this.size,
+    required this.onNudge,
+    required this.onSteal,
+    required this.onSpend,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = die.originColor;
+    return SizedBox(
+      width: size + 18,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _HudMiniBtn(
+                label: '−1',
+                accent: accent,
+                onTap: die.value > 1 ? () => onNudge(die, -1) : null,
+              ),
+              const SizedBox(width: 4),
+              _HudMiniBtn(
+                label: '⇄',
+                accent: accent,
+                onTap: () => onSteal(die),
+              ),
+              const SizedBox(width: 4),
+              _HudMiniBtn(
+                label: '+1',
+                accent: accent,
+                onTap: die.value < die.sides ? () => onNudge(die, 1) : null,
+              ),
+            ],
           ),
           const SizedBox(height: 4),
-          Expanded(
-            child: _PlayerBoardLane(
-              label: playerTwoLabel,
-              accent: _kGigPink,
-              cred: playerTwoCred,
-              dice: playerTwoDice,
-              onTapDie: onTapDie,
+          GestureDetector(
+            onLongPress: () => onSpend(die),
+            child: PolyhedralDiceWidget(
+              sides: die.sides,
+              label: '${die.value}',
+              color: accent,
+              stolen: die.isStolen,
+              size: size,
             ),
           ),
-          IconButton(
-            tooltip: l10n.gigNewRound,
-            onPressed: onReset,
-            icon: const Icon(Icons.restart_alt_rounded, color: _kGigYellow),
-          ),
-          Expanded(
-            child: _PlayerBoardLane(
-              label: playerOneLabel,
-              accent: _kGigCyan,
-              cred: playerOneCred,
-              dice: playerOneDice,
-              onTapDie: onTapDie,
+          const SizedBox(height: 2),
+          Text(
+            'd${die.sides}',
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.6,
+              color: accent.withValues(alpha: 0.7),
             ),
           ),
         ],
@@ -610,87 +692,43 @@ class _CenterGigField extends StatelessWidget {
   }
 }
 
-class _PlayerBoardLane extends StatelessWidget {
+class _HudMiniBtn extends StatelessWidget {
   final String label;
   final Color accent;
-  final int cred;
-  final List<GigDie> dice;
-  final ValueChanged<GigDie> onTapDie;
+  final VoidCallback? onTap;
 
-  const _PlayerBoardLane({
+  const _HudMiniBtn({
     required this.label,
     required this.accent,
-    required this.cred,
-    required this.dice,
-    required this.onTapDie,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        _CredBadge(value: cred, accent: accent, compact: false),
-        Text(
-          label,
-          style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: accent),
-        ),
-        const SizedBox(height: 4),
-        Expanded(
-          child: dice.isEmpty
-              ? Center(
-                  child: Text(
-                    '—',
-                    style: TextStyle(color: accent.withValues(alpha: 0.35), fontSize: 22),
-                  ),
-                )
-              : SingleChildScrollView(
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    alignment: WrapAlignment.center,
-                    children: [
-                      for (final die in dice)
-                        PolyhedralDiceWidget(
-                          sides: die.sides,
-                          label: '${die.value}',
-                          color: die.originColor,
-                          stolen: die.isStolen,
-                          onTap: () => onTapDie(die),
-                        ),
-                    ],
-                  ),
-                ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CredBadge extends StatelessWidget {
-  final int value;
-  final Color accent;
-  final bool compact;
-
-  const _CredBadge({
-    required this.value,
-    required this.accent,
-    this.compact = true,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return FittedBox(
-      fit: BoxFit.scaleDown,
-      child: Text(
-        '${context.l10n.gigCredShort} $value',
-        style: TextStyle(
-          fontSize: compact ? 22 : 32,
-          fontWeight: FontWeight.w900,
-          color: accent,
-          letterSpacing: 1.1,
-          shadows: [
-            Shadow(color: accent.withValues(alpha: 0.55), blurRadius: 12),
-          ],
+    final enabled = onTap != null;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(4),
+        child: Container(
+          width: 26,
+          height: 20,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: accent.withValues(alpha: enabled ? 0.7 : 0.25)),
+            color: accent.withValues(alpha: enabled ? 0.12 : 0.04),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              height: 1,
+              color: accent.withValues(alpha: enabled ? 1 : 0.35),
+            ),
+          ),
         ),
       ),
     );
@@ -719,11 +757,11 @@ class PolyhedralDiceWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final paintColor = locked ? Colors.blueGrey : color;
+    final paintColor = locked ? const Color(0xFF5A6578) : color;
     final stolenLabel = context.l10n.gigStolen;
 
     return Opacity(
-      opacity: locked ? 0.4 : 1,
+      opacity: locked ? 0.38 : 1,
       child: SizedBox(
         width: size,
         height: size,
@@ -746,9 +784,9 @@ class PolyhedralDiceWidget extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    fontSize: (label.startsWith('D') ? size * 0.24 : size * 0.36).clamp(10.0, 22.0),
+                    fontSize: (label.startsWith('D') ? size * 0.22 : size * 0.38).clamp(9.0, 24.0),
                     fontWeight: FontWeight.w900,
-                    color: locked ? Colors.white70 : Colors.white,
+                    color: locked ? Colors.white54 : Colors.white,
                     shadows: [
                       Shadow(color: paintColor, blurRadius: 8),
                       const Shadow(color: Colors.black87, blurRadius: 4),
@@ -777,9 +815,9 @@ class PolyhedralDiceWidget extends StatelessWidget {
                   ),
                 if (locked)
                   const Positioned(
-                    bottom: 4,
-                    right: 6,
-                    child: Icon(Icons.lock, size: 12, color: Colors.white70),
+                    bottom: 3,
+                    right: 4,
+                    child: Icon(Icons.lock, size: 11, color: Colors.white70),
                   ),
               ],
             ),
@@ -805,12 +843,12 @@ class CyberDiceShape extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final path = _shapePath(size);
     final fill = Paint()
-      ..color = color.withValues(alpha: locked ? 0.12 : 0.22)
+      ..color = color.withValues(alpha: locked ? 0.06 : 0.10)
       ..style = PaintingStyle.fill;
     final stroke = Paint()
       ..color = color
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.1
+      ..strokeWidth = 1.4
       ..strokeJoin = StrokeJoin.round
       ..strokeCap = StrokeCap.round;
 
@@ -822,9 +860,9 @@ class CyberDiceShape extends CustomPainter {
       canvas.drawPath(
         inner,
         Paint()
-          ..color = color.withValues(alpha: 0.45)
+          ..color = color.withValues(alpha: 0.4)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 1,
+          ..strokeWidth = 0.8,
       );
     }
   }
@@ -838,7 +876,7 @@ class CyberDiceShape extends CustomPainter {
           ..addRRect(
             RRect.fromRectAndRadius(
               Rect.fromLTWH(5, 5, size.width - 10, size.height - 10),
-              const Radius.circular(10),
+              const Radius.circular(3),
             ),
           );
       case 8:
@@ -855,23 +893,21 @@ class CyberDiceShape extends CustomPainter {
 
   Path _diamond(Size size) {
     final c = Offset(size.width / 2, size.height / 2);
-    final path = Path()
+    return Path()
       ..moveTo(c.dx, 3)
       ..lineTo(size.width - 4, c.dy)
       ..lineTo(c.dx, size.height - 3)
       ..lineTo(4, c.dy)
       ..close();
-    return path;
   }
 
   Path _kite(Size size) {
-    final path = Path()
+    return Path()
       ..moveTo(size.width / 2, 3)
       ..lineTo(size.width - 5, size.height * 0.42)
       ..lineTo(size.width / 2, size.height - 3)
       ..lineTo(5, size.height * 0.42)
       ..close();
-    return path;
   }
 
   Path _regularPolygon(

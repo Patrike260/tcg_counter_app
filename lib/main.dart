@@ -17,6 +17,7 @@ import 'features/settings/settings_screen.dart';
 import 'features/stats/dashboard_repository.dart';
 import 'features/stats/dashboard_screen.dart';
 import 'features/tools/tools_screen.dart';
+import 'features/tools/widgets/round_timer_capsule.dart';
 import 'l10n/l10n.dart';
 
 Future<void> main() async {
@@ -134,6 +135,7 @@ class _MainNavigationHostState extends ConsumerState<MainNavigationHost> {
             ),
             const SizedBox(width: 12),
           ],
+          const RoundTimerCapsule(),
           IconButton(
             tooltip: l10n.tooltipDiceCoin,
             icon: const Icon(Icons.casino_outlined),

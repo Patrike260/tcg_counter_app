@@ -194,6 +194,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get continueWithGoogle => 'Continue with Google';
 
   @override
+  String get continueWithDiscord => 'Sign in with Discord';
+
+  @override
+  String get continueWithGithub => 'Sign in with GitHub';
+
+  @override
   String get enterEmailPassword => 'Please enter email and password.';
 
   @override
@@ -202,6 +208,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String googleLoginFailed(Object error) {
     return 'Google sign-in failed: $error';
+  }
+
+  @override
+  String discordLoginFailed(Object error) {
+    return 'Discord sign-in failed: $error';
+  }
+
+  @override
+  String githubLoginFailed(Object error) {
+    return 'GitHub sign-in failed: $error';
   }
 
   @override
@@ -215,10 +231,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sectionSettings => 'SETTINGS';
 
   @override
+  String get sectionToolsTimer => 'TOOLS & TIMER';
+
+  @override
   String get sectionContent => 'MANAGEMENT & CONTENT';
 
   @override
   String get sectionBackup => 'DATA & BACKUP';
+
+  @override
+  String get sectionSupport => 'SUPPORT & FEEDBACK';
 
   @override
   String get sectionAccount => 'ACCOUNT & INFO';
@@ -253,6 +275,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get toolPresetsSubtitle => 'Life counter, player count and timer';
+
+  @override
+  String get timerSoundTitle => 'Sound alert when time expires';
+
+  @override
+  String get timerSoundSubtitle => 'Play a short system beep at 00:00';
+
+  @override
+  String get timerVibrationTitle => 'Vibration alert when time expires';
+
+  @override
+  String get timerVibrationSubtitle => 'Haptic feedback on supported devices';
 
   @override
   String get tournamentsTitle => 'Tournaments & events';
@@ -1017,29 +1051,38 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get promoBadge => 'CARDMARKET PARTNER';
-
-  @override
-  String get promoHeadline => 'Find singles & displays';
-
-  @override
-  String get promoSubtitle => 'Support the app with your next deck upgrade.';
-
-  @override
-  String get promoView => 'Shop';
-
-  @override
-  String get promoDismiss => 'Hide banner';
-
-  @override
   String get promoOpenFailed => 'The partner link could not be opened.';
 
   @override
-  String get promoSettingsTitle => 'Partner recommendations & banners';
+  String get supportCardmarketTitle => 'Cards & accessories on Cardmarket';
 
   @override
-  String get promoSettingsSubtitle =>
-      'Support the project with discreet community links';
+  String get supportCardmarketSubtitle =>
+      'Support the app with your next purchase';
+
+  @override
+  String get supportCoffeeTitle => 'Buy me a coffee';
+
+  @override
+  String get supportCoffeeSubtitle => 'Support development via Buy Me a Coffee';
+
+  @override
+  String get supportGithubStarTitle => 'Star the GitHub project';
+
+  @override
+  String get supportGithubStarSubtitle => 'Give the app a star on GitHub';
+
+  @override
+  String get supportDiscordTitle => 'Community & feedback on Discord';
+
+  @override
+  String get supportDiscordSubtitle => 'Chat with players or share ideas';
+
+  @override
+  String get supportGithubIssueTitle => 'Create a GitHub issue';
+
+  @override
+  String get supportGithubIssueSubtitle => 'Report a bug or request a feature';
 
   @override
   String get toolsTabChakra => 'Chakra (Naruto)';
@@ -1118,6 +1161,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get timerPreset50 => '50 min';
+
+  @override
+  String get timerAddFive => '+5 min extension';
 
   @override
   String get toolsTabDice => 'Dice & coin';
@@ -1354,4 +1400,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gigCredShort => 'CRED';
+
+  @override
+  String get gigGigs => 'Gigs';
 }

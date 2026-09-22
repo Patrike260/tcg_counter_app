@@ -83,9 +83,23 @@
   "alreadyHaveAccount": "Already have an account? Sign in",
   "noAccountYet": "No account yet? Register now",
   "continueWithGoogle": "Continue with Google",
+  "continueWithDiscord": "Sign in with Discord",
+  "continueWithGithub": "Sign in with GitHub",
   "enterEmailPassword": "Please enter email and password.",
   "registrationSuccess": "Registration successful!",
   "googleLoginFailed": "Google sign-in failed: {error}",
+  "discordLoginFailed": "Discord sign-in failed: {error}",
+  "@discordLoginFailed": {
+    "placeholders": {
+      "error": {"type": "Object"}
+    }
+  },
+  "githubLoginFailed": "GitHub sign-in failed: {error}",
+  "@githubLoginFailed": {
+    "placeholders": {
+      "error": {"type": "Object"}
+    }
+  },
   "@googleLoginFailed": {
     "placeholders": {
       "error": {"type": "Object"}
@@ -94,8 +108,10 @@
   "legalAcceptHint": "By registering you accept our Terms of Use & Privacy Policy.",
   "sectionAppearance": "APPEARANCE / DESIGN",
   "sectionSettings": "SETTINGS",
+  "sectionToolsTimer": "TOOLS & TIMER",
   "sectionContent": "MANAGEMENT & CONTENT",
   "sectionBackup": "DATA & BACKUP",
+  "sectionSupport": "SUPPORT & FEEDBACK",
   "sectionAccount": "ACCOUNT & INFO",
   "themePresetsTitle": "Color scheme & design presets",
   "dashboardTabsTitle": "Configure dashboard tabs & tiles",
@@ -107,6 +123,10 @@
   "manageTcgsSubtitle": "Add or rename games",
   "toolPresetsTitle": "Manage tool presets",
   "toolPresetsSubtitle": "Life counter, player count and timer",
+  "timerSoundTitle": "Sound alert when time expires",
+  "timerSoundSubtitle": "Play a short system beep at 00:00",
+  "timerVibrationTitle": "Vibration alert when time expires",
+  "timerVibrationSubtitle": "Haptic feedback on supported devices",
   "tournamentsTitle": "Tournaments & events",
   "tournamentsSubtitle": "Track placements and decks you played",
   "archetypesTitle": "Manage opponent archetypes",
@@ -521,14 +541,17 @@
       "place": {"type": "int"}
     }
   },
-  "promoBadge": "CARDMARKET PARTNER",
-  "promoHeadline": "Find singles & displays",
-  "promoSubtitle": "Support the app with your next deck upgrade.",
-  "promoView": "Shop",
-  "promoDismiss": "Hide banner",
   "promoOpenFailed": "The partner link could not be opened.",
-  "promoSettingsTitle": "Partner recommendations & banners",
-  "promoSettingsSubtitle": "Support the project with discreet community links",
+  "supportCardmarketTitle": "Cards & accessories on Cardmarket",
+  "supportCardmarketSubtitle": "Support the app with your next purchase",
+  "supportCoffeeTitle": "Buy me a coffee",
+  "supportCoffeeSubtitle": "Support development via Buy Me a Coffee",
+  "supportGithubStarTitle": "Star the GitHub project",
+  "supportGithubStarSubtitle": "Give the app a star on GitHub",
+  "supportDiscordTitle": "Community & feedback on Discord",
+  "supportDiscordSubtitle": "Chat with players or share ideas",
+  "supportGithubIssueTitle": "Create a GitHub issue",
+  "supportGithubIssueSubtitle": "Report a bug or request a feature",
   "toolsTabChakra": "Chakra (Naruto)",
   "toolsTabLife": "Life Counter",
   "toolsTabTimer": "Round timer",
@@ -569,6 +592,7 @@
   "timerPreset30": "30 min",
   "timerPreset45": "45 min",
   "timerPreset50": "50 min",
+  "timerAddFive": "+5 min extension",
   "toolsTabDice": "Dice & coin",
   "coinHeads": "Heads",
   "coinTails": "Tails",
@@ -664,5 +688,6 @@
   "gigSteal": "Steal",
   "gigRemove": "Remove / spend",
   "gigStolen": "STOLEN",
-  "gigCredShort": "CRED"
+  "gigCredShort": "CRED",
+  "gigGigs": "Gigs"
 }

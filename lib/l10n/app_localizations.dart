@@ -450,6 +450,18 @@ abstract class AppLocalizations {
   /// **'Continue with Google'**
   String get continueWithGoogle;
 
+  /// No description provided for @continueWithDiscord.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Discord'**
+  String get continueWithDiscord;
+
+  /// No description provided for @continueWithGithub.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with GitHub'**
+  String get continueWithGithub;
+
   /// No description provided for @enterEmailPassword.
   ///
   /// In en, this message translates to:
@@ -467,6 +479,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Google sign-in failed: {error}'**
   String googleLoginFailed(Object error);
+
+  /// No description provided for @discordLoginFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Discord sign-in failed: {error}'**
+  String discordLoginFailed(Object error);
+
+  /// No description provided for @githubLoginFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'GitHub sign-in failed: {error}'**
+  String githubLoginFailed(Object error);
 
   /// No description provided for @legalAcceptHint.
   ///
@@ -486,6 +510,12 @@ abstract class AppLocalizations {
   /// **'SETTINGS'**
   String get sectionSettings;
 
+  /// No description provided for @sectionToolsTimer.
+  ///
+  /// In en, this message translates to:
+  /// **'TOOLS & TIMER'**
+  String get sectionToolsTimer;
+
   /// No description provided for @sectionContent.
   ///
   /// In en, this message translates to:
@@ -497,6 +527,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'DATA & BACKUP'**
   String get sectionBackup;
+
+  /// No description provided for @sectionSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'SUPPORT & FEEDBACK'**
+  String get sectionSupport;
 
   /// No description provided for @sectionAccount.
   ///
@@ -563,6 +599,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Life counter, player count and timer'**
   String get toolPresetsSubtitle;
+
+  /// No description provided for @timerSoundTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound alert when time expires'**
+  String get timerSoundTitle;
+
+  /// No description provided for @timerSoundSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Play a short system beep at 00:00'**
+  String get timerSoundSubtitle;
+
+  /// No description provided for @timerVibrationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vibration alert when time expires'**
+  String get timerVibrationTitle;
+
+  /// No description provided for @timerVibrationSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Haptic feedback on supported devices'**
+  String get timerVibrationSubtitle;
 
   /// No description provided for @tournamentsTitle.
   ///
@@ -1914,53 +1974,71 @@ abstract class AppLocalizations {
   /// **'Place {place}'**
   String placeNumber(int place);
 
-  /// No description provided for @promoBadge.
-  ///
-  /// In en, this message translates to:
-  /// **'CARDMARKET PARTNER'**
-  String get promoBadge;
-
-  /// No description provided for @promoHeadline.
-  ///
-  /// In en, this message translates to:
-  /// **'Find singles & displays'**
-  String get promoHeadline;
-
-  /// No description provided for @promoSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Support the app with your next deck upgrade.'**
-  String get promoSubtitle;
-
-  /// No description provided for @promoView.
-  ///
-  /// In en, this message translates to:
-  /// **'Shop'**
-  String get promoView;
-
-  /// No description provided for @promoDismiss.
-  ///
-  /// In en, this message translates to:
-  /// **'Hide banner'**
-  String get promoDismiss;
-
   /// No description provided for @promoOpenFailed.
   ///
   /// In en, this message translates to:
   /// **'The partner link could not be opened.'**
   String get promoOpenFailed;
 
-  /// No description provided for @promoSettingsTitle.
+  /// No description provided for @supportCardmarketTitle.
   ///
   /// In en, this message translates to:
-  /// **'Partner recommendations & banners'**
-  String get promoSettingsTitle;
+  /// **'Cards & accessories on Cardmarket'**
+  String get supportCardmarketTitle;
 
-  /// No description provided for @promoSettingsSubtitle.
+  /// No description provided for @supportCardmarketSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Support the project with discreet community links'**
-  String get promoSettingsSubtitle;
+  /// **'Support the app with your next purchase'**
+  String get supportCardmarketSubtitle;
+
+  /// No description provided for @supportCoffeeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy me a coffee'**
+  String get supportCoffeeTitle;
+
+  /// No description provided for @supportCoffeeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Support development via Buy Me a Coffee'**
+  String get supportCoffeeSubtitle;
+
+  /// No description provided for @supportGithubStarTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Star the GitHub project'**
+  String get supportGithubStarTitle;
+
+  /// No description provided for @supportGithubStarSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Give the app a star on GitHub'**
+  String get supportGithubStarSubtitle;
+
+  /// No description provided for @supportDiscordTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Community & feedback on Discord'**
+  String get supportDiscordTitle;
+
+  /// No description provided for @supportDiscordSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Chat with players or share ideas'**
+  String get supportDiscordSubtitle;
+
+  /// No description provided for @supportGithubIssueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a GitHub issue'**
+  String get supportGithubIssueTitle;
+
+  /// No description provided for @supportGithubIssueSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report a bug or request a feature'**
+  String get supportGithubIssueSubtitle;
 
   /// No description provided for @toolsTabChakra.
   ///
@@ -2105,6 +2183,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'50 min'**
   String get timerPreset50;
+
+  /// No description provided for @timerAddFive.
+  ///
+  /// In en, this message translates to:
+  /// **'+5 min extension'**
+  String get timerAddFive;
 
   /// No description provided for @toolsTabDice.
   ///
@@ -2549,6 +2633,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'CRED'**
   String get gigCredShort;
+
+  /// No description provided for @gigGigs.
+  ///
+  /// In en, this message translates to:
+  /// **'Gigs'**
+  String get gigGigs;
 }
 
 class _AppLocalizationsDelegate

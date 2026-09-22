@@ -97,6 +97,20 @@ class AuthRepository {
     }
   }
 
+  Future<void> signInWithDiscord() async {
+    await _client.auth.signInWithOAuth(
+      OAuthProvider.discord,
+      redirectTo: kIsWeb ? Uri.base.origin + Uri.base.path : null,
+    );
+  }
+
+  Future<void> signInWithGithub() async {
+    await _client.auth.signInWithOAuth(
+      OAuthProvider.github,
+      redirectTo: kIsWeb ? Uri.base.origin + Uri.base.path : null,
+    );
+  }
+
   // Abmelden
   Future<void> signOut() async {
     await _client.auth.signOut();

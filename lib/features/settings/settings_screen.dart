@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/constants/supabase_constants.dart';
 import '../../core/theme/app_themes.dart';
 import '../auth/auth_repository.dart';
@@ -19,9 +20,15 @@ import 'tool_presets_screen.dart';
 import 'dashboard_settings_screen.dart';
 import 'legal_screen.dart';
 import 'language_selection_screen.dart';
-import '../stats/widgets/promo_banner_widget.dart';
 import '../tournaments/tournament_list_screen.dart';
 import '../../l10n/l10n.dart';
+
+const _kCardmarketPartnerUrl =
+    'https://www.cardmarket.com/de/Pokemon?utm_source=tcg_counter_app&idPartner=wowe260';
+const _kGithubRepoUrl = 'https://github.com/Patrike260/tcg_counter_app';
+const _kGithubIssuesUrl = 'https://github.com/Patrike260/tcg_counter_app/issues/new';
+const _kDiscordInviteUrl = 'https://discord.gg/Vh7uUFRJNz';
+const _kBuyMeACoffeeUrl = 'https://buymeacoffee.com/Patrike260';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -147,6 +154,26 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   void _open(Widget screen) {
     Navigator.of(context).push(MaterialPageRoute(builder: (_) => screen));
+  }
+
+  Future<void> _openExternal(String url) async {
+    try {
+      final opened = await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      );
+      if (!opened && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.promoOpenFailed)),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n.promoOpenFailed)),
+        );
+      }
+    }
   }
 
   String _displayNameOf(User? user, AppLocalizations l10n) {
@@ -452,19 +479,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     title: l10n.dashboardTabsTitle,
                     subtitle: l10n.dashboardTabsSubtitle,
                     onTap: () => _open(const DashboardSettingsScreen()),
-                  ),
-                  _SettingsSwitchTile(
-                    icon: Icons.campaign_outlined,
-                    iconColor: Colors.orangeAccent,
-                    title: l10n.promoSettingsTitle,
-                    subtitle: l10n.promoSettingsSubtitle,
-                    value: prefs.showPromoBanner,
-                    onChanged: (value) {
-                      ref.read(appPreferencesProvider.notifier).setShowPromoBanner(value);
-                      if (value) {
-                        ref.read(promoBannerSessionHiddenProvider.notifier).reveal();
-                      }
-                    },
+                    showDivider: false,
                   ),
                 ],
               ),
@@ -496,14 +511,44 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     title: l10n.manageTcgsTitle,
                     subtitle: l10n.manageTcgsSubtitle,
                     onTap: () => _open(const GameManagementScreen()),
+                    showDivider: false,
                   ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Text(
+                l10n.sectionToolsTimer,
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+              ),
+              const SizedBox(height: 8),
+              _SettingsGroup(
+                children: [
                   _SettingsNavTile(
                     icon: Icons.calculate_outlined,
                     iconColor: Colors.amber,
                     title: l10n.toolPresetsTitle,
                     subtitle: l10n.toolPresetsSubtitle,
                     onTap: () => _open(const ToolPresetsScreen()),
-                    showDivider: false,
+                  ),
+                  _SettingsSwitchTile(
+                    icon: Icons.volume_up_outlined,
+                    iconColor: Colors.lightBlueAccent,
+                    title: l10n.timerSoundTitle,
+                    subtitle: l10n.timerSoundSubtitle,
+                    value: prefs.timerSoundEnabled,
+                    onChanged: (value) {
+                      ref.read(appPreferencesProvider.notifier).setTimerSoundEnabled(value);
+                    },
+                  ),
+                  _SettingsSwitchTile(
+                    icon: Icons.vibration,
+                    iconColor: Colors.deepOrangeAccent,
+                    title: l10n.timerVibrationTitle,
+                    subtitle: l10n.timerVibrationSubtitle,
+                    value: prefs.timerVibrationEnabled,
+                    onChanged: (value) {
+                      ref.read(appPreferencesProvider.notifier).setTimerVibrationEnabled(value);
+                    },
                   ),
                 ],
               ),
@@ -568,6 +613,62 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     subtitle: l10n.restoreBackupSubtitle,
                     onTap: _isProcessing ? null : _restoreJson,
                     showDivider: false,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Text(
+                l10n.sectionSupport,
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
+              ),
+              const SizedBox(height: 8),
+              _SettingsGroup(
+                children: [
+                  _SettingsNavTile(
+                    icon: Icons.shopping_bag_outlined,
+                    iconColor: Colors.blueAccent,
+                    title: l10n.supportCardmarketTitle,
+                    subtitle: l10n.supportCardmarketSubtitle,
+                    trailing: const Icon(Icons.open_in_new, size: 18),
+                    showChevron: false,
+                    onTap: () => _openExternal(_kCardmarketPartnerUrl),
+                  ),
+                  _SettingsNavTile(
+                    icon: Icons.coffee_outlined,
+                    iconColor: Colors.amberAccent,
+                    title: l10n.supportCoffeeTitle,
+                    subtitle: l10n.supportCoffeeSubtitle,
+                    trailing: const Icon(Icons.open_in_new, size: 18),
+                    showChevron: false,
+                    onTap: () => _openExternal(_kBuyMeACoffeeUrl),
+                  ),
+                  _SettingsNavTile(
+                    icon: Icons.star_outline,
+                    iconColor: Colors.amber,
+                    title: l10n.supportGithubStarTitle,
+                    subtitle: l10n.supportGithubStarSubtitle,
+                    trailing: const Icon(Icons.open_in_new, size: 18),
+                    showChevron: false,
+                    onTap: () => _openExternal(_kGithubRepoUrl),
+                  ),
+                  _SettingsNavTile(
+                    icon: Icons.forum_outlined,
+                    iconColor: Colors.indigoAccent,
+                    title: l10n.supportDiscordTitle,
+                    subtitle: l10n.supportDiscordSubtitle,
+                    trailing: const Icon(Icons.open_in_new, size: 18),
+                    showChevron: false,
+                    onTap: () => _openExternal(_kDiscordInviteUrl),
+                  ),
+                  _SettingsNavTile(
+                    icon: Icons.bug_report_outlined,
+                    iconColor: Colors.tealAccent,
+                    title: l10n.supportGithubIssueTitle,
+                    subtitle: l10n.supportGithubIssueSubtitle,
+                    trailing: const Icon(Icons.open_in_new, size: 18),
+                    showChevron: false,
+                    showDivider: false,
+                    onTap: () => _openExternal(_kGithubIssuesUrl),
                   ),
                 ],
               ),

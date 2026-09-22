@@ -37,9 +37,10 @@ class AppPreferencesState {
   final List<DashboardTabConfig> dashboardTabs;
   /// `system`, `de`, `en`, `fr` or `it`.
   final String localeCode;
-  final bool showPromoBanner;
   final String deckSortMode;
   final List<String> customDeckOrder;
+  final bool timerSoundEnabled;
+  final bool timerVibrationEnabled;
 
   // Die unveränderlichen Standard-Tags
   static const List<String> defaultBaseTags = [
@@ -68,9 +69,10 @@ class AppPreferencesState {
     this.activePreset = AppThemeKeys.cyberpunk,
     this.dashboardTabs = DashboardTabConfig.defaults,
     this.localeCode = 'system',
-    this.showPromoBanner = true,
     this.deckSortMode = 'newest',
     this.customDeckOrder = const [],
+    this.timerSoundEnabled = true,
+    this.timerVibrationEnabled = true,
   });
 
   static const supportedLocaleCodes = ['de', 'en', 'fr', 'it'];
@@ -177,9 +179,10 @@ class AppPreferencesState {
     String? activePreset,
     List<DashboardTabConfig>? dashboardTabs,
     String? localeCode,
-    bool? showPromoBanner,
     String? deckSortMode,
     List<String>? customDeckOrder,
+    bool? timerSoundEnabled,
+    bool? timerVibrationEnabled,
   }) {
     return AppPreferencesState(
       defaultFormat: defaultFormat ?? this.defaultFormat,
@@ -203,9 +206,10 @@ class AppPreferencesState {
       activePreset: activePreset ?? this.activePreset,
       dashboardTabs: dashboardTabs ?? this.dashboardTabs,
       localeCode: localeCode ?? this.localeCode,
-      showPromoBanner: showPromoBanner ?? this.showPromoBanner,
       deckSortMode: deckSortMode ?? this.deckSortMode,
       customDeckOrder: customDeckOrder ?? this.customDeckOrder,
+      timerSoundEnabled: timerSoundEnabled ?? this.timerSoundEnabled,
+      timerVibrationEnabled: timerVibrationEnabled ?? this.timerVibrationEnabled,
     );
   }
 }
@@ -229,9 +233,10 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
   static const _keyActivePreset = 'pref_theme_preset';
   static const _keyDashboardTabs = 'pref_dashboard_tabs_config';
   static const _keyLocaleCode = 'pref_app_locale_code';
-  static const _keyShowPromoBanner = 'pref_show_promo_banner';
   static const _keyDeckSortMode = 'pref_deck_sort_mode';
   static const _keyCustomDeckOrder = 'pref_custom_deck_order';
+  static const _keyTimerSound = 'pref_timer_sound';
+  static const _keyTimerVibration = 'pref_timer_vibration';
 
   @override
   AppPreferencesState build() {
@@ -257,16 +262,11 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
       activePreset: AppThemeKeys.normalize(prefs.getString(_keyActivePreset)),
       dashboardTabs: DashboardTabConfig.decodeList(prefs.getStringList(_keyDashboardTabs)),
       localeCode: prefs.getString(_keyLocaleCode) ?? 'system',
-      showPromoBanner: prefs.getBool(_keyShowPromoBanner) ?? true,
       deckSortMode: _normalizeDeckSortMode(prefs.getString(_keyDeckSortMode)),
       customDeckOrder: prefs.getStringList(_keyCustomDeckOrder) ?? const [],
+      timerSoundEnabled: prefs.getBool(_keyTimerSound) ?? true,
+      timerVibrationEnabled: prefs.getBool(_keyTimerVibration) ?? true,
     );
-  }
-
-  Future<void> setShowPromoBanner(bool value) async {
-    final prefs = ref.read(sharedPreferencesProvider);
-    await prefs.setBool(_keyShowPromoBanner, value);
-    state = state.copyWith(showPromoBanner: value);
   }
 
   Future<void> setDeckSortMode(String mode) async {
@@ -280,6 +280,18 @@ class AppPreferencesNotifier extends Notifier<AppPreferencesState> {
     final prefs = ref.read(sharedPreferencesProvider);
     await prefs.setStringList(_keyCustomDeckOrder, deckIds);
     state = state.copyWith(customDeckOrder: deckIds);
+  }
+
+  Future<void> setTimerSoundEnabled(bool value) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setBool(_keyTimerSound, value);
+    state = state.copyWith(timerSoundEnabled: value);
+  }
+
+  Future<void> setTimerVibrationEnabled(bool value) async {
+    final prefs = ref.read(sharedPreferencesProvider);
+    await prefs.setBool(_keyTimerVibration, value);
+    state = state.copyWith(timerVibrationEnabled: value);
   }
 
   Future<void> setLocaleCode(String code) async {
